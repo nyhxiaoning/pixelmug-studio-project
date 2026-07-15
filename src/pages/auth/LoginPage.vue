@@ -2,7 +2,6 @@
   <main class="login-page">
     <div class="login-brand">
       <span class="login-brand__mark">G</span>
-      <span>冒泡开发平台</span>
     </div>
     <section class="login-card">
       <h1>登录</h1>
