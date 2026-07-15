@@ -112,6 +112,23 @@
 .login-tabs {
   width: 100%;
   margin-bottom: 28px;
+  --el-segmented-bg-color: #ebeef5;
+  --el-segmented-item-selected-bg-color: #ffffff;
+  --el-segmented-item-selected-color: #1f2f3d;
+  --el-segmented-item-hover-bg-color: #ffffff;
+  --el-segmented-item-hover-color: #1f2f3d;
+  --el-segmented-item-color: #5a6478;
+  --el-segmented-padding: 4px;
+
+  :deep(.el-segmented__item-selected) {
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  :deep(.el-segmented__item.is-selected) {
+    font-weight: 600;
+    color: #1f2f3d;
+  }
 }
 
 :deep(.el-form-item) {
