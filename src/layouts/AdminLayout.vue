@@ -21,7 +21,7 @@
             @click="toggleGroup(item)"
           >
             <el-icon><component :is="item.icon" /></el-icon>
-            <span>{{ item.title }}</span>
+            <span>{{ item.title }}22</span>
             <span class="sidebar-group-arrow" :class="{ expanded: isGroupExpanded(item) }" />
           </button>
           <div v-show="isGroupExpanded(item)" class="sidebar-group-children">

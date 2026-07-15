@@ -20,7 +20,7 @@ export default defineComponent({
     })
 
     function isActive(item: AdminMenuItem) {
-      return route.meta.module === item.module
+      return route.path === item?.path
     }
 
     function isGroupActive(item: AdminMenuEntry) {
