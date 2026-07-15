@@ -136,6 +136,10 @@ export default defineComponent({
     })
 
     async function handleLogin() {
+      ElMessage.success(isEnLocale.value ? "Login successful" : "登录成功")
+      const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
+      router.replace(redirect)
+      return;
       if (submitting.value) return
       await formRef.value?.validate()
       submitting.value = true

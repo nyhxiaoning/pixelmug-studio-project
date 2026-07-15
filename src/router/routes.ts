@@ -29,12 +29,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/modules/pixel-editor/components/editor/PixelEditor.vue'),
         meta: { title: '像素编辑器' }
       },
-      // {
-      //   path: "product/:id",
-      //   name: "ProductDetail",
-      //   component: () => import("@/modules/product/pages/ProductDetail.vue"),
-      //   meta: { title: "产品详情", module: "product" }
-      // }
+      {
+        path: "works",
+        name: "Works",
+        component: () => import("@/pages/works/index.vue"),
+        meta: { title: "作品" }
+      }
     ]
   },
 
