@@ -1,95 +1,173 @@
+/* ============================================================
+   Login Page — Split Layout
+   左：插画背景 ｜ 右：登录表单
+   ============================================================ */
+
 .login-page {
+  display: flex;
+  min-height: 100vh;
+  background: #fff;
+}
+
+/* ---------- 左侧插画区 ---------- */
+.login-visual {
   position: relative;
+  flex: 0 0 50%;
   min-height: 100vh;
   overflow: hidden;
-  background: linear-gradient(180deg, #2b75cf 0 45%, #f5f7fb 45% 100%);
-
-  &::before {
-    position: absolute;
-    top: 0;
-    right: -18vw;
-    width: 62vw;
-    height: 48vh;
-    background: rgba(63, 153, 227, 0.42);
-    clip-path: polygon(100% 0, 0 100%, 100% 100%);
-    content: "";
-  }
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.login-brand {
+.login-visual__inner {
   position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.login-visual__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.55;
+  filter: saturate(0.85) brightness(0.95);
+}
+
+.login-visual__overlay {
+  position: absolute;
+  bottom: 10%;
+  left: 0;
+  right: 0;
   z-index: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 34px 32px;
+  padding: 0 48px;
   color: #ffffff;
-  font-size: 22px;
-  font-weight: 600;
+  text-align: center;
 }
 
-.login-brand__mark {
+.login-visual__mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 2px solid #ffffff;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  font-size: 17px;
+  font-size: 26px;
+  font-weight: 700;
   line-height: 1;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(4px);
 }
 
-.login-card {
-  position: relative;
-  z-index: 1;
-  width: 400px;
-  min-height: 330px;
-  margin: 225px auto 0;
-  padding: 31px 40px 34px;
-  background: #ffffff;
-  box-shadow: 0 10px 36px rgba(29, 64, 102, 0.08);
+.login-visual__title {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
 
-  h1 {
-    margin: 0 0 24px;
-    color: #1f2f3d;
-    font-size: 25px;
-    font-weight: 600;
-    text-align: center;
+.login-visual__subtitle {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.82;
+  letter-spacing: 0.3px;
+}
+
+/* ---------- 右侧表单区 ---------- */
+.login-form-section {
+  flex: 0 0 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #fff;
+}
+
+.login-form-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-form-card__title {
+  margin: 0 0 6px;
+  color: #1f2f3d;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.login-form-card__desc {
+  margin: 0 0 28px;
+  color: #738196;
+  font-size: 14px;
+  text-align: left;
+}
+
+.login-tabs {
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+:deep(.el-form-item) {
+  margin-bottom: 22px;
+}
+
+:deep(.el-input__wrapper) {
+  min-height: 44px;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px #d9dde5 inset;
+
+  &:hover {
+    box-shadow: 0 0 0 1px #667eea inset !important;
   }
 
-  .login-tabs {
-    width: 100%;
-    margin-bottom: 24px;
-  }
-
-  :deep(.el-form-item) {
-    margin-bottom: 24px;
-  }
-
-  :deep(.el-input__wrapper) {
-    min-height: 40px;
-    border-radius: 6px;
-    box-shadow: 0 0 0 1px #d9dde5 inset;
+  &.is-focus {
+    box-shadow: 0 0 0 1px #667eea inset !important;
   }
 }
 
 .login-button {
   width: 100%;
-  margin-top: 1px;
-  border-radius: 6px;
+  margin-top: 4px;
+  border-radius: 8px;
   font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  height: 48px;
 }
 
-@media (max-width: 640px) {
-  .login-brand {
-    padding: 24px;
-    font-size: 20px;
+/* ---------- 响应式：移动端单列 ---------- */
+@media (max-width: 960px) {
+  .login-page {
+    flex-direction: column;
   }
 
-  .login-card {
-    width: calc(100% - 40px);
-    margin-top: 150px;
-    padding: 30px 24px;
+  .login-visual {
+    flex: none;
+    min-height: 220px;
+  }
+
+  .login-visual__overlay {
+    bottom: 12px;
+    padding: 0 24px;
+  }
+
+  .login-visual__title {
+    font-size: 22px;
+  }
+
+  .login-form-section {
+    flex: none;
+    padding: 32px 24px;
+  }
+
+  .login-form-card {
+    max-width: 100%;
   }
 }
