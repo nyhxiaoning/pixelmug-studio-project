@@ -4,12 +4,16 @@
   <div class="admin-layout">
     <aside class="admin-sidebar">
       <div class="admin-brand">
-        <img class="brand-logo" src="/logo.svg" alt="冒泡设备管理平台" />
+        <img class="brand-logo" src="./login-illustration.png.jpeg" alt="冒泡设备管理平台" />
         <span>冒泡设备管理平台</span>
       </div>
 
       <template v-for="item in menu" :key="isMenuGroup(item) ? item.title : item.path">
-        <div v-if="isMenuGroup(item)" class="sidebar-group" :class="{ active: isGroupActive(item) }">
+        <div
+          v-if="isMenuGroup(item)"
+          class="sidebar-group"
+          :class="{ active: isGroupActive(item) }"
+        >
           <button
             class="sidebar-group-title"
             type="button"
@@ -32,7 +36,12 @@
             </router-link>
           </div>
         </div>
-        <router-link v-else class="sidebar-link" :class="{ active: isActive(item) }" :to="item.path">
+        <router-link
+          v-else
+          class="sidebar-link"
+          :class="{ active: isActive(item) }"
+          :to="item.path"
+        >
           <el-icon><component :is="item.icon" /></el-icon>
           <span>{{ item.title }}</span>
         </router-link>
@@ -49,7 +58,7 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                <el-dropdown-item command="logout"> 退出登录 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

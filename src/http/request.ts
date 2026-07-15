@@ -22,6 +22,7 @@ instance.interceptors.request.use((config) => {
 
 instance.interceptors.response.use(
   (response) => {
+    debugger
     const data = response.data
     if (response.config.responseType === "blob" || response.config.responseType === "arraybuffer") {
       return data
@@ -50,10 +51,11 @@ export function request<T>(config: AxiosRequestConfig): Promise<ApiResult<T>> {
 }
 
 function redirectToLogin() {
+  debugger
   const userStore = useUserStore()
   userStore.logout()
   const current = `${location.pathname}${location.search}${location.hash}`
-  const redirect = encodeURIComponent(current.replace(/^.*#/, "") || "/product")
+  const redirect = encodeURIComponent(current.replace(/^.*#/, "") || "/settings")
   location.href = `/#/login?redirect=${redirect}`
 }
 

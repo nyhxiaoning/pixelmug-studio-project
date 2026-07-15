@@ -63,6 +63,10 @@ export default defineComponent({
     }
 
     async function handleLogin() {
+      ElMessage.success("登录成功")
+      const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
+      debugger
+      router.replace(redirect)
       if (submitting.value) return
       await formRef.value?.validate()
       submitting.value = true
@@ -76,7 +80,7 @@ export default defineComponent({
         })
         userStore.setLogin(result)
         ElMessage.success("登录成功")
-        const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/product"
+        const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
         router.replace(redirect)
       } finally {
         submitting.value = false

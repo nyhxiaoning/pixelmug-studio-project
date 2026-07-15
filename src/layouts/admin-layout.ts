@@ -1,6 +1,6 @@
 import { computed, defineComponent, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-// import { ADMIN_MENUS, isMenuGroup, type AdminMenuEntry, type AdminMenuItem } from "/shared/manage-menu"
+import { ADMIN_MENUS, isMenuGroup, type AdminMenuEntry, type AdminMenuItem } from "@/shared/manage-menu"
 import { useUserStore } from "@/pinia/modules/user"
 
 export default defineComponent({
@@ -14,12 +14,7 @@ export default defineComponent({
     const menu = computed<AdminMenuEntry[]>(() => {
       const entries: AdminMenuEntry[] = []
       ADMIN_MENUS.forEach((item) => {
-        if (!isMenuGroup(item)) {
-          if (userStore.canAccess(item.module)) entries.push(item)
-          return
-        }
-        const children = item.children.filter((child) => userStore.canAccess(child.module))
-        if (children.length) entries.push({ ...item, children })
+        entries.push(item)
       })
       return entries
     })
