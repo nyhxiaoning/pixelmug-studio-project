@@ -103,6 +103,7 @@
               dev.online ? '' : 'offline',
             ]"
             type="button"
+            :title="dev.online ? '' : 'Device offline'"
             @click="toggleDeviceSelect(dev)"
           >
             <span :class="['device-dot', dev.online ? 'online' : 'offline']" />
@@ -362,6 +363,7 @@ const selectedDevices = ref([
 ])
 // 切换设备选中
 const toggleDeviceSelect = (dev) => {
+  if (!dev.online) return
   const idx = selectedDevices.value.findIndex((d) => d.id === dev.id)
   if (idx > -1) {
     selectedDevices.value.splice(idx, 1)
@@ -481,7 +483,10 @@ const handleDeleteWork = (work) => {
 document.addEventListener('click', (ev) => {
   const target = ev.target
   const insideDevicePanel = target && target.closest && target.closest('.preview-device-selector')
-  const insideSortMenu = target && target.closest && (target.closest('.sort-dropdown-panel') || target.closest('.sort-button'))
+  const insideSortMenu =
+    target &&
+    target.closest &&
+    (target.closest('.sort-dropdown-panel') || target.closest('.sort-button'))
   if (!insideDevicePanel) devicePanelOpen.value = false
   if (!insideSortMenu) sortMenuOpen.value = false
 })
