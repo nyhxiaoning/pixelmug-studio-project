@@ -37,12 +37,14 @@
   cursor: pointer;
 }
 .ui-button-subtle {
-  background: #27272a;
-  color: #e4e4e7;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 .ui-button-dark {
-  background: #3b3b42;
-  color: white;
+  background: #1f1f23;
+  color: #fff;
+  border: 1px solid #1f1f23;
 }
 
 .filterbar {
@@ -150,9 +152,9 @@
   gap: 12px;
 }
 .sort-button {
-  background: #202024;
-  color: #ddd;
-  border: 1px solid #333;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 .sort-dropdown-panel {
   position: absolute;
@@ -181,20 +183,21 @@
 
 .view-toggle {
   display: flex;
-  border: 1px solid #333;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   overflow: hidden;
+  background: #fff;
 }
 .view-toggle button {
-  background: transparent;
+  background: #fff;
   border: none;
   padding: 6px 8px;
-  color: #aaa;
+  color: #6b7280;
   cursor: pointer;
 }
 .view-toggle button.active {
-  background: #30303b;
-  color: #fff;
+  background: #f3f3f3;
+  color: #374151;
 }
 
 /* 网格布局 */
@@ -220,29 +223,31 @@
 }
 
 .work-card {
-  background: #1c1c22;
+  background: #fff;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #2c2c36;
+  border: 1px solid #e5e7eb;
   cursor: pointer;
 }
 .preview {
   height: 140px;
-  background: #111;
+  background: #f9fafb;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .work-meta {
   padding: 12px;
+  color: #374151;
 }
 .work-meta > div:first-of-type h2 {
   margin: 0;
   font-size: 15px;
+  color: #111827;
 }
 .work-meta > div:first-of-type p {
   margin: 4px 0 10px;
-  color: #999;
+  color: #6b7280;
   font-size: 12px;
 }
 .card-actions {
@@ -253,9 +258,9 @@
 .card-primary-action {
   padding: 5px 10px;
   border-radius: 4px;
-  border: none;
-  background: #2e2e38;
-  color: #eee;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
   cursor: pointer;
 }
 .card-icon-actions {
@@ -269,9 +274,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  border: none;
-  background: #25252e;
-  color: #ddd;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
   cursor: pointer;
 }
 .card-danger-action {
