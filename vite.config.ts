@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
-      port: 3000,
+      port: 3034,
       open: true,
       // 👇 多环境动态代理（统一格式）
       proxy: {
