@@ -73,6 +73,20 @@
             {{ submitting ? '登录中...' : '登 录' }}
           </el-button>
         </el-form>
+
+        <!-- 底部版权 + 语言切换 -->
+        <div class="login-card-footer">
+          <span class="login-card-footer__copyright">
+            Copyright &copy; 2026 Bubble Tech. All Rights Reserved.
+          </span>
+          <el-select
+            :model-value="currentLocale"
+            :options="localeOptions"
+            size="small"
+            class="login-card-footer__lang-select"
+            @change="handleLocaleChange"
+          />
+        </div>
       </div>
     </div>
   </main>

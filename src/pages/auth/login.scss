@@ -171,3 +171,53 @@
     max-width: 100%;
   }
 }
+
+/* ---------- 卡片底部版权 + 语言切换 ---------- */
+.login-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 100px;
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
+}
+
+.login-card-footer__copyright {
+  font-size: 12px;
+  color: #a3a9b8;
+  letter-spacing: 0.2px;
+}
+
+.login-card-footer__lang-select {
+  width: 108px;
+
+  :deep(.el-input__wrapper) {
+    min-height: 26px;
+    padding: 0 8px;
+    box-shadow: 0 0 0 1px #d9dde5 inset;
+    border-radius: 4px;
+
+    .el-input__inner {
+      font-size: 12px;
+      color: #738196;
+      text-align: center;
+    }
+
+    .el-select__caret {
+      color: #738196;
+    }
+
+    &:hover {
+      box-shadow: 0 0 0 1px #667eea inset !important;
+    }
+  }
+
+  :deep(.el-select-dropdown__item) {
+    font-size: 12px;
+  }
+
+  :deep(.el-select-dropdown__item.is-selected) {
+    color: var(--el-color-primary);
+    font-weight: 500;
+  }
+}

@@ -1,15 +1,21 @@
 import type { FormInstance, FormRules } from "element-plus"
 import { ElMessage } from "element-plus"
-import { ChatDotRound, Lock, User } from "@element-plus/icons-vue"
+import { ArrowDown, ChatDotRound, Lock, User } from "@element-plus/icons-vue"
 import { computed, defineComponent, onBeforeUnmount, reactive, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { loginApi, sendLoginCodeApi } from "@/api/auth"
 import { useUserStore } from "@/pinia/modules/user"
+import { SUPPORT_LOCALES, getLocale, getLocaleDisplayName, setLocale } from "@/locales"
 
 interface LoginForm {
   username: string
   password: string
   code: string
+}
+
+interface LocaleOption {
+  value: string
+  label: string
 }
 
 export default defineComponent({
@@ -28,6 +34,28 @@ export default defineComponent({
       codeCountdown.value > 0 ? `${codeCountdown.value}s` : "发送验证码"
     )
     const codeButtonDisabled = computed(() => sendingCode.value || codeCountdown.value > 0)
+
+    // 语言切换：默认用浏览器语言
+    const browserLocale = (navigator.language || "zh-CN") as string
+    const defaultLocale: string = SUPPORT_LOCALES.includes(browserLocale as any)
+      ? browserLocale
+      : browserLocale.startsWith("zh")
+        ? "zh-CN"
+        : "en-US"
+    const currentLocale = ref<string>(getLocale() || defaultLocale)
+
+    const localeOptions = computed<LocaleOption[]>(() =>
+      SUPPORT_LOCALES.map((loc) => ({
+        value: loc,
+        label: getLocaleDisplayName(loc)
+      }))
+    )
+
+    function handleLocaleChange(locale: string) {
+      setLocale(locale as any)
+      currentLocale.value = locale
+      window.location.reload()
+    }
     const form = reactive<LoginForm>({
       username: "",
       password: "",
@@ -135,8 +163,12 @@ export default defineComponent({
       User,
       Lock,
       ChatDotRound,
+      ArrowDown,
       handleLogin,
-      sendCode
+      sendCode,
+      currentLocale,
+      localeOptions,
+      handleLocaleChange
     }
   }
 })
