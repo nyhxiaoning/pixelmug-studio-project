@@ -35,6 +35,20 @@ export default defineComponent({
     )
     const codeButtonDisabled = computed(() => sendingCode.value || codeCountdown.value > 0)
 
+    // 动态标签文案
+    const fieldLabel = computed(() =>
+      loginType.value === "CODE" ? "手机号 / 邮箱" : "账 号"
+    )
+    const fieldPlaceholder = computed(() =>
+      loginType.value === "CODE" ? "请输入手机号 / 邮箱" : "请输入账号"
+    )
+    const secondLabel = computed(() =>
+      loginType.value === "CODE" ? "验证码" : "密码"
+    )
+    const secondPlaceholder = computed(() =>
+      loginType.value === "CODE" ? "请输入验证码" : "请输入密码"
+    )
+
     // 语言切换：默认用浏览器语言
     const browserLocale = (navigator.language || "zh-CN") as string
     const defaultLocale: string = SUPPORT_LOCALES.includes(browserLocale as any)
@@ -42,7 +56,7 @@ export default defineComponent({
       : browserLocale.startsWith("zh")
         ? "zh-CN"
         : "en-US"
-    const currentLocale = ref<string>(getLocale() || defaultLocale)
+    const currentLocale = ref((getLocale() || defaultLocale) as string)
 
     const localeOptions = computed<LocaleOption[]>(() =>
       SUPPORT_LOCALES.map((loc) => ({
@@ -56,39 +70,49 @@ export default defineComponent({
       currentLocale.value = locale
       window.location.reload()
     }
+
     const form = reactive<LoginForm>({
       username: "",
       password: "",
       code: ""
     })
 
-    const rules: FormRules<LoginForm> = {
-      username: [{ required: true, message: "请输入手机号/邮箱", trigger: "blur" }],
-      password: [
-        {
-          validator: (_rule, value, callback) => {
-            if (loginType.value === "PASSWORD" && !String(value || "").trim()) {
-              callback(new Error("请输入密码"))
-              return
+    const getRules = computed<FormRules<LoginForm>>(() => {
+      if (loginType.value === "CODE") {
+        return {
+          username: [{ required: true, message: "请输入手机号/邮箱", trigger: "blur" }],
+          password: [],
+          code: [
+            {
+              validator: (_rule, value, callback) => {
+                if (!String(value || "").trim()) {
+                  callback(new Error("请输入验证码"))
+                  return
+                }
+                callback()
+              },
+              trigger: "blur"
             }
-            callback()
-          },
-          trigger: "blur"
+          ]
         }
-      ],
-      code: [
-        {
-          validator: (_rule, value, callback) => {
-            if (loginType.value === "CODE" && !String(value || "").trim()) {
-              callback(new Error("请输入验证码"))
-              return
-            }
-            callback()
-          },
-          trigger: "blur"
-        }
-      ]
-    }
+      }
+      return {
+        username: [{ required: true, message: "请输入账号", trigger: "blur" }],
+        password: [
+          {
+            validator: (_rule, value, callback) => {
+              if (!String(value || "").trim()) {
+                callback(new Error("请输入密码"))
+                return
+              }
+              callback()
+            },
+            trigger: "blur"
+          }
+        ],
+        code: []
+      }
+    })
 
     async function handleLogin() {
       if (submitting.value) return
@@ -154,12 +178,16 @@ export default defineComponent({
     return {
       formRef,
       form,
-      rules,
+      getRules,
       submitting,
       sendingCode,
       codeButtonText,
       codeButtonDisabled,
       loginType,
+      fieldLabel,
+      fieldPlaceholder,
+      secondLabel,
+      secondPlaceholder,
       User,
       Lock,
       ChatDotRound,

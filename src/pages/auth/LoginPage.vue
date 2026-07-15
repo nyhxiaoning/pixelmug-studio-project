@@ -30,34 +30,49 @@
           ]"
           class="login-tabs"
         />
-        <el-form ref="formRef" :model="form" :rules="rules" @keyup.enter="handleLogin">
-          <el-form-item prop="username">
+        <el-form ref="formRef" :model="form" :rules="getRules" @keyup.enter="handleLogin">
+          <el-form-item
+            prop="username"
+            :label="fieldLabel"
+          >
             <el-input
               v-model="form.username"
               :prefix-icon="User"
-              placeholder="请输入手机号 / 邮箱"
+              :placeholder="fieldPlaceholder"
               size="large"
             />
           </el-form-item>
-          <el-form-item v-if="loginType === 'CODE'" prop="code">
+          <el-form-item
+            v-if="loginType === 'CODE'"
+            prop="code"
+            :label="secondLabel"
+          >
             <el-input
               v-model="form.code"
               :prefix-icon="ChatDotRound"
-              placeholder="请输入验证码"
+              :placeholder="secondPlaceholder"
               size="large"
             >
               <template #append>
-                <el-button :disabled="codeButtonDisabled" :loading="sendingCode" @click="sendCode">
+                <el-button
+                  :disabled="codeButtonDisabled"
+                  :loading="sendingCode"
+                  @click="sendCode"
+                >
                   {{ codeButtonText }}
                 </el-button>
               </template>
             </el-input>
           </el-form-item>
-          <el-form-item v-else prop="password">
+          <el-form-item
+            v-else
+            prop="password"
+            :label="secondLabel"
+          >
             <el-input
               v-model="form.password"
               :prefix-icon="Lock"
-              placeholder="请输入密码"
+              :placeholder="secondPlaceholder"
               show-password
               size="large"
               type="password"

@@ -133,6 +133,19 @@
 
 :deep(.el-form-item) {
   margin-bottom: 22px;
+  flex-direction: column;
+
+  &.is-required > .el-form-item__label::before {
+    display: none;
+  }
+
+  .el-form-item__label {
+    justify-content: flex-start;
+    padding-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2f3d;
+  }
 }
 
 :deep(.el-input__wrapper) {
