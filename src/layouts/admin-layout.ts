@@ -2,9 +2,11 @@ import { computed, defineComponent, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { ADMIN_MENUS, isMenuGroup, type AdminMenuEntry, type AdminMenuItem } from "@/shared/manage-menu"
 import { useUserStore } from "@/pinia/modules/user"
+import { MoreFilled, Place, SwitchButton } from "@element-plus/icons-vue"
 
 export default defineComponent({
   name: "AdminLayout",
+  components: { MoreFilled, Place, SwitchButton },
   setup() {
     const route = useRoute()
     const router = useRouter()
@@ -44,6 +46,11 @@ export default defineComponent({
       if (command === "logout") {
         userStore.logout()
         router.push("/login")
+      } else if (command === "language") {
+        const current = localStorage.getItem("app-locale") || "zh-CN"
+        const next = current === "zh-CN" ? "en-US" : "zh-CN"
+        localStorage.setItem("app-locale", next)
+        window.location.reload()
       }
     }
 
@@ -55,6 +62,8 @@ export default defineComponent({
       isGroupActive,
       isGroupExpanded,
       toggleGroup,
+      userId: userStore.userId,
+      userName: userStore.name,
       handleUserCommand
     }
   }
