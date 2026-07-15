@@ -1,5 +1,13 @@
 # Vue 3 Admin Template
 
+## 记录
+
+登录页默认语言：浏览器语言为中文时使用中文，否则使用英文。
+
+- 默认语言，使用浏览器语言
+- 初始化登录的时候，
+
+
 基于 Vue 3 + TypeScript + Element Plus + TailwindCSS 的现代化前端开发模板。
 
 ## 技术栈

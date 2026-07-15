@@ -55,18 +55,26 @@
             <el-avatar :size="32">
               {{ userName?.charAt(0) || 'U' }}
             </el-avatar>
-            <span class="user-name">{{ userName || 'Admin' }}</span>
+            <span class="user-name"> {{ ' ' }}{{ userName || 'Admin' }}</span>
             <el-icon class="user-arrow">
               <ArrowDown />
             </el-icon>
+            <span class="el-dropdown-link">
+              <el-icon class="el-icon--right">
+                <arrow-down />
+              </el-icon>
+            </span>
           </div>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="language">
-                <el-icon class="dropdown-icon">
-                  <Place />
-                </el-icon>
-                切换语言
+                <div class="dropdown-lang-row">
+                  <span class="dropdown-lang-text">
+                    <el-icon class="dropdown-icon"><Place /></el-icon>
+                    切换语言
+                  </span>
+                  <span class="dropdown-lang-badge">{{ localeName }}</span>
+                </div>
               </el-dropdown-item>
               <el-dropdown-item divided command="logout">
                 <el-icon class="dropdown-icon">

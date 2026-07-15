@@ -3,6 +3,7 @@ import { useRoute, useRouter } from "vue-router"
 import { ADMIN_MENUS, isMenuGroup, type AdminMenuEntry, type AdminMenuItem } from "@/shared/manage-menu"
 import { useUserStore } from "@/pinia/modules/user"
 import { MoreFilled, Place, SwitchButton } from "@element-plus/icons-vue"
+import { getLocale, getLocaleDisplayName, setLocale } from "@/locales"
 
 export default defineComponent({
   name: "AdminLayout",
@@ -20,6 +21,8 @@ export default defineComponent({
       })
       return entries
     })
+
+    const localeName = computed(() => getLocaleDisplayName(getLocale()))
 
     function isActive(item: AdminMenuItem) {
       return route.path === item?.path
@@ -47,9 +50,9 @@ export default defineComponent({
         userStore.logout()
         router.push("/login")
       } else if (command === "language") {
-        const current = localStorage.getItem("app-locale") || "zh-CN"
+        const current = getLocale()
         const next = current === "zh-CN" ? "en-US" : "zh-CN"
-        localStorage.setItem("app-locale", next)
+        setLocale(next)
         window.location.reload()
       }
     }
@@ -64,6 +67,7 @@ export default defineComponent({
       toggleGroup,
       userId: userStore.userId,
       userName: userStore.name,
+      localeName,
       handleUserCommand
     }
   }

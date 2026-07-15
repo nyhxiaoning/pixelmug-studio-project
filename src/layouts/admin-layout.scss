@@ -191,6 +191,32 @@
   color: var(--el-text-color-regular);
 }
 
+.dropdown-lang-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.dropdown-lang-text {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+}
+
+.dropdown-lang-badge {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  background: #f2f3f5;
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-left: 12px;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
 .logout-icon {
   color: #f56c6c;
 }
