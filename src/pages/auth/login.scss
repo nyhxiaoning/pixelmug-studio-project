@@ -92,6 +92,15 @@
 .login-form-card {
   width: 100%;
   max-width: 420px;
+  min-height: 440px;
+}
+
+.login-brand-title {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 50px;
 }
 
 .login-form-card__title {
@@ -112,13 +121,14 @@
 .login-tabs {
   width: 100%;
   margin-bottom: 28px;
+  min-height: 48px;
   --el-segmented-bg-color: #ebeef5;
   --el-segmented-item-selected-bg-color: #ffffff;
   --el-segmented-item-selected-color: #1f2f3d;
   --el-segmented-item-hover-bg-color: #ffffff;
   --el-segmented-item-hover-color: #1f2f3d;
   --el-segmented-item-color: #5a6478;
-  --el-segmented-padding: 4px;
+  --el-segmented-padding: 6px;
 
   :deep(.el-segmented__item-selected) {
     background: #ffffff;
@@ -128,6 +138,11 @@
   :deep(.el-segmented__item.is-selected) {
     font-weight: 600;
     color: #1f2f3d;
+  }
+
+  :deep(.el-segmented__item) {
+    padding: 0 16px;
+    min-height: 36px;
   }
 }
 

@@ -5,22 +5,24 @@
       <div class="login-visual__inner">
         <img
           class="login-visual__img"
-          src="../layouts/login-illustration.png.jpeg"
+          src="https://devstorage.jeejio.com/temphenry/image/login-illustration.png.jpeg"
           alt=""
         />
-        <div class="login-visual__overlay">
+        <!-- <div class="login-visual__overlay">
           <span class="login-visual__mark">G</span>
           <h2 class="login-visual__title">冒泡设备管理平台</h2>
           <p class="login-visual__subtitle">高效管理您的智能设备</p>
-        </div>
+        </div> -->
       </div>
     </div>
 
     <!-- 右侧表单区 -->
     <div class="login-form-section">
       <div class="login-form-card">
-        <h1 class="login-form-card__title">欢迎登录</h1>
-        <p class="login-form-card__desc">请输入您的账号信息</p>
+        <div class="login-brand-title">
+          <img width="40" src="https://storage.qajeejio.com/luanzong/creatorhub/login/logo.png" />
+          <h1 class="login-form-card__title">PixelMug 创作者中心</h1>
+        </div>
 
         <el-segmented
           v-model="loginType"
@@ -31,10 +33,7 @@
           class="login-tabs"
         />
         <el-form ref="formRef" :model="form" :rules="getRules" @keyup.enter="handleLogin">
-          <el-form-item
-            prop="username"
-            :label="fieldLabel"
-          >
+          <el-form-item prop="username" :label="fieldLabel">
             <el-input
               v-model="form.username"
               :prefix-icon="User"
@@ -42,11 +41,7 @@
               size="large"
             />
           </el-form-item>
-          <el-form-item
-            v-if="loginType === 'CODE'"
-            prop="code"
-            :label="secondLabel"
-          >
+          <el-form-item v-if="loginType === 'CODE'" prop="code" :label="secondLabel">
             <el-input
               v-model="form.code"
               :prefix-icon="ChatDotRound"
@@ -54,21 +49,13 @@
               size="large"
             >
               <template #append>
-                <el-button
-                  :disabled="codeButtonDisabled"
-                  :loading="sendingCode"
-                  @click="sendCode"
-                >
+                <el-button :disabled="codeButtonDisabled" :loading="sendingCode" @click="sendCode">
                   {{ codeButtonText }}
                 </el-button>
               </template>
             </el-input>
           </el-form-item>
-          <el-form-item
-            v-else
-            prop="password"
-            :label="secondLabel"
-          >
+          <el-form-item v-else prop="password" :label="secondLabel">
             <el-input
               v-model="form.password"
               :prefix-icon="Lock"

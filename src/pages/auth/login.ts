@@ -35,18 +35,37 @@ export default defineComponent({
     )
     const codeButtonDisabled = computed(() => sendingCode.value || codeCountdown.value > 0)
 
-    // 动态标签文案
+    // 动态标签文案：根据当前选中的语言环境
+    const isEnLocale = computed(() => {
+      const locale = (currentLocale.value || (navigator.language || "zh-CN")).toLowerCase()
+      return locale.startsWith("en")
+    })
+
     const fieldLabel = computed(() =>
-      loginType.value === "CODE" ? "手机号 / 邮箱" : "账 号"
+      loginType.value === "CODE"
+        ? isEnLocale.value
+          ? "Email"
+          : "手机号 / 邮箱"
+        : "账 号"
     )
     const fieldPlaceholder = computed(() =>
-      loginType.value === "CODE" ? "请输入手机号 / 邮箱" : "请输入账号"
+      loginType.value === "CODE"
+        ? isEnLocale.value
+          ? "Please enter email"
+          : "请输入手机号 / 邮箱"
+        : "请输入账号"
     )
     const secondLabel = computed(() =>
       loginType.value === "CODE" ? "验证码" : "密码"
     )
     const secondPlaceholder = computed(() =>
-      loginType.value === "CODE" ? "请输入验证码" : "请输入密码"
+      loginType.value === "CODE"
+        ? isEnLocale.value
+          ? "Please enter verification code"
+          : "请输入验证码"
+        : isEnLocale.value
+          ? "Please enter password"
+          : "请输入密码"
     )
 
     // 语言切换：默认用浏览器语言
@@ -80,13 +99,15 @@ export default defineComponent({
     const getRules = computed<FormRules<LoginForm>>(() => {
       if (loginType.value === "CODE") {
         return {
-          username: [{ required: true, message: "请输入手机号/邮箱", trigger: "blur" }],
+          username: [
+            { required: true, message: isEnLocale.value ? "Please enter email" : "请输入手机号/邮箱", trigger: "blur" }
+          ],
           password: [],
           code: [
             {
               validator: (_rule, value, callback) => {
                 if (!String(value || "").trim()) {
-                  callback(new Error("请输入验证码"))
+                  callback(new Error(isEnLocale.value ? "Please enter verification code" : "请输入验证码"))
                   return
                 }
                 callback()
@@ -102,7 +123,7 @@ export default defineComponent({
           {
             validator: (_rule, value, callback) => {
               if (!String(value || "").trim()) {
-                callback(new Error("请输入密码"))
+                callback(new Error(isEnLocale.value ? "Please enter password" : "请输入密码"))
                 return
               }
               callback()
@@ -127,7 +148,7 @@ export default defineComponent({
           code: loginType.value === "CODE" ? form.code.trim() : undefined
         })
         userStore.setLogin(result)
-        ElMessage.success("登录成功")
+        ElMessage.success(isEnLocale.value ? "Login successful" : "登录成功")
         const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
         router.replace(redirect)
       } finally {
@@ -139,14 +160,14 @@ export default defineComponent({
       if (codeButtonDisabled.value) return
       const account = form.username.trim()
       if (!account) {
-        ElMessage.warning("请输入手机号/邮箱")
+        ElMessage.warning(isEnLocale.value ? "Please enter email" : "请输入手机号/邮箱")
         return
       }
       sendingCode.value = true
       try {
         await sendLoginCodeApi(account)
         startCountdown()
-        ElMessage.success("验证码已发送")
+        ElMessage.success(isEnLocale.value ? "Verification code sent" : "验证码已发送")
       } finally {
         sendingCode.value = false
       }

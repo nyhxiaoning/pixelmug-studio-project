@@ -5,13 +5,27 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
+import Inspector from "vite-plugin-vue-inspector"
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // 加载当前 mode 对应的环境变量
   const env = loadEnv(mode, process.cwd(), '')
 
+  console.log(env?.VITE_APP_ENV)
+  console.log(env?.VITE_APP_ENV)
+
+  function useInspector() {
+
+    if (env?.VITE_APP_ENV === 'development') {
+      return Inspector();
+    }
+
+  }
+
   return {
     plugins: [
+      useInspector(),
       vue(),
       AutoImport({
         resolvers: [ElementPlusResolver()],
