@@ -477,12 +477,13 @@ const handleDeleteWork = (work) => {
   }
 }
 
-// 点击外部关闭下拉菜单（简易方案，生产可封装clickOutside指令）
+// 点击外部关闭下拉菜单
 document.addEventListener('click', (ev) => {
-  setTimeout(() => {
-    sortMenuOpen.value = false
-    devicePanelOpen.value = false
-  }, 200)
+  const target = ev.target
+  const insideDevicePanel = target && target.closest && target.closest('.preview-device-selector')
+  const insideSortMenu = target && target.closest && (target.closest('.sort-dropdown-panel') || target.closest('.sort-button'))
+  if (!insideDevicePanel) devicePanelOpen.value = false
+  if (!insideSortMenu) sortMenuOpen.value = false
 })
 </script>
 
