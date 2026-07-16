@@ -106,6 +106,31 @@
       </el-popover>
 
       <div class="toolbar">
+        <!-- 搜索框 -->
+        <el-input
+          v-model="searchQuery"
+          placeholder="Search works..."
+          clearable
+          class="works-search"
+        >
+          <template #prefix>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+          </template>
+        </el-input>
+
         <!-- 排序下拉 popover -->
         <el-popover
           v-model:visible="sortMenuOpen"
@@ -296,6 +321,7 @@ const fileInputRef = ref(null)
 const sortMenuOpen = ref(false)
 const devicePanelOpen = ref(false)
 const viewMode = ref('grid')
+const searchQuery = ref('')
 
 // ============ 排序配置 ============
 const sortBy = ref('lastView')
@@ -355,7 +381,12 @@ const workList = ref([
 ])
 
 const sortedWorkList = computed(() => {
-  const arr = [...workList.value]
+  let arr = [...workList.value]
+  // 搜索过滤
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.trim().toLowerCase()
+    arr = arr.filter((w) => w.title.toLowerCase().includes(q))
+  }
   arr.sort((a, b) => {
     let valA, valB
     if (sortBy.value === 'name') {
