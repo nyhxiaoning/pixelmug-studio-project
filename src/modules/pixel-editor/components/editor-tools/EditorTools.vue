@@ -535,8 +535,8 @@ const onNextOpacityChange = (val: number | number[]) => {
   emit('update:onionSkin', { ...props.onionSkin, nextOpacity: numVal / 100 })
 }
 
-const onOnionSkinEnabledChange = (val: boolean) => {
-  emit('update:onionSkin', { ...props.onionSkin, enabled: val })
+const onOnionSkinEnabledChange = (val: boolean | string) => {
+  emit('update:onionSkin', { ...props.onionSkin, enabled: !!val })
 }
 
 const onOnionSkinColorModeChange = (val: string) => {
