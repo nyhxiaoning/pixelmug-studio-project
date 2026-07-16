@@ -66,23 +66,55 @@
             </span>
           </div>
           <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="language">
-                <div class="dropdown-lang-row">
-                  <span class="dropdown-lang-text">
-                    <el-icon class="dropdown-icon"><Place /></el-icon>
-                    切换语言
-                  </span>
-                  <span class="dropdown-lang-badge">{{ localeName }}</span>
-                </div>
-              </el-dropdown-item>
-              <el-dropdown-item divided command="logout">
-                <el-icon class="dropdown-icon">
-                  <SwitchButton />
-                </el-icon>
-                退出登录
-              </el-dropdown-item>
-            </el-dropdown-menu>
+            <!-- 上部：用户信息区域 -->
+            <div class="account-menu">
+              <!-- 上部：用户信息区域 -->
+              <div class="menu-profile">
+                <span class="avatar avatar-large">
+                  <el-avatar :size="56" src="" />
+                </span>
+                <strong class="username">ym luan</strong>
+                <span class="user-email">yeming.luan@gmail.com</span>
+              </div>
+
+              <div class="menu-separator" />
+
+              <!-- 语言切换 -->
+              <div class="menu-item" @click="handleChangeLang">
+                <svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <circle cx="9" cy="9" r="6.8" stroke="currentColor" stroke-width="1.5" />
+                  <path
+                    d="M2.7 9h12.6M9 2.2c1.8 1.8 2.6 4.1 2.6 6.8s-.8 5-2.6 6.8C7.2 14 6.4 11.7 6.4 9S7.2 4 9 2.2Z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span class="menu-label">Change language</span>
+                <span class="menu-language">EN</span>
+              </div>
+
+              <div class="menu-separator" />
+
+              <!-- 退出登录 -->
+              <div class="menu-item" @click="handleLogout">
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" x2="9" y1="12" y2="12" />
+                </svg>
+                <span class="menu-label">Log out</span>
+              </div>
+            </div>
           </template>
         </el-dropdown>
       </div>

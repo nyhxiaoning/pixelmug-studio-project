@@ -2,15 +2,10 @@
   <main class="content">
     <!-- 顶部标题栏 -->
     <header class="topbar">
-      <h1 class="work-title">
-        Works
-      </h1>
+      <h1 class="work-title">Works</h1>
       <div class="top-actions">
         <!-- Upload 上传按钮 pxm_action_upload -->
-        <el-button
-          pxm_action_upload
-          @click="triggerUpload"
-        >
+        <el-button pxm_action_upload @click="triggerUpload">
           <template #icon>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -25,22 +20,13 @@
             >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
-              <line
-                x1="12"
-                x2="12"
-                y1="3"
-                y2="15"
-              />
+              <line x1="12" x2="12" y1="3" y2="15" />
             </svg>
           </template>
           Upload
         </el-button>
         <!-- Create 创建空白作品 pxm_action_create -->
-        <el-button
-          type="primary"
-          pxm_action_create
-          @click="goCreateEditor"
-        >
+        <el-button type="primary" pxm_action_create @click="goCreateEditor">
           <template #icon>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -66,13 +52,13 @@
           type="file"
           accept="image/png,image/jpeg,image/webp,image/gif"
           @change="handleFileUpload"
-        >
+        />
       </div>
     </header>
 
     <!-- 筛选工具栏区域 -->
     <div class="filterbar">
-      <!-- 预览设备选择器 el-popover 替代原生下拉 -->
+      <!-- 预览设备选择器 el-popover -->
       <el-popover
         v-model:visible="devicePanelOpen"
         placement="bottom-start"
@@ -98,28 +84,25 @@
             </svg>
           </div>
         </template>
-        <div class="preview-device-panel-head">
-          Bound
-        </div>
-        <el-checkbox-group v-model="selectedDeviceIds">
-          <div class="device-list">
-            <div
-              v-for="dev in deviceList"
-              :key="dev.id"
-              class="device-item"
-              :class="{ offline: !dev.online }"
-            >
-              <el-checkbox
-                :label="dev.id"
-                :disabled="!dev.online"
+        <div>
+          <div class="preview-device-panel-head">Bound</div>
+          <el-checkbox-group v-model="selectedDeviceIds">
+            <div class="device-list">
+              <div
+                v-for="dev in deviceList"
+                :key="dev.id"
+                class="device-item"
+                :class="{ offline: !dev.online }"
               >
-                <span :class="['device-dot', dev.online ? 'online' : 'offline']" />
-                <span class="device-name">{{ dev.name }}</span>
-                <em>{{ dev.online ? 'Online' : 'Offline' }}</em>
-              </el-checkbox>
+                <el-checkbox :label="dev.id" :disabled="!dev.online">
+                  <span :class="['device-dot', dev.online ? 'online' : 'offline']" />
+                  <span class="device-name">{{ dev.name }}</span>
+                  <em>{{ dev.online ? 'Online' : 'Offline' }}</em>
+                </el-checkbox>
+              </div>
             </div>
-          </div>
-        </el-checkbox-group>
+          </el-checkbox-group>
+        </div>
       </el-popover>
 
       <div class="toolbar">
@@ -131,68 +114,45 @@
           width="240"
         >
           <template #reference>
-            <el-button>
+            <el-button @click.stop>
               {{ sortLabel }}
-              <template #suffix>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </template>
+              <svg
+                style="margin-left: 4px"
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
             </el-button>
           </template>
 
           <div class="sort-group">
-            <p class="sort-title">
-              排序方式 <span pxm_sort_by />
-            </p>
-            <el-radio-group
-              v-model="sortBy"
-              @change="applySort"
-            >
-              <el-radio
-                v-for="item in sortByOptions"
-                :key="item.value"
-                :label="item.value"
-              >
+            <p class="sort-title">排序方式 <span pxm_sort_by /></p>
+            <el-radio-group v-model="sortBy" @change="applySort">
+              <el-radio v-for="item in sortByOptions" :key="item.value" :label="item.value">
                 {{ item.label }}
               </el-radio>
             </el-radio-group>
           </div>
           <div class="sort-group">
-            <p class="sort-title">
-              顺序 <span pxm_sort_order />
-            </p>
-            <el-radio-group
-              v-model="sortOrder"
-              @change="applySort"
-            >
-              <el-radio
-                v-for="item in sortOrderOptions"
-                :key="item.value"
-                :label="item.value"
-              >
+            <p class="sort-title">顺序 <span pxm_sort_order /></p>
+            <el-radio-group v-model="sortOrder" @change="applySort">
+              <el-radio v-for="item in sortOrderOptions" :key="item.value" :label="item.value">
                 {{ item.label }}
               </el-radio>
-            </el-radio-group>
             </el-radio-group>
           </div>
         </el-popover>
 
-        <!-- 视图切换：el-radio-group 按钮组替代原生按钮 -->
-        <el-radio-group
-          v-model="viewMode"
-          size="default"
-        >
+        <!-- 视图切换：el-radio-group 按钮组 -->
+        <el-radio-group v-model="viewMode" size="default">
           <el-radio-button label="grid">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -207,13 +167,7 @@
             >
               <path d="M12 3v18" />
               <path d="M3 12h18" />
-              <rect
-                x="3"
-                y="3"
-                width="18"
-                height="18"
-                rx="2"
-              />
+              <rect x="3" y="3" width="18" height="18" rx="2" />
             </svg>
           </el-radio-button>
           <el-radio-button label="list">
@@ -240,7 +194,7 @@
       </div>
     </div>
 
-    <!-- 作品列表区域 根据viewMode切换样式 -->
+    <!-- 作品列表区域 -->
     <section :class="viewMode === 'grid' ? 'works-grid' : 'works-list'">
       <article
         v-for="work in sortedWorkList"
@@ -265,16 +219,10 @@
             <p>{{ work.createdAt }}</p>
           </div>
           <div class="card-actions">
-            <!-- Edit按钮 pxm_action_edit -->
-            <el-button
-              size="small"
-              pxm_action_edit
-              @click.stop="openEditWork(work)"
-            >
+            <el-button size="small" pxm_action_edit @click.stop="openEditWork(work)">
               Edit
             </el-button>
             <div class="card-icon-actions">
-              <!-- Preview pxm_action_preview -->
               <el-button
                 circle
                 size="small"
@@ -296,16 +244,10 @@
                   >
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                     <polyline points="17 8 12 3 7 8" />
-                    <line
-                      x1="12"
-                      x2="12"
-                      y1="3"
-                      y2="15"
-                    />
+                    <line x1="12" x2="12" y1="3" y2="15" />
                   </svg>
                 </template>
               </el-button>
-              <!-- Delete pxm_action_delete -->
               <el-button
                 circle
                 size="small"
@@ -329,18 +271,8 @@
                     <path d="M3 6h18" />
                     <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                     <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                    <line
-                      x1="10"
-                      x2="10"
-                      y1="11"
-                      y2="17"
-                    />
-                    <line
-                      x1="14"
-                      x2="14"
-                      y1="11"
-                      y2="17"
-                    />
+                    <line x1="10" x2="10" y1="11" y2="17" />
+                    <line x1="14" x2="14" y1="11" y2="17" />
                   </svg>
                 </template>
               </el-button>
@@ -353,7 +285,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -392,11 +324,9 @@ const deviceList = ref([
   { id: 2, name: 'Desk LED 32x16', online: true },
   { id: 3, name: 'Studio Wall', online: false },
 ])
-// popover checkbox 使用id数组绑定
 const selectedDeviceIds = ref([1, 2])
-// 计算选中完整设备对象
 const selectedDevices = computed(() => {
-  return deviceList.value.filter(item => selectedDeviceIds.value.includes(item.id))
+  return deviceList.value.filter((item) => selectedDeviceIds.value.includes(item.id))
 })
 
 // ============ 作品原始数据 & 排序计算 ============
@@ -484,14 +414,16 @@ const sendWorkToDevice = (work) => {
     return
   }
   console.log('推送作品到设备', work, selectedDevices.value)
-  ElMessage.success(`【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`)
+  ElMessage.success(
+    `【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`
+  )
 }
 
 const handleDeleteWork = (work) => {
   ElMessageBox.confirm(`确定要删除作品【${work.title}】吗？删除后不可恢复！`, '删除提示', {
     confirmButtonText: '确认删除',
     cancelButtonText: '取消',
-    type: 'warning'
+    type: 'warning',
   })
     .then(() => {
       const idx = workList.value.findIndex((w) => w.id === work.id)
@@ -571,6 +503,7 @@ const handleDeleteWork = (work) => {
 .device-item.offline {
   opacity: 0.45;
 }
+
 .device-dot {
   display: inline-block;
   width: 8px;
@@ -609,21 +542,19 @@ const handleDeleteWork = (work) => {
   margin-bottom: 6px;
 }
 
-/* 网格布局 */
 .works-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 18px;
 }
-/* 列表布局 */
 .works-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 .works-list .work-card {
-  display: flex !important;
-  flex-direction: row !important;
+  display: flex;
+  flex-direction: row;
   align-items: center;
 }
 .works-list .work-card .preview {
@@ -653,12 +584,12 @@ const handleDeleteWork = (work) => {
   padding: 12px;
   color: #374151;
 }
-.work-meta > div:first-of-type h2 {
+.work-meta h2 {
   margin: 0;
   font-size: 15px;
   color: #111827;
 }
-.work-meta > div:first-of-type p {
+.work-meta p {
   margin: 4px 0 10px;
   color: #6b7280;
   font-size: 12px;

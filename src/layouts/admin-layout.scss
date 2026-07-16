@@ -259,3 +259,81 @@
 .admin-content {
   padding: 0;
 }
+
+.account-menu {
+  min-width: 240px;
+  padding: 8px 0;
+  // color: var(--el-text-color-primary);
+  /* 圆角 + 超出隐藏【关键】 */
+  border-radius: 12px;
+  overflow: hidden;
+  /* 添加阴影 */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  background-color: #000;
+
+  .menu-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px;
+    gap: 6px;
+
+    .avatar-large {
+      margin-bottom: 4px;
+    }
+
+    .username {
+      font-size: 15px;
+      color: #fff;
+      font-weight: 600;
+    }
+    .user-email {
+      font-size: 13px;
+      color: #fff;
+      font-weight: 600;
+    }
+  }
+
+  .menu-separator {
+    height: 1px;
+    margin: 4px 8px;
+    // background-color: var(--el-border-color-lighter);
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    gap: 10px;
+    cursor: pointer;
+    color: #fff;
+    transition: background-color 0.2s;
+    font-size: 14px;
+
+    .menu-label {
+      flex: 1;
+    }
+    .menu-language {
+      font-size: 13px;
+      opacity: 0.75;
+    }
+
+    &:not(.dark-item):hover {
+      background-color: #222222;
+    }
+  }
+  /* 深色条目样式：黑色背景、白色加粗字体 */
+  .dark-item {
+    background-color: #000;
+    color: #ffffff;
+    font-weight: 500;
+
+    svg {
+      stroke: #fff;
+    }
+
+    &:hover {
+      background-color: #222222 !important;
+    }
+  }
+}
