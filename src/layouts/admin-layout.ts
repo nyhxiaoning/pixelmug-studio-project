@@ -62,8 +62,7 @@ export default defineComponent({
     }
 
 
-    function sendLoginOut() {
-
+    function handleLogout() {
       sendLoginOut(userStore?.token).then(res => {
         userStore.logout()
 
@@ -74,9 +73,11 @@ export default defineComponent({
 
     }
 
-    function handleLogout() {
-      sendLoginOut()
+
+    function handleChangeLang() {
+      alert('切换语言')
     }
+
 
     return {
       route,
@@ -90,7 +91,8 @@ export default defineComponent({
       userName: userStore.name,
       localeName,
       handleUserCommand,
-      handleLogout
+      handleLogout,
+      handleChangeLang
     }
   }
 })
