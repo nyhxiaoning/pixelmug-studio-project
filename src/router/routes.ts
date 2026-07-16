@@ -40,6 +40,12 @@ export const routes: RouteRecordRaw[] = [
         name: "Publish",
         component: () => import("@/pages/publish/index.vue"),
         meta: { title: "发布" }
+      },
+      {
+        path: "editortest",
+        name: "EditorTest",
+        component: () => import("@/pages/editortest/index.vue"),
+        meta: { title: "编辑器测试" }
       }
     ]
   },

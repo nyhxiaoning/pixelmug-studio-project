@@ -21,6 +21,7 @@ export const ADMIN_MENUS: AdminMenuEntry[] = [
   { title: "像素编辑器", path: "/pixel-editor", module: "pixel-editor", icon: Key },
   { title: "作品", path: "/works", module: "works", icon: Key },
   { title: "发布", path: "/publish", module: "publish", icon: Key },
+  { title: "Editortest", path: "/editortest", module: "editortest", icon: Key },
 ]
 
 export function isMenuGroup(entry: AdminMenuEntry): entry is AdminMenuGroup {
