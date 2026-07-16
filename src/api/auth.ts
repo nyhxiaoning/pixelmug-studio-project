@@ -26,13 +26,13 @@ export function loginApi(data: LoginRequest) {
 }
 
 export function sendLoginCodeApi(account: any) {
-  const isEmail = account?.username?.includes("@")
+  const isEmail = account?.includes("@")
   return request<void>({
     url: "/api/creator/auth/code",
     method: "post",
     data: {
-      email: isEmail ? account?.username : undefined,
-      phone: isEmail ? undefined : account?.username,
+      email: isEmail ? account : undefined,
+      phone: isEmail ? undefined : account,
       // verifyType: isEmail ? 2 : 1,// PHONE EMAIL,这两个字符串
       // codeType: 0
       accountType: isEmail ? 'EMAIL' : 'PHONE'
@@ -49,10 +49,10 @@ export function authLoginIn(account: any) {
     method: "post",
     data: {
       accountType: isEmail ? 'EMAIL' : 'PHONE',
-      loginType: "PASSWORD",// PASSWORD CODE
+      loginType: account?.code ? "CODE" : "PASSWORD",// PASSWORD CODE
       email: isEmail ? account?.username : undefined,
       password: account?.password,
-      code: "",
+      code: account?.code,
       phone: isEmail ? undefined : account?.username,
       // verifyType: isEmail ? 2 : 1,
       // codeType: 0
@@ -60,16 +60,12 @@ export function authLoginIn(account: any) {
   })
 }
 
-export function sendLoginOut(account: string) {
-  const isEmail = account.includes("@")
+export function sendLoginOut(token: string) {
   return request<void>({
-    url: "/api/creator/auth/code",
+    url: "/api/creator/auth/logout",
     method: "post",
     data: {
-      email: isEmail ? account : undefined,
-      phone: isEmail ? undefined : account,
-      verifyType: isEmail ? 2 : 1,
-      codeType: 0
+      token: token
     }
   })
 }

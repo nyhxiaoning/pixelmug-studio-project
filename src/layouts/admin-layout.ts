@@ -4,6 +4,9 @@ import { ADMIN_MENUS, isMenuGroup, type AdminMenuEntry, type AdminMenuItem } fro
 import { useUserStore } from "@/pinia/modules/user"
 import { MoreFilled, Place, SwitchButton } from "@element-plus/icons-vue"
 import { getLocale, getLocaleDisplayName, setLocale } from "@/locales"
+import { sendLoginOut } from "@/api/auth"
+
+
 
 export default defineComponent({
   name: "AdminLayout",
@@ -47,6 +50,7 @@ export default defineComponent({
 
     function handleUserCommand(command: string) {
       if (command === "logout") {
+        alert(111111)
         userStore.logout()
         router.push("/login")
       } else if (command === "language") {
@@ -55,6 +59,23 @@ export default defineComponent({
         setLocale(next)
         window.location.reload()
       }
+    }
+
+
+    function sendLoginOut() {
+
+      sendLoginOut(userStore?.token).then(res => {
+        userStore.logout()
+
+        router.push("/login")
+      }).catch(err => {
+        console.log(err)
+      })
+
+    }
+
+    function handleLogout() {
+      sendLoginOut()
     }
 
     return {
@@ -68,7 +89,8 @@ export default defineComponent({
       userId: userStore.userId,
       userName: userStore.name,
       localeName,
-      handleUserCommand
+      handleUserCommand,
+      handleLogout
     }
   }
 })

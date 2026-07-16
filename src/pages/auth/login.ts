@@ -169,6 +169,8 @@ export default defineComponent({
         return
       }
       sendingCode.value = true
+
+      alert(JSON.stringify(account))
       try {
         let res = await sendLoginCodeApi(account)
         alert(JSON.stringify(res))
