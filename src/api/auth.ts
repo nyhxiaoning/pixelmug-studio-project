@@ -25,10 +25,45 @@ export function loginApi(data: LoginRequest) {
   })
 }
 
-export function sendLoginCodeApi(account: string) {
+export function sendLoginCodeApi(account: any) {
+  const isEmail = account?.username?.includes("@")
+  return request<void>({
+    url: "/api/creator/auth/code",
+    method: "post",
+    data: {
+      email: isEmail ? account?.username : undefined,
+      phone: isEmail ? undefined : account?.username,
+      // verifyType: isEmail ? 2 : 1,// PHONE EMAIL,这两个字符串
+      // codeType: 0
+      accountType: isEmail ? 'EMAIL' : 'PHONE'
+    }
+  })
+}
+
+
+
+export function authLoginIn(account: any) {
+  const isEmail = account?.username?.includes("@")
+  return request<void>({
+    url: "/api/creator/auth/login",
+    method: "post",
+    data: {
+      accountType: isEmail ? 'EMAIL' : 'PHONE',
+      loginType: "PASSWORD",// PASSWORD CODE
+      email: isEmail ? account?.username : undefined,
+      password: account?.password,
+      code: "",
+      phone: isEmail ? undefined : account?.username,
+      // verifyType: isEmail ? 2 : 1,
+      // codeType: 0
+    }
+  })
+}
+
+export function sendLoginOut(account: string) {
   const isEmail = account.includes("@")
   return request<void>({
-    url: "/api/user/sms/code",
+    url: "/api/creator/auth/code",
     method: "post",
     data: {
       email: isEmail ? account : undefined,
@@ -38,3 +73,4 @@ export function sendLoginCodeApi(account: string) {
     }
   })
 }
+

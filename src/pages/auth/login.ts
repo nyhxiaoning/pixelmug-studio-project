@@ -3,7 +3,7 @@ import { ElMessage } from "element-plus"
 import { ArrowDown, ChatDotRound, Lock, User } from "@element-plus/icons-vue"
 import { computed, defineComponent, onBeforeUnmount, reactive, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { loginApi, sendLoginCodeApi } from "@/api/auth"
+import { loginApi, sendLoginCodeApi, authLoginIn } from "@/api/auth"
 import { useUserStore } from "@/pinia/modules/user"
 import { SUPPORT_LOCALES, getLocale, getLocaleDisplayName, setLocale } from "@/locales"
 
@@ -137,15 +137,16 @@ export default defineComponent({
 
     async function handleLogin() {
       ElMessage.success(isEnLocale.value ? "Login successful" : "登录成功")
-      const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
-      router.replace(redirect)
-      return;
+      // const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
+      // router.replace(redirect)
+      // return;
       if (submitting.value) return
       await formRef.value?.validate()
       submitting.value = true
       try {
         const account = form.username.trim()
-        const { result } = await loginApi({
+        console.log('account', account, loginType.value, form.password.trim(), 'form---')
+        const { result } = await authLoginIn({
           username: account,
           loginType: loginType.value,
           password: loginType.value === "PASSWORD" ? form.password.trim() : undefined,
@@ -169,7 +170,9 @@ export default defineComponent({
       }
       sendingCode.value = true
       try {
-        await sendLoginCodeApi(account)
+        let res = await sendLoginCodeApi(account)
+        alert(JSON.stringify(res))
+        // 验证码倒计时
         startCountdown()
         ElMessage.success(isEnLocale.value ? "Verification code sent" : "验证码已发送")
       } finally {

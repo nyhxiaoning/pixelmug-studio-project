@@ -2,24 +2,32 @@
   <header class="pe-nav">
     <!-- Brand button -->
     <button class="pe-nav-brand" aria-label="Works">
-      <img src="./llogin-illustration.jpeg" alt="" />
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="6" fill="#1f2933"/>
+        <path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      </svg>
     </button>
 
     <!-- Title bar -->
     <div class="pe-nav-titlebar">
       <ElInput
         v-if="isEditing"
-        :model-value="title"
+        :model-value="displayTitle"
         size="small"
         class="pe-nav-title-input"
         @update:model-value="onTitleUpdate"
         @blur="onTitleBlur"
         @keydown.enter="onTitleBlur"
       />
-      <ElButton v-else text class="pe-nav-title-display" @click="isEditing = true">
-        {{ title }}
+      <ElButton
+        v-else
+        text
+        class="pe-nav-title-display"
+        @click="isEditing = true"
+      >
+        {{ displayTitle }}
       </ElButton>
-      <span class="pe-nav-meta">{{ meta }}</span>
+      <span class="pe-nav-meta">{{ displayMeta }}</span>
     </div>
 
     <!-- Action buttons -->
@@ -136,19 +144,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ElInput, ElButton, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
 
-const props = withDefaults(
-  defineProps<{
-    title?: string
-    meta?: string
-  }>(),
-  {
-    title: 'Untitled',
-    meta: '',
-  }
-)
+const props = defineProps<{
+  title?: string
+  meta?: string
+}>()
+
+const displayTitle = computed(() => props.title ?? 'Untitled')
+const displayMeta = computed(() => props.meta ?? '')
 
 const emit = defineEmits<{
   'update:title': [value: string]
@@ -230,12 +235,6 @@ const onGifFileChange = (e: Event) => {
 
 .pe-nav-brand:hover {
   background: #f3f5f7;
-}
-
-.pe-nav-brand img {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
 }
 
 .pe-nav-titlebar {

@@ -204,13 +204,13 @@
       <ElCheckbox
         :model-value="onionSkin.enabled"
         label="Show adjacent frames"
-        @update:model-value="$emit('update:onionSkin', { ...onionSkin, enabled: $event })"
+        @change="onOnionSkinEnabledChange"
       />
       <ElSelect
         :model-value="onionSkin.colorMode"
         size="small"
         class="pe-full-width"
-        @update:model-value="$emit('update:onionSkin', { ...onionSkin, colorMode: $event })"
+        @update:model-value="onOnionSkinColorModeChange"
       >
         <ElOption label="True color" value="real" />
         <ElOption label="Tint adjacent frames" value="tint" />
@@ -292,7 +292,7 @@
         type="textarea"
         :rows="3"
         class="pe-text-input"
-        @update:model-value="$emit('update:textConfig', { ...textConfig, text: $event })"
+        @update:model-value="onTextChange"
       />
       <div class="pe-text-row">
         <ElInputNumber
@@ -301,13 +301,13 @@
           size="small"
           controls-position="right"
           class="pe-font-size-input"
-          @update:model-value="$emit('update:textConfig', { ...textConfig, size: $event })"
+          @update:model-value="onTextSizeChange"
         />
         <ElSelect
           :model-value="textConfig.widthMode"
           size="small"
           class="pe-font-mode-select"
-          @update:model-value="$emit('update:textConfig', { ...textConfig, widthMode: $event })"
+          @update:model-value="onTextWidthModeChange"
         >
           <ElOption label="Proportional" value="proportional" />
           <ElOption label="Monospace" value="monospaced" />
@@ -333,13 +333,13 @@
       <h2>Import</h2>
       <ElButton
         class="pe-wide-btn"
-        @click="$emit('import:static')"
+        @click="onImportStatic"
       >
         Import Static Image
       </ElButton>
       <ElButton
         class="pe-wide-btn"
-        @click="$emit('import:gif')"
+        @click="onImportGif"
       >
         Import GIF
       </ElButton>
@@ -351,13 +351,13 @@
       <ElButtonGroup class="pe-export-row">
         <ElButton
           type="primary"
-          @click="$emit('export:png')"
+          @click="onExportPng"
         >
           PNG
         </ElButton>
         <ElButton
           type="primary"
-          @click="$emit('export:gif')"
+          @click="onExportGif"
         >
           GIF
         </ElButton>
@@ -509,27 +509,60 @@ const textAlignIcons = [
   '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="17" x2="13" y1="12" y2="12"/><line x1="21" x2="17" y1="18" y2="18"/><line x1="7" x2="13" y1="18" y2="18"/></svg>',
 ]
 
-const onColorInput = (val: string) => {
-  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+const onColorInput = (val: string | null) => {
+  if (typeof val === 'string' && /^#[0-9a-fA-F]{6}$/.test(val)) {
     emit('update:currentColor', val)
   }
 }
 
-const onColorChange = (val: string) => {
-  emit('update:currentColor', val)
+const onColorChange = (val: string | null) => {
+  if (typeof val === 'string') {
+    emit('update:currentColor', val)
+  }
 }
 
 const onAlphaChange = (val: number | undefined) => {
   emit('update:alpha', (val ?? 100) / 100)
 }
 
-const onPrevOpacityChange = (val: number) => {
-  emit('update:onionSkin', { ...props.onionSkin, prevOpacity: val / 100 })
+const onPrevOpacityChange = (val: number | number[]) => {
+  const numVal = Array.isArray(val) ? val[0] : val
+  emit('update:onionSkin', { ...props.onionSkin, prevOpacity: numVal / 100 })
 }
 
-const onNextOpacityChange = (val: number) => {
-  emit('update:onionSkin', { ...props.onionSkin, nextOpacity: val / 100 })
+const onNextOpacityChange = (val: number | number[]) => {
+  const numVal = Array.isArray(val) ? val[0] : val
+  emit('update:onionSkin', { ...props.onionSkin, nextOpacity: numVal / 100 })
 }
+
+const onOnionSkinEnabledChange = (val: boolean) => {
+  emit('update:onionSkin', { ...props.onionSkin, enabled: val })
+}
+
+const onOnionSkinColorModeChange = (val: string) => {
+  emit('update:onionSkin', { ...props.onionSkin, colorMode: val as 'real' | 'tint' })
+}
+
+const onTextChange = (val: string | null) => {
+  if (val !== null) {
+    emit('update:textConfig', { ...props.textConfig, text: val })
+  }
+}
+
+const onTextSizeChange = (val: number | null) => {
+  if (val !== null) {
+    emit('update:textConfig', { ...props.textConfig, size: val })
+  }
+}
+
+const onTextWidthModeChange = (val: string) => {
+  emit('update:textConfig', { ...props.textConfig, widthMode: val as 'proportional' | 'monospaced' })
+}
+
+const onImportStatic = () => emit('import:static')
+const onImportGif = () => emit('import:gif')
+const onExportPng = () => emit('export:png')
+const onExportGif = () => emit('export:gif')
 </script>
 
 <style scoped>

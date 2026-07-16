@@ -11,17 +11,16 @@ export const router = createRouter({
 router.beforeEach((to) => {
   // todo:不交验，直接进入系统，待修改
 
-  return true;
+  // return true;
 
   const userStore = useUserStore()
+  alert(JSON.stringify(userStore))
+
   if (to.meta.public) return true
   if (!userStore.token) {
     return `/login?redirect=${encodeURIComponent(to.fullPath)}`
   }
   if (to.path === "/no-permission") return true
-  const module = typeof to.meta.module === "string" ? to.meta.module : ""
-  if (!userStore.canAccess(module)) {
-    return firstAllowedPath(userStore.allowedMenus)
-  }
+
   return true
 })

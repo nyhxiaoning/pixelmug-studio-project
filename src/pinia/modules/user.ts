@@ -6,6 +6,8 @@ const USER_ID_KEY = "bubble_admin_user_id"
 
 export const useUserStore = defineStore("user", {
   state: () => ({
+    // 存储验证码
+    smscode: "",
     token: localStorage.getItem(TOKEN_KEY) || "",
     userId: localStorage.getItem(USER_ID_KEY) || "",
     companyId: localStorage.getItem(COMPANY_KEY) || "",
@@ -47,6 +49,9 @@ export const useUserStore = defineStore("user", {
     setToken(token: string) {
       this.token = token
       localStorage.setItem(TOKEN_KEY, token)
+    },
+    setSmscode(smscode: string) {
+      this.smscode = smscode;
     },
     logout() {
       this.token = ""

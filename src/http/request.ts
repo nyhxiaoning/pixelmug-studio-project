@@ -51,7 +51,6 @@ export function request<T>(config: AxiosRequestConfig): Promise<ApiResult<T>> {
 }
 
 function redirectToLogin() {
-  debugger
   const userStore = useUserStore()
   userStore.logout()
   const current = `${location.pathname}${location.search}${location.hash}`

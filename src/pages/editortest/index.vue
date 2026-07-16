@@ -56,6 +56,18 @@
 import { ref } from 'vue'
 import EditorShell from '@/modules/pixel-editor/components/editor-nav/EditorShell.vue'
 
+interface FrameData {
+  id: string
+  preview?: string
+}
+
+interface LayerData {
+  id: string
+  name: string
+  visible: boolean
+  opacity: number
+}
+
 // Tool state
 const currentColor = ref('#FFC000')
 const alpha = ref(1)
@@ -90,7 +102,7 @@ const exportScale = ref(1)
 const zoom = ref(1)
 
 // Frames
-const frames = ref([
+const frames = ref<FrameData[]>([
   { id: 'frame-1', preview: '#34d27f' },
   { id: 'frame-2', preview: '#f83c72' },
 ])
@@ -99,7 +111,7 @@ const isPlaying = ref(false)
 const frameDelay = ref(120)
 
 // Layers
-const layers = ref([
+const layers = ref<LayerData[]>([
   { id: 'layer-1', name: 'Layer 1', visible: true, opacity: 1 },
   { id: 'layer-2', name: 'Layer 2', visible: true, opacity: 0.86 },
 ])
@@ -202,7 +214,7 @@ const onSelectFrame = (index: number) => {
 }
 
 const onAddFrame = () => {
-  frames.value.push({ id: `frame-${Date.now()}`, preview: undefined })
+  frames.value.push({ id: `frame-${Date.now()}` })
 }
 
 const onDuplicateFrame = () => {
