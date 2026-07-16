@@ -21,7 +21,7 @@
       <div class="login-form-card">
         <div class="login-brand-title">
           <img width="40" src="https://storage.qajeejio.com/luanzong/creatorhub/login/logo.png" />
-          <h1 class="login-form-card__title">PixelMug 创作者中心</h1>
+          <h1 class="login-form-card__title">{{ t }}PixelMug 创作者中心</h1>
         </div>
 
         <el-segmented

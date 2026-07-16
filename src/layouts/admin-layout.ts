@@ -50,7 +50,7 @@ export default defineComponent({
 
     function handleUserCommand(command: string) {
       if (command === "logout") {
-        alert(111111)
+        // alert(111111)
         userStore.logout()
         router.push("/login")
       } else if (command === "language") {

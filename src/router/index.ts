@@ -14,7 +14,7 @@ router.beforeEach((to) => {
   // return true;
 
   const userStore = useUserStore()
-  alert(JSON.stringify(userStore))
+  // alert(JSON.stringify(userStore))
 
   if (to.meta.public) return true
   if (!userStore.token) {

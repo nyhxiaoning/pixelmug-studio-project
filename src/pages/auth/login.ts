@@ -6,7 +6,8 @@ import { useRoute, useRouter } from "vue-router"
 import { loginApi, sendLoginCodeApi, authLoginIn } from "@/api/auth"
 import { useUserStore } from "@/pinia/modules/user"
 import { SUPPORT_LOCALES, getLocale, getLocaleDisplayName, setLocale } from "@/locales"
-
+// 多语言测试
+import { useAppI18n } from "@/common/composables/useI18n.ts"
 interface LoginForm {
   username: string
   password: string
@@ -21,6 +22,7 @@ interface LocaleOption {
 export default defineComponent({
   name: "LoginPage",
   setup() {
+    const t = useAppI18n();
     const route = useRoute()
     const router = useRouter()
     const userStore = useUserStore()
@@ -170,10 +172,10 @@ export default defineComponent({
       }
       sendingCode.value = true
 
-      alert(JSON.stringify(account))
+      // alert(JSON.stringify(account))
       try {
         let res = await sendLoginCodeApi(account)
-        alert(JSON.stringify(res))
+        // alert(JSON.stringify(res))
         // 验证码倒计时
         startCountdown()
         ElMessage.success(isEnLocale.value ? "Verification code sent" : "验证码已发送")
@@ -206,6 +208,7 @@ export default defineComponent({
     onBeforeUnmount(clearCountdown)
 
     return {
+      t,
       formRef,
       form,
       getRules,
