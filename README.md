@@ -7,6 +7,12 @@
 - 默认语言，使用浏览器语言
 - 初始化登录的时候，
 
+1. 翻译键已全部定义：pxm_editor_* 系列键
+2. 使用方式简单：$t('pxm_editor_brush') 或 t('pxm_editor_brush')
+3. 自动语言切换：调用 switchLocale() 即可
+4. 支持中英文：已经配置了 zh-CN 和 en-US
+
+
 
 基于 Vue 3 + TypeScript + Element Plus + TailwindCSS 的现代化前端开发模板。
 
