@@ -34,6 +34,12 @@ export const routes: RouteRecordRaw[] = [
         name: "Works",
         component: () => import("@/pages/works/index.vue"),
         meta: { title: "作品" }
+      },
+      {
+        path: "publish",
+        name: "Publish",
+        component: () => import("@/pages/publish/index.vue"),
+        meta: { title: "发布" }
       }
     ]
   },
