@@ -107,29 +107,6 @@
 
       <div class="toolbar">
         <!-- 搜索框 -->
-        <el-input
-          v-model="searchQuery"
-          placeholder="Search works..."
-          clearable
-          class="works-search"
-        >
-          <template #prefix>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-          </template>
-        </el-input>
 
         <!-- 排序下拉 popover -->
         <el-popover

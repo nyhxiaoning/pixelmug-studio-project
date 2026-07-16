@@ -9,7 +9,7 @@ import { useUserStore } from '@/pinia/modules/user'
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -20,7 +20,7 @@ const service: AxiosInstance = axios.create({
 service.interceptors.request.use(
   (config: AxiosRequestConfig) => {
     const userStore = useUserStore()
-    
+
     // 添加 token
     if (userStore.token) {
       config.headers = {
@@ -28,7 +28,7 @@ service.interceptors.request.use(
         Authorization: `Bearer ${userStore.token}`
       }
     }
-    
+
     return config
   },
   (error) => {
@@ -40,7 +40,7 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response: AxiosResponse) => {
     const { code, message, data } = response.data
-    
+
     if (code === 200) {
       return data
     } else {
@@ -50,7 +50,7 @@ service.interceptors.response.use(
   },
   (error) => {
     const { response } = error
-    
+
     if (response?.status === 401) {
       const userStore = useUserStore()
       userStore.logout()
@@ -58,7 +58,7 @@ service.interceptors.response.use(
     } else {
       ElMessage.error(error.message || '网络错误')
     }
-    
+
     return Promise.reject(error)
   }
 )
