@@ -223,92 +223,139 @@
     </div>
 
     <!-- 作品列表区域 -->
-    <section :class="viewMode === 'grid' ? 'works-grid' : 'works-list'">
-      <article
-        v-for="work in sortedWorkList"
-        :key="work.id"
-        class="work-card clickable-work"
-        tabindex="0"
-        @click="openEditWork(work)"
-      >
-        <div class="preview preview-dark-cluster">
-          <div class="dark-cluster-art">
-            <span class="mini-phone"><i /><i /><i /></span>
-            <span class="mini-phone"><i /><i /><i /></span>
-            <span class="mini-phone"><i /><i /><i /></span>
-            <span class="tiny-node n1" />
-            <span class="tiny-node n2" />
-            <span class="tiny-node n3" />
-          </div>
-        </div>
-        <div class="work-meta">
-          <div>
-            <h2>{{ work.title }}</h2>
-            <p>{{ work.createdAt }}</p>
-          </div>
-          <div class="card-actions">
-            <el-button size="small" pxm_action_edit @click.stop="openEditWork(work)">
-              Edit
-            </el-button>
-            <div class="card-icon-actions">
-              <el-button
-                circle
-                size="small"
-                pxm_action_preview
-                title="Preview"
-                @click.stop="sendWorkToDevice(work)"
-              >
-                <template #icon>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" x2="12" y1="3" y2="15" />
-                  </svg>
-                </template>
-              </el-button>
-              <el-button
-                circle
-                size="small"
-                type="danger"
-                pxm_action_delete
-                title="Delete"
-                @click.stop="handleDeleteWork(work)"
-              >
-                <template #icon>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M3 6h18" />
-                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                    <line x1="10" x2="10" y1="11" y2="17" />
-                    <line x1="14" x2="14" y1="11" y2="17" />
-                  </svg>
-                </template>
-              </el-button>
+    <template v-if="viewMode === 'grid'">
+      <section class="works-grid">
+        <article
+          v-for="work in sortedWorkList"
+          :key="work.id"
+          class="work-card clickable-work"
+          tabindex="0"
+          @click="openEditWork(work)"
+        >
+          <div class="preview preview-dark-cluster">
+            <div class="dark-cluster-art">
+              <span class="mini-phone"><i /><i /><i /></span>
+              <span class="mini-phone"><i /><i /><i /></span>
+              <span class="mini-phone"><i /><i /><i /></span>
+              <span class="tiny-node n1" />
+              <span class="tiny-node n2" />
+              <span class="tiny-node n3" />
             </div>
           </div>
+          <div class="work-meta">
+            <div>
+              <h2>{{ work.title }}</h2>
+              <p>{{ work.createdAt }}</p>
+            </div>
+            <div class="card-actions">
+              <el-button size="small" pxm_action_edit @click.stop="openEditWork(work)">
+                Edit
+              </el-button>
+              <div class="card-icon-actions">
+                <el-button
+                  circle
+                  size="small"
+                  pxm_action_preview
+                  title="Preview"
+                  @click.stop="sendWorkToDevice(work)"
+                >
+                  <template #icon>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" x2="12" y1="3" y2="15" />
+                    </svg>
+                  </template>
+                </el-button>
+                <el-button
+                  circle
+                  size="small"
+                  type="danger"
+                  pxm_action_delete
+                  title="Delete"
+                  @click.stop="handleDeleteWork(work)"
+                >
+                  <template #icon>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M3 6h18" />
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                      <line x1="10" x2="10" y1="11" y2="17" />
+                      <line x1="14" x2="14" y1="11" y2="17" />
+                    </svg>
+                  </template>
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </template>
+
+    <template v-else>
+      <section class="works-list">
+        <div class="list-header">
+          <span>Name</span>
+          <span>Last modified</span>
+          <span>Created</span>
+          <span>Actions</span>
         </div>
-      </article>
-    </section>
+        <article
+          v-for="work in sortedWorkList"
+          :key="work.id"
+          class="work-row clickable-work"
+          tabindex="0"
+          @click="openEditWork(work)"
+        >
+          <div class="row-name">
+            <div class="row-preview preview-dark-cluster">
+              <div class="dark-cluster-art">
+                <span class="mini-phone"><i /><i /><i /></span>
+                <span class="mini-phone"><i /><i /><i /></span>
+                <span class="mini-phone"><i /><i /><i /></span>
+                <span class="tiny-node n1" />
+                <span class="tiny-node n2" />
+                <span class="tiny-node n3" />
+              </div>
+              <span class="kind-icon bubble">&#9670;</span>
+            </div>
+            <h2>{{ work.title }}</h2>
+          </div>
+          <span class="row-time">{{ formatDate(work.lastViewTime) }}</span>
+          <span class="row-time">{{ work.createdAt }}</span>
+          <div class="row-actions">
+            <button pxm_action_preview @click.stop="sendWorkToDevice(work)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
+              Preview
+            </button>
+            <button class="danger-text" pxm_action_delete @click.stop="handleDeleteWork(work)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>
+              Delete
+            </button>
+          </div>
+        </article>
+      </section>
+    </template>
   </main>
 </template>
 
@@ -445,6 +492,16 @@ const applySort = () => {
 // ===================== 业务事件 =====================
 const triggerUpload = () => {
   fileInputRef.value.click()
+}
+
+// 日期格式化 filter
+const formatDate = (ts) => {
+  if (!ts) return ''
+  const d = typeof ts === 'number' ? new Date(ts) : new Date(ts)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}.${m}.${day}`
 }
 const handleFileUpload = (e) => {
   const file = e.target.files[0]
@@ -609,20 +666,6 @@ const handleDeleteWork = (work) => {
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 18px;
 }
-.works-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.works-list .work-card {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-.works-list .work-card .preview {
-  width: 100px;
-  flex-shrink: 0;
-}
 
 .work-card {
   background: #fff;
@@ -664,5 +707,125 @@ const handleDeleteWork = (work) => {
 .card-icon-actions {
   display: flex;
   gap: 6px;
+}
+
+/* ============== List View Styles ============== */
+.works-list .list-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.2fr;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 500;
+}
+
+.works-list .work-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.2fr;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.works-list .work-row:hover {
+  background: #f9fafb;
+}
+
+.works-list .row-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.works-list .row-preview {
+  width: 44px;
+  height: 32px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.works-list .row-preview .dark-cluster-art {
+  transform: scale(0.55);
+}
+
+.works-list .kind-icon {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.works-list .kind-icon.bubble {
+  background: #fff;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.works-list .row-name h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.works-list .row-time {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.works-list .row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.works-list .row-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.works-list .row-actions button:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.works-list .row-actions button.danger-text {
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+.works-list .row-actions button.danger-text:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+.works-list .row-actions button svg {
+  flex-shrink: 0;
 }
 </style>
