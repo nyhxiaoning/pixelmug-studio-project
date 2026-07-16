@@ -28,18 +28,18 @@ const getStoredLocale = (): SupportLocale => {
 // 从浏览器获取语言设置
 const getBrowserLocale = (): SupportLocale => {
   const browserLang = navigator.language
-  
+
   // 精确匹配
   if (SUPPORT_LOCALES.includes(browserLang as SupportLocale)) {
     return browserLang as SupportLocale
   }
-  
+
   // 语言前缀匹配
   const langPrefix = browserLang.split('-')[0]
-  const matchedLocale = SUPPORT_LOCALES.find(locale => 
+  const matchedLocale = SUPPORT_LOCALES.find(locale =>
     locale.startsWith(langPrefix)
   )
-  
+
   return matchedLocale || DEFAULT_LOCALE
 }
 
