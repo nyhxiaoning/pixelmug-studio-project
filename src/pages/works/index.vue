@@ -513,7 +513,7 @@ const sortLabel = computed(() => {
     createTime: '创建日期',
     lastView: 'Last viewed',
   }
-  alert(JSON.stringify(map[sortBy.value]))
+  // alert(JSON.stringify(map[sortBy.value]))
   return map[sortBy.value]
 })
 

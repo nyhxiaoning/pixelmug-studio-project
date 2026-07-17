@@ -66,7 +66,7 @@
         </div>
 
         <!-- 发布管理表格 -->
-        <el-table :data="tableData" border stripe style="width: 100%">
+        <el-table :data="tableData" stripe style="width: 100%">
           <el-table-column label="作品信息" min-width="280">
             <template #default="{ row }">
               <div class="publish-name">
@@ -156,7 +156,7 @@
         clearable
         style="margin-bottom: 12px"
       />
-      <el-table ref="draftTableRef" :data="draftWorkList" border row-key="id" style="width: 100%">
+      <el-table ref="draftTableRef" :data="draftWorkList" row-key="id" style="width: 100%">
         <el-table-column type="selection" />
         <el-table-column label="预览" width="80">
           <template #default="{ row }">
