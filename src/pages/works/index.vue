@@ -533,7 +533,7 @@ async function fetchDevices() {
     const res = await listDevicesApi()
     deviceList.value = res.result ?? []
     // 默认选中所有在线设备
-    selectedDeviceIds.value = deviceList.value.filter((d) => d.online === 'ONLINE').map((d) => d.id)
+    // selectedDeviceIds.value = deviceList.value.filter((d) => d.online === 'ONLINE').map((d) => d.id)
   } catch (e) {
     console.error('fetchDevices error:', e)
   }
