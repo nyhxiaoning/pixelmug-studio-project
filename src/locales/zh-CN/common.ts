@@ -252,6 +252,22 @@ export default {
   pxm_editor_confirm_delete_project: '确定删除这个作品吗？',
   pxm_editor_gif_export_limit: 'GIF 最多导出 {n} 帧，请先减少帧数',
   pxm_editor_gif_exported: 'GIF 已导出：{count} 帧，{width} x {height}',
+  pxm_editor_auto_saved: '已自动保存',
+  pxm_editor_canvas_pixels_moved: '已移动画布像素',
+  pxm_editor_pixels_edited: '已编辑像素',
+  pxm_editor_transform_done: '已变换选区',
+  pxm_editor_cut_paste_hint: '已剪切区域，移动鼠标并单击放置',
+  pxm_editor_pasted: '已粘贴区域',
+  pxm_editor_layer_settings_updated: '图层设置已更新',
+  pxm_editor_project_name_updated: '作品名称已更新',
+  pxm_editor_frame_interval_updated: '帧间隔已更新',
+  pxm_editor_frame_added: '已新增帧',
+  pxm_editor_frame_duplicated: '已复制帧',
+  pxm_editor_frame_deleted: '已删除帧',
+  pxm_editor_frames_deleted: '已删除全部帧，保留 1 帧空白帧',
+  pxm_editor_led_preview: 'LED 预览',
+  pxm_editor_play_all_frames: '播放全部帧',
+  pxm_editor_stop_play: '停止播放',
 
   // ====================== 国际化异常模块 ======================
   pxm_language_switch_failed: '语言切换失败，请稍后重试',
@@ -277,4 +293,5 @@ export default {
   pxm_editor_connected_pixels: '已选择连通区域 {n} 像素',
   pxm_editor_copy_suffix: '副本',
   pxm_editor_status_ready: '准备就绪',
+  pxm_editor_overview_save: '保存',
 }
