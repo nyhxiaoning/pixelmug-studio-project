@@ -8,6 +8,8 @@ export const useUserStore = defineStore("user", {
   state: () => ({
     // 存储验证码
     smscode: "",
+    loginUserName: '',// 登录的用户账号信息
+    avatar: '',
     token: localStorage.getItem(TOKEN_KEY) || "",
     userId: localStorage.getItem(USER_ID_KEY) || "",
     companyId: localStorage.getItem(COMPANY_KEY) || "",
@@ -53,10 +55,19 @@ export const useUserStore = defineStore("user", {
     setSmscode(smscode: string) {
       this.smscode = smscode;
     },
+    // 设置用户名 
+    setLoginUserName(loginUserName: string) {
+      this.loginUserName = loginUserName;
+    },
+    setAvatar(avatar: string) {
+      this.avatar = avatar;
+    },
     logout() {
       this.token = ""
       this.userId = ""
       this.name = ""
+      this.avatar = ""
+      this.loginUserName = ""
       this.companyId = ""
       this.menuCodes = []
       localStorage.removeItem(TOKEN_KEY)

@@ -57,7 +57,7 @@
         <el-dropdown @command="handleUserCommand">
           <div class="user-info">
             <el-avatar :size="32">
-              {{ userName?.charAt(0) || 'U' }}
+              {{ userAvartar || 'https://devstorage.jeejio.com/temphenry/image/paihangbang.png' }}
             </el-avatar>
             <span class="user-name"> {{ ' ' }}{{ userName || 'Admin' }}</span>
             <el-icon class="user-arrow">
@@ -75,10 +75,10 @@
               <!-- 上部：用户信息区域 -->
               <div class="menu-profile">
                 <span class="avatar avatar-large">
-                  <el-avatar :size="56" src="" />
+                  <el-avatar :size="56" src="userAvartar" />
                 </span>
-                <strong class="username">ym luan</strong>
-                <span class="user-email">yeming.luan@gmail.com</span>
+                <strong class="username">{{ userName }}</strong>
+                <span class="user-email">{{ userLoginUserName }}</span>
               </div>
 
               <div class="menu-separator" />

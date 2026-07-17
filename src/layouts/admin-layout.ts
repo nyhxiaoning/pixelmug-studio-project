@@ -5,6 +5,7 @@ import { useUserStore } from "@/pinia/modules/user"
 import { MoreFilled, Place, SwitchButton } from "@element-plus/icons-vue"
 import { getLocale, getLocaleDisplayName, toggleLocale } from "@/locales"
 import { sendLoginOut } from "@/api/auth"
+import { UserSearch } from "lucide-vue-next"
 
 
 
@@ -63,6 +64,7 @@ export default defineComponent({
       sendLoginOut(userStore?.token).then(() => {
         userStore.logout()
 
+
         router.push("/login")
       }).catch(err => {
         console.log(err)
@@ -85,7 +87,9 @@ export default defineComponent({
       isGroupExpanded,
       toggleGroup,
       userId: userStore.userId,
+      userAvartar: userStore.avatar || 'https://devstorage.jeejio.com/temphenry/image/paihangbang.png',
       userName: userStore.name,
+      userLoginUserName: userStore.loginUserName,
       localeName,
       handleUserCommand,
       handleLogout,
