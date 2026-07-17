@@ -450,16 +450,24 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
   margin-bottom: 16px;
 }
 .community-section-head h2 {
   margin: 0;
   font-size: 18px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .community-status-filter {
   display: flex;
   align-items: center;
   gap: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.community-status-filter :deep(.el-select) {
+  min-width: 150px;
 }
 .publish-name {
   display: flex;
