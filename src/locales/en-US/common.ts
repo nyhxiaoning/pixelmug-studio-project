@@ -77,6 +77,8 @@ export default {
   pxm_device_online: 'Online',
   pxm_device_offline: 'Offline',
   pxm_device_choose: 'Choose device',
+  pxm_device_preview_push_error: 'Preview push failed',
+  pxm_device_preview_before_bind: 'Select at least one preview device!',
   pxm_device_preview_devices: 'Preview devices',
   pxm_device_bound: 'Bound',
   pxm_editor_push_success: 'Pushed to remote device.',

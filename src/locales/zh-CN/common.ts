@@ -77,6 +77,8 @@ export default {
   pxm_device_online: '在线',
   pxm_device_offline: '离线',
   pxm_device_choose: '选择设备',
+  pxm_device_preview_push_error: '预览推送失败',
+  pxm_device_preview_before_bind: '请至少选择一台预览设备！',
   pxm_device_preview_devices: '预览设备',
   pxm_device_bound: '当前绑定',
   pxm_editor_push_success: '已推送到远程设备。',

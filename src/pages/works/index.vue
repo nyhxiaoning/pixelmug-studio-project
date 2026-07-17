@@ -67,7 +67,7 @@
       >
         <template #reference>
           <div class="preview-device-trigger">
-            <span>Preview devices</span>
+            <span>{{ $t('common.pxm_device_preview_devices') }}</span>
             <strong>{{ selectedDevices.map((d) => d.name).join('、') }}</strong>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -85,7 +85,9 @@
           </div>
         </template>
         <div>
-          <div class="preview-device-panel-head">Bound</div>
+          <div class="preview-device-panel-head">
+            {{ $t('common.pxm_device_bound') }}
+          </div>
           <el-checkbox-group v-model="selectedDeviceIds">
             <div class="device-list">
               <div
@@ -97,7 +99,9 @@
                 <el-checkbox :label="dev.id" :disabled="!dev.online">
                   <span :class="['device-dot', dev.online ? 'online' : 'offline']" />
                   <span class="device-name">{{ dev.name }}</span>
-                  <em>{{ dev.online ? 'Online' : 'Offline' }}</em>
+                  <em>{{
+                    dev.online ? $t('common.pxm_device_online') : $t('common.pxm_device_offline')
+                  }}</em>
                 </el-checkbox>
               </div>
             </div>
@@ -108,7 +112,7 @@
       <div>
         <el-input
           v-model="searchQuery"
-          placeholder="Search works..."
+          :placeholder="$t('common.pxm_search_placeholder')"
           clearable
           class="works-search"
         >
@@ -162,7 +166,7 @@
           </template>
 
           <div class="sort-group">
-            <p class="sort-title">排序方式 <span pxm_sort_by /></p>
+            <p class="sort-title">{{ $t('common.pxm_sort_by') }} <span pxm_sort_by /></p>
             <el-radio-group v-model="sortBy" @change="applySort">
               <el-radio v-for="item in sortByOptions" :key="item.value" :label="item.value">
                 {{ item.label }}
@@ -170,7 +174,7 @@
             </el-radio-group>
           </div>
           <div class="sort-group">
-            <p class="sort-title">顺序 <span pxm_sort_order /></p>
+            <p class="sort-title">{{ $t('common.pxm_sort_order') }} <span pxm_sort_order /></p>
             <el-radio-group v-model="sortOrder" @change="applySort">
               <el-radio v-for="item in sortOrderOptions" :key="item.value" :label="item.value">
                 {{ item.label }}
@@ -257,7 +261,7 @@
                   circle
                   size="small"
                   pxm_action_preview
-                  title="Preview"
+                  :title="$t('common.pxm_action_preview')"
                   @click.stop="sendWorkToDevice(work)"
                 >
                   <template #icon>
@@ -283,7 +287,7 @@
                   size="small"
                   type="danger"
                   pxm_action_delete
-                  title="Delete"
+                  :title="$t('common.pxm_action_delete')"
                   @click.stop="handleDeleteWork(work)"
                 >
                   <template #icon>
@@ -317,7 +321,7 @@
       <el-empty v-if="sortedWorkList.length === 0" description="No works yet" />
       <section v-else class="works-list">
         <el-table :data="sortedWorkList" stripe style="width: 100%" @row-click="handleRowClick">
-          <el-table-column label="Name" min-width="240">
+          <el-table-column :label="$t('common.pxm_column_name')" min-width="240">
             <template #default="{ row }">
               <div class="row-name">
                 <div class="row-preview preview-dark-cluster">
@@ -335,17 +339,17 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="Last modified" width="140">
+          <el-table-column :label="$t('common.pxm_column_modified')" width="140">
             <template #default="{ row }">
               <span class="row-time">{{ formatDate(row.lastViewTime) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Created" width="140">
+          <el-table-column :label="$t('common.pxm_column_created')" width="140">
             <template #default="{ row }">
               <span class="row-time">{{ row.createdAt }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Actions" width="220" fixed="right">
+          <el-table-column :label="$t('common.pxm_column_actions')" width="220" fixed="right">
             <template #default="{ row }">
               <div class="row-actions">
                 <el-button size="small" pxm_action_preview @click.stop="sendWorkToDevice(row)">
@@ -412,10 +416,12 @@ import type { CreatorDeviceVO } from '@/api/device'
 import { listDevicesApi, previewToDeviceApi } from '@/api/device'
 
 import { ref, computed, onMounted } from 'vue'
+import { useAppI18n } from '@/common/composables/useI18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
+const { t } = useAppI18n()
 
 // ===================== 基础状态 =====================
 const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -478,7 +484,7 @@ async function fetchWorks() {
     workList.value = (res.result?.list ?? []).map(toWorkItem)
   } catch (e) {
     console.error('fetchWorks error:', e)
-    ElMessage.error('Failed to load works')
+    ElMessage.error(t('common.pxm_work_state_changed'))
   } finally {
     loading.value = false
   }
@@ -511,9 +517,9 @@ const sortOrderOptions = [
 ]
 const sortLabel = computed(() => {
   const map = {
-    name: '按字母',
-    createTime: '创建日期',
-    lastView: 'Last viewed',
+    name: t('common.pxm_sort_alphabetical'),
+    createTime: t('common.pxm_sort_date_created'),
+    lastView: t('common.pxm_sort_last_viewed'),
   }
   // alert(JSON.stringify(map[sortBy.value]))
   return map[sortBy.value]
@@ -593,12 +599,12 @@ const handleFileUpload = (e: Event) => {
   createWorkApi({ title: file.name.split('.')[0] })
     .then((res) => {
       const newWorkId = res.result
-      ElMessage.success('Upload successful')
+      ElMessage.success(t('common.pxm_upload_success'))
       fetchWorks()
       router.push({ path: '/editor', query: { workId: newWorkId } })
     })
     .catch(() => {
-      ElMessage.error('Create failed')
+      ElMessage.error(t('common.pxm_upload_failed'))
     })
   fileInputRef.value && (fileInputRef.value.value = '')
 }
@@ -609,7 +615,7 @@ const goCreateEditor = () => {
       router.push({ path: '/editor', query: { workId: res.result } })
     })
     .catch(() => {
-      ElMessage.error('Create failed')
+      ElMessage.error(t('common.pxm_upload_failed'))
     })
 }
 
@@ -624,7 +630,7 @@ function handleRowClick(row: any) {
 
 const sendWorkToDevice = async (work: WorkItem) => {
   if (selectedDevices.value.length === 0) {
-    ElMessage.warning('请至少选择一台预览设备！')
+    ElMessage.warning(t('common.pxm_device_preview_before_bind'))
     return
   }
   try {
@@ -641,22 +647,22 @@ const sendWorkToDevice = async (work: WorkItem) => {
     })
     const failed = (res.result ?? []).filter((r) => !r.success)
     if (failed.length === 0) {
-      ElMessage.success(
-        `【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`
-      )
+      // ElMessage.success(
+      //   `【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`
+      // )
     } else {
       ElMessage.warning(`部分设备推送失败：${failed.map((f) => f.message).join('；')}`)
     }
   } catch (e) {
     console.error('preview error:', e)
-    ElMessage.error('预览推送失败')
+    ElMessage.error(t('common.pxm_device_preview_push_error'))
   }
 }
 
 const handleDeleteWork = (work: WorkItem) => {
   ElMessageBox.confirm(`确定要删除作品【${work.title}】吗？删除后不可恢复！`, '删除提示', {
-    confirmButtonText: '确认删除',
-    cancelButtonText: '取消',
+    confirmButtonText: t('common.pxm_common_confirm'),
+    cancelButtonText: t('common.pxm_common_cancel'),
     type: 'warning',
   })
     .then(() => {
@@ -666,12 +672,12 @@ const handleDeleteWork = (work: WorkItem) => {
       return fetchWorks()
     })
     .then(() => {
-      ElMessage.success('作品已删除')
+      ElMessage.success(t('common.pxm_delete_success'))
     })
     .catch((e) => {
       if (e !== 'cancel') {
         console.error('delete work failed:', e)
-        ElMessage.error('删除失败')
+        ElMessage.error(t('common.pxm_delete_failed'))
       }
     })
 }
