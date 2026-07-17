@@ -506,14 +506,14 @@ function buildSortParams() {
 // ============ 排序配置 ============
 const sortBy = ref<'name' | 'createTime' | 'lastView'>('lastView')
 const sortByOptions = [
-  { label: '按字母', value: 'name' },
-  { label: '创建日期', value: 'createTime' },
-  { label: '最近查看', value: 'lastView' },
+  { label: t('common.pxm_sort_alphabetical'), value: 'name' },
+  { label: t('common.pxm_sort_date_created'), value: 'createTime' },
+  { label: t('common.pxm_sort_last_viewed'), value: 'lastView' },
 ]
 const sortOrder = ref<'asc' | 'desc'>('desc')
 const sortOrderOptions = [
-  { label: '最旧优先', value: 'asc' },
-  { label: '最新优先', value: 'desc' },
+  { label: t('common.pxm_sort_oldest'), value: 'asc' },
+  { label: t('common.pxm_sort_newest'), value: 'desc' },
 ]
 const sortLabel = computed(() => {
   const map = {

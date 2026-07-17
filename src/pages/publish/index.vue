@@ -3,8 +3,8 @@
     <!-- 顶部标题区域 a -->
     <header class="topbar community-topbar">
       <div>
-        <h1 pxm_publish_title>发布管理</h1>
-        <p pxm_publish_subtitle>选择未发布作品提交官方审核，通过后即可上架。</p>
+        <h1>{{ $t("common.pxm_publish_title") }}</h1>
+        <p>{{ $t("common.pxm_publish_subtitle") }}</p>
       </div>
       <el-button type="primary" @click="openResourceDialog">
         <template #icon>
@@ -24,7 +24,7 @@
             <line x1="12" x2="12" y1="3" y2="15" />
           </svg>
         </template>
-        <span pxm_publish_apply>发布</span>
+        <span>{{ $t("common.pxm_publish_apply") }}</span>
       </el-button>
     </header>
 
@@ -33,34 +33,34 @@
       <div class="community-stats">
         <div class="stat-card">
           <strong pxm_publish_stats_live>{{ statData.live }}</strong>
-          <span>已上架</span>
+          <span>{{ $t("common.pxm_publish_stats_live") }}</span>
         </div>
         <div class="stat-card">
           <strong pxm_publish_stats_review>{{ statData.review }}</strong>
-          <span>审核中</span>
+          <span>{{ $t("common.pxm_publish_stats_review") }}</span>
         </div>
         <div class="stat-card">
           <strong pxm_publish_stats_draft>{{ statData.draft }}</strong>
-          <span>可申请</span>
+          <span>{{ $t("common.pxm_publish_stats_draft") }}</span>
         </div>
       </div>
 
       <section class="community-section">
         <div class="community-section-head">
-          <h2>发布管理列表</h2>
+          <h2>{{ $t("common.pxm_publish_management") }}</h2>
           <div class="community-status-filter">
-            <span>发布状态</span>
+            <span>{{ $t("common.pxm_publish_status_filter") }}</span>
             <el-select
               v-model="queryParams.status"
-              placeholder="全部状态"
+              :placeholder="$t('common.pxm_publish_all_statuses')"
               pxm_publish_status_filter
               @change="loadTableData"
             >
-              <el-option label="全部" value="all" />
-              <el-option label="审核中" value="pending" />
-              <el-option label="已上架" value="live" />
-              <el-option label="已驳回" value="rejected" />
-              <el-option label="已下架" value="offline" />
+              <el-option :label="$t('common.pxm_publish_all_statuses')" value="all" />
+              <el-option :label="$t('common.pxm_publish_status_pending')" value="pending" />
+              <el-option :label="$t('common.pxm_publish_status_live')" value="live" />
+              <el-option :label="$t('common.pxm_publish_status_rejected')" value="rejected" />
+              <el-option :label="$t('common.pxm_publish_status_offline')" value="offline" />
             </el-select>
           </div>
         </div>
@@ -68,7 +68,7 @@
         <!-- 发布管理表格 -->
         <el-empty v-if="tableData.length === 0" description="No works yet" />
         <el-table v-else :data="tableData" stripe style="width: 100%">
-          <el-table-column label="作品信息" min-width="280">
+          <el-table-column :label="$t('common.pxm_publish_files')" min-width="280">
             <template #default="{ row }">
               <div class="publish-name">
                 <div class="publish-thumb" />
@@ -79,23 +79,23 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="当前版本" prop="version" width="100" />
-          <el-table-column label="上次提交时间" prop="lastSubmit" width="140" />
-          <el-table-column label="最新修改时间" prop="lastUpdate" width="140" />
-          <el-table-column label="状态" width="110">
+          <el-table-column :label="$t('common.pxm_publish_version')" prop="version" width="100" />
+          <el-table-column :label="$t('common.pxm_publish_last_submit')" prop="lastSubmit" width="140" />
+          <el-table-column :label="$t('common.pxm_publish_latest_update')" prop="lastUpdate" width="140" />
+          <el-table-column :label="$t('common.pxm_publish_status_filter')" width="110">
             <template #default="{ row }">
               <el-tag :type="getStatusTagType(row.status)">
                 {{ getStatusLabel(row.status) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" min-width="240">
+          <el-table-column :label="$t('common.pxm_column_actions')" min-width="240">
             <template #default="{ row }">
               <div class="publish-actions">
                 <!-- 已上架：提交更新 / 下架 f -->
                 <template v-if="row.status === 'live'">
                   <el-button size="small" pxm_publish_update @click="handleUpdate(row)">
-                    提交更新
+                    {{ $t('common.pxm_publish_update') }}
                   </el-button>
                   <el-button
                     size="small"
@@ -103,8 +103,7 @@
                     pxm_publish_unPublish
                     @click="handleUnpublish(row)"
                   >
-                    下架
-                  </el-button>
+                  {{ $t('common.pxm_publish_unpublish') }}</el-button>
                 </template>
                 <!-- 审核中：撤回 g -->
                 <template v-if="row.status === 'pending'">
@@ -114,19 +113,19 @@
                     pxm_publish_withdraw
                     @click="handleWithdraw(row)"
                   >
-                    撤回
+                    {{ $t('common.pxm_publish_withdraw') }}
                   </el-button>
                 </template>
                 <!-- 已驳回：重新发布 h -->
                 <template v-if="row.status === 'rejected'">
                   <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
-                    发布
+                    {{ $t('common.pxm_publish_apply') }}
                   </el-button>
                 </template>
                 <!-- 已下架：重新发布 + 删除 h i -->
                 <template v-if="row.status === 'offline'">
                   <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
-                    发布
+                    {{ $t('common.pxm_publish_apply') }}
                   </el-button>
                   <el-button
                     size="small"
@@ -134,7 +133,7 @@
                     pxm_action_delete
                     @click="handleDelete(row)"
                   >
-                    删除
+                    {{ $t('common.pxm_action_delete') }}
                   </el-button>
                 </template>
               </div>
@@ -147,13 +146,13 @@
     <!-- 弹窗：选择未发布作品 D E -->
     <el-dialog
       v-model="resourceDialogVisible"
-      title="选择作品提交发布"
+      :title="$t('common.pxm_publish_picker_footnote')"
       width="70%"
       @close="resetDialogSelect"
     >
       <el-input
         v-model="searchDraftKey"
-        placeholder="搜索作品名称"
+        :placeholder="$t('common.pxm_publish_search_placeholder')"
         clearable
         style="margin-bottom: 12px"
       />
@@ -165,11 +164,11 @@
           </template>
         </el-table-column>
         <el-table-column label="作品名称" prop="name" />
-        <el-table-column label="当前版本" prop="version" width="100" />
+        <el-table-column :label="$t('common.pxm_publish_version')" prop="version" width="100" />
       </el-table>
       <template #footer>
-        <el-button @click="resourceDialogVisible = false"> 取消 </el-button>
-        <el-button type="primary" pxm_publish_apply @click="submitBatchPublish"> 发布 </el-button>
+        <el-button @click="resourceDialogVisible = false">{{ $t("common.pxm_common_cancel") }}</el-button>
+        <el-button type="primary" pxm_publish_apply @click="submitBatchPublish">{{ $t("common.pxm_publish_apply") }}</el-button>
       </template>
     </el-dialog>
   </main>
@@ -177,6 +176,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useAppI18n } from '@/common/composables/useI18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import {
@@ -188,6 +188,8 @@ import {
 } from '@/api/publish'
 import { pageReleasesApi, pageReleaseCandidatesApi } from '@/api/works'
 
+const { t } = useAppI18n()
+
 // ===================== 查询条件 c =====================
 const queryParams = reactive({
   status: 'all',
@@ -195,9 +197,9 @@ const queryParams = reactive({
 
 // 统计数据 b
 const statData = ref({
-  live: 0, // pxm_publish_stats_live 已上架
-  review: 0, // pxm_publish_stats_review 审核中
-  draft: 0, // pxm_publish_stats_draft 可申请
+  live: 0,
+  review: 0,
+  draft: 0,
 })
 
 // ========== 工具函数 ==========
@@ -244,7 +246,7 @@ async function loadTableData() {
     statData.value.draft = res.result?.totalDraft || 0
   } catch (e) {
     console.error('loadTableData error:', e)
-    ElMessage.error('加载发布管理列表失败')
+    ElMessage.error(t('common.pxm_publish_action_failed'))
   }
 }
 
@@ -265,28 +267,28 @@ const resetDialogSelect = () => {
 const submitBatchPublish = () => {
   const selectedRows = draftTableRef.value?.getSelectionRows() || []
   if (selectedRows.length === 0) {
-    ElMessage.warning('请至少选择一个作品')
+    ElMessage.warning(t('common.pxm_publish_incomplete'))
     return
   }
   Promise.all(selectedRows.map((row) => submitWorkApi(row.id)))
     .then(() => {
-      ElMessage.success(`成功提交${selectedRows.length}个作品进入审核队列`)
+      ElMessage.success(t('common.pxm_publish_apply'))
       resourceDialogVisible.value = false
       loadTableData()
     })
     .catch(() => {
-      ElMessage.error('批量提交失败')
+      ElMessage.error(t('common.pxm_publish_action_failed'))
     })
 }
 
 /** h. 单行直接发布（已驳回/已下架） */
 const singlePublish = (row) => {
-  ElMessageBox.confirm(`确认提交【${row.name}】发起发布审核？`)
+  ElMessageBox.confirm(t('common.pxm_publish_confirm_publish'))
     .then(() => {
       return submitWorkApi(row.id)
     })
     .then(() => {
-      ElMessage.success('已提交审核')
+      ElMessage.success(t('common.pxm_publish_apply'))
       loadTableData()
     })
     .catch(() => {})
@@ -294,12 +296,12 @@ const singlePublish = (row) => {
 
 /** f. 已上架 - 提交更新 */
 const handleUpdate = (row) => {
-  ElMessageBox.confirm(`确认对【${row.name}】提交版本更新审核？`)
+  ElMessageBox.confirm(t('common.pxm_publish_confirm_update'))
     .then(() => {
       return submitWorkUpdateApi(row.id)
     })
     .then(() => {
-      ElMessage.success('更新申请已提交')
+      ElMessage.success(t('common.pxm_publish_update'))
       loadTableData()
     })
     .catch(() => {})
@@ -326,17 +328,17 @@ async function loadDraftWorkList() {
     }))
   } catch (e) {
     console.error('loadDraftWorkList error:', e)
-    ElMessage.error('加载草稿列表失败')
+    ElMessage.error(t('common.pxm_publish_action_failed'))
   }
 }
 
 // ========== 状态映射工具函数 ==========
 const statusMap = {
-  all: '全部',
-  pending: '审核中',
-  live: '已上架',
-  rejected: '已驳回',
-  offline: '已下架',
+  all: t('common.pxm_publish_all_statuses'),
+  pending: t('common.pxm_publish_status_pending'),
+  live: t('common.pxm_publish_status_live'),
+  rejected: t('common.pxm_publish_status_rejected'),
+  offline: t('common.pxm_publish_status_offline'),
 }
 const getStatusLabel = (val) => statusMap[val] || val
 const getStatusTagType = (status) => {
@@ -351,12 +353,12 @@ const getStatusTagType = (status) => {
 
 /** f. 已上架 - 下架 */
 const handleUnpublish = (row) => {
-  ElMessageBox.confirm(`确定下架【${row.name}】？下架后公众无法查看`)
+  ElMessageBox.confirm(t('common.pxm_publish_confirm_unpublish'))
     .then(() => {
       return unpublishWorkApi(row.id)
     })
     .then(() => {
-      ElMessage.success('作品已下架')
+      ElMessage.success(t('common.pxm_publish_unpublish'))
       loadTableData()
     })
     .catch(() => {})
@@ -364,12 +366,12 @@ const handleUnpublish = (row) => {
 
 /** g. 审核中 - 撤回 */
 const handleWithdraw = (row) => {
-  ElMessageBox.confirm(`确认撤回审核中的作品【${row.name}】？`)
+  ElMessageBox.confirm(t('common.pxm_publish_confirm_withdraw'))
     .then(() => {
       return withdrawWorkApi(row.id)
     })
     .then(() => {
-      ElMessage.success('已撤回审核申请')
+      ElMessage.success(t('common.pxm_publish_withdraw'))
       loadTableData()
     })
     .catch(() => {})
@@ -377,14 +379,14 @@ const handleWithdraw = (row) => {
 
 /** i. 已下架 - 删除作品 */
 const handleDelete = (row) => {
-  ElMessageBox.confirm(`⚠ 删除【${row.name}】后数据无法恢复，确定删除？`, '危险操作', {
+  ElMessageBox.confirm(t('common.pxm_confirm_delete'), '!', {
     type: 'error',
   })
     .then(() => {
       return removeFromReleasesApi(row.id)
     })
     .then(() => {
-      ElMessage.success('作品已删除')
+      ElMessage.success(t('common.pxm_delete_success'))
       loadTableData()
     })
     .catch(() => {})
