@@ -436,6 +436,13 @@ onMounted(() => {
 .stat-card span {
   color: #777;
 }
+.community-section {
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
 .community-section-head {
   display: flex;
   justify-content: space-between;
