@@ -66,7 +66,8 @@
         </div>
 
         <!-- 发布管理表格 -->
-        <el-table :data="tableData" stripe style="width: 100%">
+        <el-empty v-if="tableData.length === 0" description="No works yet" />
+        <el-table v-else :data="tableData" stripe style="width: 100%">
           <el-table-column label="作品信息" min-width="280">
             <template #default="{ row }">
               <div class="publish-name">

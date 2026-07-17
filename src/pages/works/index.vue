@@ -224,7 +224,8 @@
 
     <!-- 作品列表区域 -->
     <template v-if="viewMode === 'grid'">
-      <section class="works-grid">
+      <el-empty v-if="sortedWorkList.length === 0" description="No works yet" />
+      <section v-else class="works-grid">
         <article
           v-for="work in sortedWorkList"
           :key="work.id"
@@ -313,7 +314,8 @@
     </template>
 
     <template v-else>
-      <section class="works-list">
+      <el-empty v-if="sortedWorkList.length === 0" description="No works yet" />
+      <section v-else class="works-list">
         <el-table :data="sortedWorkList" stripe style="width: 100%" @row-click="handleRowClick">
           <el-table-column label="Name" min-width="240">
             <template #default="{ row }">
