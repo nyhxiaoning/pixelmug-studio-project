@@ -318,7 +318,7 @@
           :data="sortedWorkList"
           stripe
           style="width: 100%"
-          @row-click="(row) => openEditWork(row)"
+          @row-click="handleRowClick"
         >
           <el-table-column label="Name" min-width="240">
             <template #default="{ row }">
@@ -403,30 +403,111 @@
   </main>
 </template>
 
-<script setup>
-import { createWorkApi, getWorkDetailApi, updateWorkApi, deleteWorkApi } from '@/api/works'
+<script lang="ts" setup>
+import {
+  createWorkApi,
+  updateWorkApi,
+  deleteWorkApi,
+  pageWorksApi,
+  CreatorWorkVO,
+} from '@/api/works'
+import type { CreatorDeviceVO } from '@/api/device'
+import { listDevicesApi, previewToDeviceApi } from '@/api/device'
 
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 
 // ===================== 基础状态 =====================
-const fileInputRef = ref(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 const sortMenuOpen = ref(false)
 const devicePanelOpen = ref(false)
-const viewMode = ref('grid')
+const viewMode = ref<'grid' | 'list'>('grid')
 const searchQuery = ref('')
 
+// 加载状态
+const loading = ref(false)
+
+// ===================== 接口数据适配 =====================
+/** 作品列表条目 */
+interface WorkItem {
+  id: string
+  title: string
+  createdAt: string
+  createTimeStamp: number
+  lastViewTime: number
+  coverUrl: string
+  gifFileUrl: string
+  editableFileUrl: string
+  binFileSize: number
+}
+
+/** 将接口 CreatorWorkVO 适配为 UI 内部 workItem */
+function toWorkItem(api: CreatorWorkVO): WorkItem {
+  return {
+    id: api.id,
+    title: api.title,
+    createdAt: formatDate(api.createTime),
+    createTimeStamp: api.createTime ?? 0,
+    lastViewTime: api.lastViewTime ?? api.updateTime ?? 0,
+    coverUrl: api.coverUrl ?? '',
+    gifFileUrl: api.gifFileUrl ?? '',
+    editableFileUrl: api.editableFileUrl ?? '',
+    binFileSize: api.binFileSize ?? 0,
+  }
+}
+
+/** 分页参数 */
+const pageNumber = ref(1)
+const pageSize = ref(20)
+
+// ============ 作品列表（来自接口） ============
+const workList = ref<WorkItem[]>([])
+
+/** 拉取作品列表 */
+async function fetchWorks() {
+  loading.value = true
+  try {
+    const params = buildSortParams()
+    const res = await pageWorksApi({
+      pageNumber: pageNumber.value,
+      pageSize: pageSize.value,
+      keyword: searchQuery.value.trim() || undefined,
+      sortBy: params.sortBy,
+      direction: params.sortOrder,
+    })
+    workList.value = (res.result?.list ?? []).map(toWorkItem)
+  } catch (e) {
+    console.error('fetchWorks error:', e)
+    ElMessage.error('Failed to load works')
+  } finally {
+    loading.value = false
+  }
+}
+
+/** 将 UI 排序值映射为接口 sortBy */
+function buildSortParams() {
+  const map = {
+    name: 'TITLE',
+    createTime: 'CREATE_TIME',
+    lastView: 'LAST_VIEW',
+  } as const
+  return {
+    sortBy: map[sortBy.value] as 'TITLE' | 'CREATE_TIME' | 'LAST_VIEW',
+    sortOrder: sortOrder.value.toUpperCase() as 'ASC' | 'DESC',
+  }
+}
+
 // ============ 排序配置 ============
-const sortBy = ref('lastView')
+const sortBy = ref<'name' | 'createTime' | 'lastView'>('lastView')
 const sortByOptions = [
   { label: '按字母', value: 'name' },
   { label: '创建日期', value: 'createTime' },
   { label: '最近查看', value: 'lastView' },
 ]
-const sortOrder = ref('desc')
+const sortOrder = ref<'asc' | 'desc'>('desc')
 const sortOrderOptions = [
   { label: '最旧优先', value: 'asc' },
   { label: '最新优先', value: 'desc' },
@@ -440,77 +521,39 @@ const sortLabel = computed(() => {
   return map[sortBy.value]
 })
 
-// ============ 预览设备列表 ============
-const deviceList = ref([
-  { id: 1, name: 'Bubble Pixel Pro', online: true },
-  { id: 2, name: 'Desk LED 32x16', online: true },
-  { id: 3, name: 'Studio Wall', online: false },
-])
-const selectedDeviceIds = ref([1, 2])
+const applySort = () => {
+  sortMenuOpen.value = false
+  fetchWorks()
+}
+
+// ============ 预览设备列表（来自接口） ============
+const deviceList = ref<CreatorDeviceVO[]>([])
+const selectedDeviceIds = ref<string[]>([])
+
+async function fetchDevices() {
+  try {
+    const res = await listDevicesApi()
+    deviceList.value = res.result ?? []
+    // 默认选中所有在线设备
+    selectedDeviceIds.value = deviceList.value.filter((d) => d.online === 'ONLINE').map((d) => d.id)
+  } catch (e) {
+    console.error('fetchDevices error:', e)
+  }
+}
+
 const selectedDevices = computed(() => {
   return deviceList.value.filter((item) => selectedDeviceIds.value.includes(item.id))
 })
 
-// ============ 作品原始数据 & 排序计算 ============
-const workList = ref([
-  {
-    id: 1,
-    title: '水印模板',
-    createdAt: '2026.08.01',
-    createTimeStamp: new Date('2026-08-01').getTime(),
-    lastViewTime: new Date('2026-08-10').getTime(),
-  },
-  {
-    id: 2,
-    title: '星空动画',
-    createdAt: '2026.07.20',
-    createTimeStamp: new Date('2026-07-20').getTime(),
-    lastViewTime: new Date('2026-08-08').getTime(),
-  },
-  {
-    id: 3,
-    title: '像素小猫',
-    createdAt: '2026.06.15',
-    createTimeStamp: new Date('2026-06-15').getTime(),
-    lastViewTime: new Date('2026-08-05').getTime(),
-  },
-  {
-    id: 4,
-    title: '星空动画',
-    createdAt: '2026.07.20',
-    createTimeStamp: new Date('2026-07-20').getTime(),
-    lastViewTime: new Date('2026-08-08').getTime(),
-  },
-  {
-    id: 5,
-    title: '像素小猫',
-    createdAt: '2026.06.15',
-    createTimeStamp: new Date('2026-06-15').getTime(),
-    lastViewTime: new Date('2026-08-05').getTime(),
-  },
-  {
-    id: 6,
-    title: '星空动画',
-    createdAt: '2026.07.20',
-    createTimeStamp: new Date('2026-07-20').getTime(),
-    lastViewTime: new Date('2026-08-08').getTime(),
-  },
-  {
-    id: 7,
-    title: '像素小猫',
-    createdAt: '2026.06.15',
-    createTimeStamp: new Date('2026-06-15').getTime(),
-    lastViewTime: new Date('2026-08-05').getTime(),
-  },
-])
-
+// ============ 排序后列表（本地二次排序） ============
 const sortedWorkList = computed(() => {
   let arr = [...workList.value]
-  // 搜索过滤
+  // 搜索过滤（本地兜底，接口已过滤）
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.trim().toLowerCase()
     arr = arr.filter((w) => w.title.toLowerCase().includes(q))
   }
+  // 本地排序
   arr.sort((a, b) => {
     let valA, valB
     if (sortBy.value === 'name') {
@@ -531,72 +574,115 @@ const sortedWorkList = computed(() => {
   return arr
 })
 
-const applySort = () => {
-  sortMenuOpen.value = false
-}
-
 // ===================== 业务事件 =====================
 const triggerUpload = () => {
-  fileInputRef.value.click()
+  fileInputRef.value?.click()
 }
 
-// 日期格式化 filter
-const formatDate = (ts) => {
+const formatDate = (ts: number | null | undefined): string => {
   if (!ts) return ''
-  const d = typeof ts === 'number' ? new Date(ts) : new Date(ts)
+  const d = new Date(ts)
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}.${m}.${day}`
 }
-const handleFileUpload = (e) => {
-  const file = e.target.files[0]
+
+const handleFileUpload = (e: Event) => {
+  const target = e.target as HTMLInputElement | null
+  const file = target?.files?.[0]
   if (!file) return
-  const newWork = {
-    id: Date.now(),
-    title: file.name.split('.')[0],
-    createdAt: new Date().toLocaleDateString().replaceAll('/', '.'),
-    createTimeStamp: Date.now(),
-    lastViewTime: Date.now(),
-  }
-  workList.value.unshift(newWork)
-  fileInputRef.value.value = ''
-  ElMessage.success('图片上传成功，已生成新作品')
+  createWorkApi({ title: file.name.split('.')[0] })
+    .then((res) => {
+      const newWorkId = res.result
+      ElMessage.success('Upload successful')
+      fetchWorks()
+      router.push({ path: '/editor', query: { workId: newWorkId } })
+    })
+    .catch(() => {
+      ElMessage.error('Create failed')
+    })
+  fileInputRef.value && (fileInputRef.value.value = '')
 }
 
 const goCreateEditor = () => {
-  router.push('/editor')
+  createWorkApi({ title: 'Untitled' })
+    .then((res) => {
+      router.push({ path: '/editor', query: { workId: res.result } })
+    })
+    .catch(() => {
+      ElMessage.error('Create failed')
+    })
 }
 
-const openEditWork = (work) => {
-  work.lastViewTime = Date.now()
+const openEditWork = (work: WorkItem) => {
+  updateWorkApi(work.id, { title: work.title }).catch(() => {})
   router.push({ path: '/editor', query: { workId: work.id } })
 }
 
-const sendWorkToDevice = (work) => {
+function handleRowClick(row: any) {
+  openEditWork(row as WorkItem)
+}
+
+const sendWorkToDevice = async (work: WorkItem) => {
   if (selectedDevices.value.length === 0) {
     ElMessage.warning('请至少选择一台预览设备！')
     return
   }
-  console.log('推送作品到设备', work, selectedDevices.value)
-  ElMessage.success(
-    `【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`
-  )
+  try {
+    const fileUrl = work.coverUrl || work.gifFileUrl || work.editableFileUrl || ''
+    if (!fileUrl) {
+      ElMessage.warning('作品暂无可用文件，无法预览')
+      return
+    }
+    const res = await previewToDeviceApi({
+      deviceIds: selectedDevices.value.map((d) => d.id),
+      type: work.gifFileUrl ? 'GIF' : 'STATIC',
+      fileUrl,
+      fileSize: work.binFileSize || 0,
+    })
+    const failed = (res.result ?? []).filter((r) => !r.success)
+    if (failed.length === 0) {
+      ElMessage.success(
+        `【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`
+      )
+    } else {
+      ElMessage.warning(`部分设备推送失败：${failed.map((f) => f.message).join('；')}`)
+    }
+  } catch (e) {
+    console.error('preview error:', e)
+    ElMessage.error('预览推送失败')
+  }
 }
 
-const handleDeleteWork = (work) => {
+const handleDeleteWork = (work: WorkItem) => {
   ElMessageBox.confirm(`确定要删除作品【${work.title}】吗？删除后不可恢复！`, '删除提示', {
     confirmButtonText: '确认删除',
     cancelButtonText: '取消',
     type: 'warning',
   })
     .then(() => {
-      const idx = workList.value.findIndex((w) => w.id === work.id)
-      if (idx > -1) workList.value.splice(idx, 1)
+      return deleteWorkApi(work.id)
+    })
+    .then(() => {
+      return fetchWorks()
+    })
+    .then(() => {
       ElMessage.success('作品已删除')
     })
-    .catch(() => {})
+    .catch((e) => {
+      if (e !== 'cancel') {
+        console.error('delete work failed:', e)
+        ElMessage.error('删除失败')
+      }
+    })
 }
+
+// 初始化
+onMounted(() => {
+  fetchWorks()
+  fetchDevices()
+})
 </script>
 
 <style lang="css" scoped>

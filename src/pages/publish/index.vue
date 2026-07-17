@@ -174,9 +174,17 @@
   </main>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+
+import {
+  unpublishWorkApi,
+  removeFromReleasesApi,
+  withdrawWorkApi,
+  submitWorkUpdateApi,
+  submitWorkApi,
+} from '@/api/publish'
 
 // ===================== 查询条件 c =====================
 const queryParams = reactive({
