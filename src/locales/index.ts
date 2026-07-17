@@ -74,6 +74,7 @@ export const getLocale = (): SupportLocale => {
 // 切换语言
 export const toggleLocale = () => {
   const currentLocale = getLocale()
+  console.log(currentLocale, 'currentLocale')
   const newLocale = currentLocale === 'zh-CN' ? 'en-US' : 'zh-CN'
   setLocale(newLocale)
 }

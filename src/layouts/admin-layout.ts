@@ -3,8 +3,10 @@ import { useRoute, useRouter } from "vue-router"
 import { ADMIN_MENUS, isMenuGroup, type AdminMenuEntry, type AdminMenuItem } from "@/shared/manage-menu"
 import { useUserStore } from "@/pinia/modules/user"
 import { MoreFilled, Place, SwitchButton } from "@element-plus/icons-vue"
-import { getLocale, getLocaleDisplayName, setLocale } from "@/locales"
+import { getLocale, getLocaleDisplayName, setLocale, toggleLocale } from "@/locales"
 import { sendLoginOut } from "@/api/auth"
+import { useAppI18n } from '@@/composables/useI18n'
+
 
 
 
@@ -12,6 +14,7 @@ export default defineComponent({
   name: "AdminLayout",
   components: { MoreFilled, Place, SwitchButton },
   setup() {
+    const { changeLocale, switchLocale, getCurrentLocale, formatDate } = useAppI18n()
     const route = useRoute()
     const router = useRouter()
     const userStore = useUserStore()
@@ -74,8 +77,12 @@ export default defineComponent({
     }
 
 
-    function handleChangeLang() {
+    function handleChangeLang(item: string) {
+      toggleLocale()
+
+
       alert('切换语言')
+      switchLocale()
     }
 
 

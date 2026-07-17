@@ -32,6 +32,8 @@ export default {
   pxm_nav_publish: '发布管理',
   pxm_search_placeholder: '搜索',
   pxm_account_language: '切换语言',
+  pxm_account_language_switch_zh: '中文',
+  pxm_account_language_switch_en: '中文',
   pxm_account_settings: '设置',
   pxm_account_logout: '退出登录',
   pxm_common_cancel: '取消',

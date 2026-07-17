@@ -30,6 +30,7 @@ globalInjection: true   // ← 把 $t 注入到所有 Vue 组件实例上
 
 globalInjection: true 会让 Vue 在每个组件实例（即 Vue app 上下文）上挂载 $t、$i18n 等属性。它本质上是组件实例的属性，不是全局变量。
 
+      setLocale(locale as any)
 
 
 

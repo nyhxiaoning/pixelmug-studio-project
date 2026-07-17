@@ -32,6 +32,8 @@ export default {
   pxm_nav_publish: 'Publishing',
   pxm_search_placeholder: 'Search',
   pxm_account_language: 'Change language',
+  pxm_account_language_switch_zh: 'EN',
+  pxm_account_language_switch_en: 'EN',
   pxm_account_settings: 'Settings',
   pxm_account_logout: 'Log out',
   pxm_common_cancel: 'Cancel',
