@@ -174,8 +174,8 @@
   </main>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import {
@@ -185,6 +185,7 @@ import {
   submitWorkUpdateApi,
   submitWorkApi,
 } from '@/api/publish'
+import { pageReleasesApi, pageReleaseCandidatesApi } from '@/api/works'
 
 // ===================== 查询条件 c =====================
 const queryParams = reactive({
@@ -198,21 +199,131 @@ const statData = ref({
   draft: 0, // pxm_publish_stats_draft 可申请
 })
 
+// ========== 工具函数 ==========
+const formatDate = (ts) => {
+  if (!ts) return ''
+  const d = new Date(ts)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}.${m}.${day}`
+}
+
+// ========== 接口数据适配 ==========
+/** 将 CreatorWorkVO 适配为表格行数据 */
+function toTableRow(api) {
+  return {
+    id: api.id,
+    name: api.title,
+    version: '',
+    lastSubmit: formatDate(api.createTime),
+    lastUpdate: formatDate(api.updateTime),
+    status: api.publishStatus ? api.publishStatus.toLowerCase() : '',
+    rejectReason: api.rejectedReason || '',
+    coverUrl: api.coverUrl || '',
+  }
+}
+
 // 主表格列表
 const tableData = ref([])
 
-// 弹窗相关 D E
+/** 加载发布管理列表 */
+async function loadTableData() {
+  try {
+    const status = queryParams.status === 'all' ? undefined : queryParams.status.toUpperCase()
+    const res = await pageReleasesApi({
+      pageNumber: 1,
+      pageSize: 100,
+      status,
+    })
+    tableData.value = ((res.result || {}).list || []).map(toTableRow)
+    // 更新统计数值
+    statData.value.live = res.result?.totalLive || 0
+    statData.value.review = res.result?.totalPending || 0
+    statData.value.draft = res.result?.totalDraft || 0
+  } catch (e) {
+    console.error('loadTableData error:', e)
+    ElMessage.error('加载发布管理列表失败')
+  }
+}
+
+// ===================== 事件逻辑 a~i =====================
+/** d. 打开资源选择弹窗 */
+const openResourceDialog = () => {
+  resourceDialogVisible.value = true
+  loadDraftWorkList()
+}
+
+/** 重置弹窗多选 */
+const resetDialogSelect = () => {
+  searchDraftKey.value = ''
+  draftTableRef.value?.clearSelection()
+}
+
+/** e. 批量提交发布 */
+const submitBatchPublish = () => {
+  const selectedRows = draftTableRef.value?.getSelectionRows() || []
+  if (selectedRows.length === 0) {
+    ElMessage.warning('请至少选择一个作品')
+    return
+  }
+  Promise.all(selectedRows.map((row) => submitWorkApi(row.id)))
+    .then(() => {
+      ElMessage.success(`成功提交${selectedRows.length}个作品进入审核队列`)
+      resourceDialogVisible.value = false
+      loadTableData()
+    })
+    .catch(() => {
+      ElMessage.error('批量提交失败')
+    })
+}
+
+/** h. 单行直接发布（已驳回/已下架） */
+const singlePublish = (row) => {
+  ElMessageBox.confirm(`确认提交【${row.name}】发起发布审核？`)
+    .then(() => {
+      return submitWorkApi(row.id)
+    })
+    .then(() => {
+      ElMessage.success('已提交审核')
+      loadTableData()
+    })
+    .catch(() => {})
+}
+
+/** f. 已上架 - 提交更新 */
+const handleUpdate = (row) => {
+  ElMessageBox.confirm(`确认对【${row.name}】提交版本更新审核？`)
+    .then(() => {
+      return submitWorkUpdateApi(row.id)
+    })
+    .then(() => {
+      ElMessage.success('更新申请已提交')
+      loadTableData()
+    })
+    .catch(() => {})
+}
+
+// ========== 弹窗草稿列表（可发布作品） ==========
 const resourceDialogVisible = ref(false)
 const searchDraftKey = ref('')
 const draftTableRef = ref(null)
-// 草稿列表（可发布作品）
 const draftWorkList = ref([])
 
-// 筛选搜索弹窗草稿
-const filterDraftList = computed(() => {
-  if (!searchDraftKey.value) return draftWorkList.value
-  return draftWorkList.value.filter((item) => item.name.includes(searchDraftKey.value))
-})
+/** 加载弹窗草稿列表 */
+async function loadDraftWorkList() {
+  try {
+    const res = await pageReleaseCandidatesApi({ pageNumber: 1, pageSize: 100, keyword: searchDraftKey.value.trim() || undefined })
+    draftWorkList.value = ((res.result || {}).list || []).map((api) => ({
+      id: api.id,
+      name: api.title,
+      version: '',
+    }))
+  } catch (e) {
+    console.error('loadDraftWorkList error:', e)
+    ElMessage.error('加载草稿列表失败')
+  }
+}
 
 // ========== 状态映射工具函数 ==========
 const statusMap = {
@@ -233,122 +344,13 @@ const getStatusTagType = (status) => {
   return map[status] || ''
 }
 
-// ========== 模拟加载列表 ==========
-const loadTableData = () => {
-  // 模拟原始数据
-  const mockAllData = [
-    {
-      id: 1,
-      name: 'Mail icon (Community)',
-      version: '1.4',
-      lastSubmit: '2026.07.02',
-      lastUpdate: '2026.07.06',
-      status: 'pending',
-      rejectReason: '',
-    },
-    {
-      id: 2,
-      name: '冒泡 2025',
-      version: '1.0',
-      lastSubmit: '2026.05.21',
-      lastUpdate: '2026.06.12',
-      status: 'rejected',
-      rejectReason: 'Reason: The image has blank edges. Crop it and submit again.',
-    },
-    {
-      id: 3,
-      name: '星空像素动画',
-      version: '2.1',
-      lastSubmit: '2026.04.10',
-      lastUpdate: '2026.07.01',
-      status: 'live',
-      rejectReason: '',
-    },
-    {
-      id: 4,
-      name: '猫咪头像套件',
-      version: '1.2',
-      lastSubmit: '2026.03.15',
-      lastUpdate: '2026.03.20',
-      status: 'offline',
-      rejectReason: '',
-    },
-  ]
-
-  // 状态筛选
-  if (queryParams.status === 'all') {
-    tableData.value = mockAllData
-  } else {
-    tableData.value = mockAllData.filter((row) => row.status === queryParams.status)
-  }
-
-  // 更新统计数值
-  statData.value.live = mockAllData.filter((d) => d.status === 'live').length
-  statData.value.review = mockAllData.filter((d) => d.status === 'pending').length
-  statData.value.draft = 19
-}
-
-// 加载弹窗草稿列表（未发布草稿）
-const loadDraftWorkList = () => {
-  draftWorkList.value = [
-    { id: 101, name: '夏日云朵像素', version: '1.0' },
-    { id: 102, name: '复古时钟素材', version: '2.2' },
-    { id: 103, name: '霓虹文字模板', version: '1.1' },
-  ]
-}
-
-// ===================== 事件逻辑 a~i =====================
-/** d. 打开资源选择弹窗 */
-const openResourceDialog = () => {
-  resourceDialogVisible.value = true
-  loadDraftWorkList()
-}
-
-/** 重置弹窗多选 */
-const resetDialogSelect = () => {
-  searchDraftKey.value = ''
-  if (draftTableRef.value) draftTableRef.value.clearSelection()
-}
-
-/** e. 批量提交发布 */
-const submitBatchPublish = () => {
-  const selectedRows = draftTableRef.value.getSelectionRows()
-  if (selectedRows.length === 0) {
-    ElMessage.warning('请至少选择一个作品')
-    return
-  }
-  console.log('批量提交发布', selectedRows)
-  ElMessage.success(`成功提交${selectedRows.length}个作品进入审核队列`)
-  resourceDialogVisible.value = false
-  loadTableData()
-}
-
-/** h. 单行直接发布（已驳回/已下架） */
-const singlePublish = (row) => {
-  ElMessageBox.confirm(`确认提交【${row.name}】发起发布审核？`)
-    .then(() => {
-      console.log('单独发布', row)
-      ElMessage.success('已提交审核')
-      loadTableData()
-    })
-    .catch(() => {})
-}
-
-/** f. 已上架 - 提交更新 */
-const handleUpdate = (row) => {
-  ElMessageBox.confirm(`确认对【${row.name}】提交版本更新审核？`)
-    .then(() => {
-      ElMessage.success('更新申请已提交')
-      loadTableData()
-    })
-    .catch(() => {})
-}
-
 /** f. 已上架 - 下架 */
 const handleUnpublish = (row) => {
   ElMessageBox.confirm(`确定下架【${row.name}】？下架后公众无法查看`)
     .then(() => {
-      row.status = 'offline'
+      return unpublishWorkApi(row.id)
+    })
+    .then(() => {
       ElMessage.success('作品已下架')
       loadTableData()
     })
@@ -359,7 +361,9 @@ const handleUnpublish = (row) => {
 const handleWithdraw = (row) => {
   ElMessageBox.confirm(`确认撤回审核中的作品【${row.name}】？`)
     .then(() => {
-      row.status = 'draft'
+      return withdrawWorkApi(row.id)
+    })
+    .then(() => {
       ElMessage.success('已撤回审核申请')
       loadTableData()
     })
@@ -372,8 +376,9 @@ const handleDelete = (row) => {
     type: 'error',
   })
     .then(() => {
-      const idx = tableData.value.findIndex((item) => item.id === row.id)
-      if (idx > -1) tableData.value.splice(idx, 1)
+      return removeFromReleasesApi(row.id)
+    })
+    .then(() => {
       ElMessage.success('作品已删除')
       loadTableData()
     })
