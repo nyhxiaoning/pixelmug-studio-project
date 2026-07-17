@@ -130,11 +130,11 @@ export interface CreatorAuditRequest {
 
 /**
  * 分页查询我的作品
- * GET /creator/works
+ * GET /api/creator/works
  */
 export function pageWorksApi(params: CreatorWorkPageRequest) {
   return request<PageResult<CreatorWorkVO>>({
-    url: "/creator/works",
+    url: "/api/creator/works",
     method: "get",
     params,
   })
@@ -142,22 +142,22 @@ export function pageWorksApi(params: CreatorWorkPageRequest) {
 
 /**
  * 查询作品详情
- * GET /creator/works/{id}
+ * GET /api/creator/works/{id}
  */
 export function getWorkDetailApi(id: string) {
   return request<CreatorWorkVO>({
-    url: `/creator/works/${id}`,
+    url: `/api/creator/works/${id}`,
     method: "get",
   })
 }
 
 /**
  * 创建作品
- * POST /creator/works
+ * POST /api/creator/works
  */
 export function createWorkApi(data: CreatorWorkSaveRequest) {
   return request<string>({
-    url: "/creator/works",
+    url: "/api/creator/works",
     method: "post",
     data,
   })
@@ -165,11 +165,11 @@ export function createWorkApi(data: CreatorWorkSaveRequest) {
 
 /**
  * 更新作品
- * PUT /creator/works/{id}
+ * PUT /api/creator/works/{id}
  */
 export function updateWorkApi(id: string, data: CreatorWorkSaveRequest) {
   return request<void>({
-    url: `/creator/works/${id}`,
+    url: `/api/creator/works/${id}`,
     method: "put",
     data,
   })
@@ -177,11 +177,11 @@ export function updateWorkApi(id: string, data: CreatorWorkSaveRequest) {
 
 /**
  * 删除作品
- * DELETE /creator/works/{id}
+ * DELETE /api/creator/works/{id}
  */
 export function deleteWorkApi(id: string) {
   return request<void>({
-    url: `/creator/works/${id}`,
+    url: `/api/creator/works/${id}`,
     method: "delete",
   })
 }
@@ -190,11 +190,11 @@ export function deleteWorkApi(id: string) {
 
 /**
  * 获取 OSS 上传凭证
- * POST /creator/works/upload-token
+ * POST /api/creator/works/upload-token
  */
 export function getUploadTokenApi(data: CreatorUploadTokenRequest) {
   return request<OSSTokenVO>({
-    url: "/creator/works/upload-token",
+    url: "/api/creator/works/upload-token",
     method: "post",
     data,
   })
@@ -204,11 +204,11 @@ export function getUploadTokenApi(data: CreatorUploadTokenRequest) {
 
 /**
  * 分页查询发布管理列表（含统计）
- * GET /creator/works/releases
+ * GET /api/creator/works/releases
  */
 export function pageReleasesApi(params: CreatorReleasePageRequest) {
   return request<CreatorReleaseManagementVO>({
-    url: "/creator/works/releases",
+    url: "/api/creator/works/releases",
     method: "get",
     params,
   })
@@ -216,11 +216,11 @@ export function pageReleasesApi(params: CreatorReleasePageRequest) {
 
 /**
  * 分页查询可发布作品列表
- * GET /creator/works/release-candidates
+ * GET /api/creator/works/release-candidates
  */
 export function pageReleaseCandidatesApi(params: PageQuery & { keyword?: string }) {
   return request<PageResult<CreatorWorkVO>>({
-    url: "/creator/works/release-candidates",
+    url: "/api/creator/works/release-candidates",
     method: "get",
     params,
   })
@@ -253,12 +253,12 @@ export interface OSSTokenFullVO {
 
 /**
  * 获取文件上传凭证
- * POST /creator/works/upload-token
+ * POST /api/creator/works/upload-token
  * @param role 文件角色类型
  */
 export function getWorkUploadTokenApi(role: FileRole, fileName?: string, fileSize?: number) {
   return request<OSSTokenFullVO>({
-    url: "/creator/works/upload-token",
+    url: "/api/creator/works/upload-token",
     method: "post",
     data: { role, fileName, fileSize },
   })
