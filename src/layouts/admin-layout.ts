@@ -3,9 +3,8 @@ import { useRoute, useRouter } from "vue-router"
 import { ADMIN_MENUS, isMenuGroup, type AdminMenuEntry, type AdminMenuItem } from "@/shared/manage-menu"
 import { useUserStore } from "@/pinia/modules/user"
 import { MoreFilled, Place, SwitchButton } from "@element-plus/icons-vue"
-import { getLocale, getLocaleDisplayName, setLocale, toggleLocale } from "@/locales"
+import { getLocale, getLocaleDisplayName, toggleLocale } from "@/locales"
 import { sendLoginOut } from "@/api/auth"
-import { useAppI18n } from '@@/composables/useI18n'
 
 
 
@@ -14,7 +13,6 @@ export default defineComponent({
   name: "AdminLayout",
   components: { MoreFilled, Place, SwitchButton },
   setup() {
-    const { t, changeLocale, switchLocale, getCurrentLocale, formatDate } = useAppI18n()
     const route = useRoute()
     const router = useRouter()
     const userStore = useUserStore()
@@ -53,20 +51,16 @@ export default defineComponent({
 
     function handleUserCommand(command: string) {
       if (command === "logout") {
-        // alert(111111)
         userStore.logout()
         router.push("/login")
       } else if (command === "language") {
-        const current = getLocale()
-        const next = current === "zh-CN" ? "en-US" : "zh-CN"
-        setLocale(next)
-        window.location.reload()
+        toggleLocale()
       }
     }
 
 
     function handleLogout() {
-      sendLoginOut(userStore?.token).then(res => {
+      sendLoginOut(userStore?.token).then(() => {
         userStore.logout()
 
         router.push("/login")
@@ -77,12 +71,8 @@ export default defineComponent({
     }
 
 
-    function handleChangeLang(item: string) {
+    function handleChangeLang() {
       toggleLocale()
-
-
-      alert(t('common.pxm_account_language'))
-      switchLocale()
     }
 
 

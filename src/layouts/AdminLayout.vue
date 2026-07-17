@@ -95,7 +95,7 @@
                   />
                 </svg>
                 <span class="menu-label">{{ $t('common.pxm_account_language') }}</span>
-                <span class="menu-language">EN</span>
+                <span class="menu-language">{{ $t('common.pxm_account_language_switch_zh') }}</span>
               </div>
 
               <div class="menu-separator" />
