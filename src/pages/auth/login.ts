@@ -37,15 +37,19 @@ export default defineComponent({
     )
     const codeButtonDisabled = computed(() => sendingCode.value || codeCountdown.value > 0)
 
+    const isChineseLocale = computed(() => {
+      const locale = getLocale()
+      return locale === 'zh-CN' || locale.startsWith('zh')
+    })
     const fieldLabel = computed(() =>
-      loginType.value === "CODE"
-        ? t("common.pxm_login_phone_label") + " / " + t("common.pxm_login_email_label")
-        : t("common.pxm_login_account_label")
+      isChineseLocale.value
+        ? t("common.pxm_login_phone_label")
+        : t("common.pxm_login_email_label")
     )
     const fieldPlaceholder = computed(() =>
-      loginType.value === "CODE"
-        ? t("common.pxm_login_phone_placeholder") + " / " + t("common.pxm_login_email_placeholder")
-        : t("common.pxm_login_account_placeholder")
+      isChineseLocale.value
+        ? t("common.pxm_login_phone_placeholder")
+        : t("common.pxm_login_email_placeholder")
     )
     const secondLabel = computed(() =>
       loginType.value === "CODE" ? t("common.pxm_login_code_label") : t("common.pxm_login_password_label")
