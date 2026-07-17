@@ -29,8 +29,8 @@
         <el-segmented
           v-model="loginType"
           :options="[
-            { label: '验证码登录', value: 'CODE' },
-            { label: '密码登录', value: 'PASSWORD' },
+            { label: $t('common.pxm_login_code_tab'), value: 'CODE' },
+            { label: $t('common.pxm_login_password_tab'), value: 'PASSWORD' },
           ]"
           class="login-tabs"
         />
@@ -74,14 +74,14 @@
             type="primary"
             @click="handleLogin"
           >
-            {{ submitting ? '登录中...' : '登 录' }}
+            {{ $t('common.pxm_login_submit') }}
           </el-button>
         </el-form>
 
         <!-- 底部版权 + 语言切换 -->
         <div class="login-card-footer">
           <span class="login-card-footer__copyright">
-            Copyright &copy; 2026 Bubble Tech. All Rights Reserved.
+            {{ $t('common.pxm_login_copyright') }}
           </span>
           <el-select
             :model-value="currentLocale"

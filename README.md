@@ -12,6 +12,25 @@
 3. 自动语言切换：调用 switchLocale() 即可
 4. 支持中英文：已经配置了 zh-CN 和 en-US
 
+如果你还需要其他 i18n 能力（切换语言、获取当前 locale 等），可以一并解构：
+
+const { t, changeLocale, switchLocale, getCurrentLocale, formatDate } = useAppI18n()
+
+### 注意：js或ts中，解构出来t
+// 解构出 t 函数
+const { t } = useAppI18n()
+
+### Vue模版中使用全局注入的$t
+
+注意生效的原因：
+1. $t 是全局注入的，只在 Vue 组件实例上可用
+
+// i18n 配置
+globalInjection: true   // ← 把 $t 注入到所有 Vue 组件实例上
+
+globalInjection: true 会让 Vue 在每个组件实例（即 Vue app 上下文）上挂载 $t、$i18n 等属性。它本质上是组件实例的属性，不是全局变量。
+
+
 
 
 基于 Vue 3 + TypeScript + Element Plus + TailwindCSS 的现代化前端开发模板。

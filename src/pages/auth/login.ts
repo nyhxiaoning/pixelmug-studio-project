@@ -3,7 +3,7 @@ import { ElMessage } from "element-plus"
 import { ArrowDown, ChatDotRound, Lock, User } from "@element-plus/icons-vue"
 import { computed, defineComponent, onBeforeUnmount, reactive, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { loginApi, sendLoginCodeApi, authLoginIn } from "@/api/auth"
+import { sendLoginCodeApi, authLoginIn } from "@/api/auth"
 import { useUserStore } from "@/pinia/modules/user"
 import { SUPPORT_LOCALES, getLocale, getLocaleDisplayName, setLocale } from "@/locales"
 // 多语言测试
@@ -22,7 +22,7 @@ interface LocaleOption {
 export default defineComponent({
   name: "LoginPage",
   setup() {
-    const t = useAppI18n();
+    const { t } = useAppI18n()
     const route = useRoute()
     const router = useRouter()
     const userStore = useUserStore()
@@ -33,41 +33,27 @@ export default defineComponent({
     let countdownTimer: ReturnType<typeof window.setInterval> | undefined
     const loginType = ref<"CODE" | "PASSWORD">("CODE")
     const codeButtonText = computed(() =>
-      codeCountdown.value > 0 ? `${codeCountdown.value}s` : "发送验证码"
+      codeCountdown.value > 0 ? `${codeCountdown.value}s` : t("common.pxm_login_get_code")
     )
     const codeButtonDisabled = computed(() => sendingCode.value || codeCountdown.value > 0)
 
-    // 动态标签文案：根据当前选中的语言环境
-    const isEnLocale = computed(() => {
-      const locale = (currentLocale.value || (navigator.language || "zh-CN")).toLowerCase()
-      return locale.startsWith("en")
-    })
-
     const fieldLabel = computed(() =>
       loginType.value === "CODE"
-        ? isEnLocale.value
-          ? "Email"
-          : "手机号 / 邮箱"
-        : "账 号"
+        ? t("common.pxm_login_phone_label") + " / " + t("common.pxm_login_email_label")
+        : t("common.pxm_login_account_label")
     )
     const fieldPlaceholder = computed(() =>
       loginType.value === "CODE"
-        ? isEnLocale.value
-          ? "Please enter email"
-          : "请输入手机号 / 邮箱"
-        : "请输入账号"
+        ? t("common.pxm_login_phone_placeholder") + " / " + t("common.pxm_login_email_placeholder")
+        : t("common.pxm_login_account_placeholder")
     )
     const secondLabel = computed(() =>
-      loginType.value === "CODE" ? "验证码" : "密码"
+      loginType.value === "CODE" ? t("common.pxm_login_code_label") : t("common.pxm_login_password_label")
     )
     const secondPlaceholder = computed(() =>
       loginType.value === "CODE"
-        ? isEnLocale.value
-          ? "Please enter verification code"
-          : "请输入验证码"
-        : isEnLocale.value
-          ? "Please enter password"
-          : "请输入密码"
+        ? t("common.pxm_login_code_placeholder")
+        : t("common.pxm_login_password_placeholder")
     )
 
     // 语言切换：默认用浏览器语言
@@ -102,14 +88,14 @@ export default defineComponent({
       if (loginType.value === "CODE") {
         return {
           username: [
-            { required: true, message: isEnLocale.value ? "Please enter email" : "请输入手机号/邮箱", trigger: "blur" }
+            { required: true, message: t("common.pxm_login_required"), trigger: "blur" }
           ],
           password: [],
           code: [
             {
               validator: (_rule, value, callback) => {
                 if (!String(value || "").trim()) {
-                  callback(new Error(isEnLocale.value ? "Please enter verification code" : "请输入验证码"))
+                  callback(new Error(t("common.pxm_login_required")))
                   return
                 }
                 callback()
@@ -120,12 +106,12 @@ export default defineComponent({
         }
       }
       return {
-        username: [{ required: true, message: "请输入账号", trigger: "blur" }],
+        username: [{ required: true, message: t("common.pxm_login_required"), trigger: "blur" }],
         password: [
           {
             validator: (_rule, value, callback) => {
               if (!String(value || "").trim()) {
-                callback(new Error(isEnLocale.value ? "Please enter password" : "请输入密码"))
+                callback(new Error(t("common.pxm_login_required")))
                 return
               }
               callback()
@@ -138,7 +124,7 @@ export default defineComponent({
     })
 
     async function handleLogin() {
-      ElMessage.success(isEnLocale.value ? "Login successful" : "登录成功")
+      ElMessage.success(t("common.pxm_login_success"))
       // const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
       // router.replace(redirect)
       // return;
@@ -155,7 +141,7 @@ export default defineComponent({
           code: loginType.value === "CODE" ? form.code.trim() : undefined
         })
         userStore.setLogin(result)
-        ElMessage.success(isEnLocale.value ? "Login successful" : "登录成功")
+        ElMessage.success(t("common.pxm_login_success"))
         const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
         router.replace(redirect)
       } finally {
@@ -167,7 +153,7 @@ export default defineComponent({
       if (codeButtonDisabled.value) return
       const account = form.username.trim()
       if (!account) {
-        ElMessage.warning(isEnLocale.value ? "Please enter email" : "请输入手机号/邮箱")
+        ElMessage.warning(t("common.pxm_login_required"))
         return
       }
       sendingCode.value = true
@@ -178,7 +164,7 @@ export default defineComponent({
         // alert(JSON.stringify(res))
         // 验证码倒计时
         startCountdown()
-        ElMessage.success(isEnLocale.value ? "Verification code sent" : "验证码已发送")
+        ElMessage.success(t("common.pxm_login_code_sent"))
       } finally {
         sendingCode.value = false
       }
@@ -208,7 +194,7 @@ export default defineComponent({
     onBeforeUnmount(clearCountdown)
 
     return {
-      t,
+
       formRef,
       form,
       getRules,
