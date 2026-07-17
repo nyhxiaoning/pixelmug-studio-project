@@ -2,11 +2,11 @@
   <div v-if="view === 'library'" class="pe-library-view">
     <section class="pe-library-head">
       <div>
-        <h1>我的作品</h1>
-        <p>{{ projects.length }} 个本地作品，自动保存在当前浏览器</p>
+        <h1>{{ t('common.pxm_editor_library_title') }}</h1>
+        <p>{{ projects.length }} {{ t('common.pxm_editor_library_local_count') }}</p>
       </div>
       <ThemeSwitcher />
-      <button type="button" class="pe-primary" @click="handleNewProject">新建作品</button>
+      <button type="button" class="pe-primary" @click="handleNewProject">{{ t('common.pxm_editor_library_new') }}</button>
     </section>
 
     <section v-if="projects.length" class="pe-project-grid">
@@ -15,15 +15,15 @@
         <div class="pe-project-card-body">
           <h2>{{ item.name }}</h2>
           <p>
-            {{ item.width }} x {{ item.height }} · {{ item.frames.length }} 帧 ·
+            {{ item.width }} x {{ item.height }} · {{ item.frames.length }} {{ t('common.pxm_editor_frame_unit') }} ·
             {{ formatTime(item.updatedAt) }}
           </p>
           <div class="pe-project-card-actions">
             <button type="button" class="pe-primary" @click="handleOpenProject(item.id)">
-              继续编辑
+              {{ t('common.pxm_editor_library_continue') }}
             </button>
             <button type="button" class="pe-secondary" @click="handleDuplicateProject(item.id)">
-              复制
+              {{ t('common.pxm_editor_duplicate') }}
             </button>
             <button type="button" class="pe-secondary" @click="handleExportProjectPng(item.id)">
               PNG
@@ -32,22 +32,22 @@
               GIF
             </button>
             <button type="button" class="pe-danger-outline" @click="handleDeleteProject(item.id)">
-              删除
+              {{ t('common.pxm_editor_delete') }}
             </button>
           </div>
         </div>
       </article>
     </section>
     <section v-else class="pe-empty-library">
-      <h2>还没有作品</h2>
-      <p>创建第一个 32 x 16 PixelMug 动画。</p>
+      <h2>{{ t('common.pxm_editor_library_empty') }}</h2>
+      <p>{{ t('common.pxm_editor_library_empty_hint') }}</p>
     </section>
   </div>
 
   <div v-else class="pe-workspace">
     <aside class="pe-panel pe-tools-panel">
       <section>
-        <h2>工具</h2>
+        <h2>{{ t('common.pxm_editor_tools') }}</h2>
         <div class="pe-tool-grid" role="toolbar">
           <button
             v-for="tool in drawingTools"
@@ -62,7 +62,7 @@
           </button>
         </div>
         <div class="pe-control-row">
-          <label>颜色</label>
+          <label>{{ t('common.pxm_editor_color') }}</label>
           <input v-model="currentColor" type="color" />
           <input v-model="currentColor" class="pe-hex-input" maxlength="7" />
         </div>
@@ -82,46 +82,46 @@
           type="button"
           class="pe-tool pe-wide-tool pe-gap-top"
           :class="{ active: activeTool === 'shape' }"
-          title="绘制形状"
+          :title="t('common.pxm_editor_shapes')"
           @click="handleSelectTool('shape')"
         >
-          绘制形状
+          {{ t('common.pxm_editor_shapes') }}
         </button>
         <div class="pe-control-row pe-shape-row">
-          <label>形状</label>
+          <label>{{ t('common.pxm_editor_shapes') }}</label>
           <select v-model="shapeType">
-            <option value="rectangle">矩形</option>
-            <option value="square">正方形</option>
-            <option value="line">直线</option>
-            <option value="ellipse">椭圆</option>
-            <option value="circle">圆形</option>
-            <option value="triangle">三角形</option>
+            <option value="rectangle">{{ t('common.pxm_editor_rectangle') }}</option>
+            <option value="square">{{ t('common.pxm_editor_square') }}</option>
+            <option value="line">{{ t('common.pxm_editor_line') }}</option>
+            <option value="ellipse">{{ t('common.pxm_editor_ellipse') }}</option>
+            <option value="circle">{{ t('common.pxm_editor_circle') }}</option>
+            <option value="triangle">{{ t('common.pxm_editor_triangle') }}</option>
           </select>
           <select v-model="shapeFill">
-            <option value="filled">实心</option>
-            <option value="outline">空心</option>
+            <option value="filled">{{ t('common.pxm_editor_solid') }}</option>
+            <option value="outline">{{ t('common.pxm_editor_hollow') }}</option>
           </select>
         </div>
         <button
           type="button"
           class="pe-tool pe-wide-tool pe-gap-top"
           :class="{ active: activeTool === 'select' }"
-          title="选择区域"
+          :title="t('common.pxm_editor_selection')"
           @click="handleSelectTool('select')"
         >
-          选择区域
+          {{ t('common.pxm_editor_selection') }}
         </button>
         <div class="pe-button-row">
           <button type="button" class="pe-secondary" @click="handleCopySelection(false)">
-            复制
+            {{ t('common.pxm_editor_copy') }}
           </button>
           <button type="button" class="pe-secondary" @click="handleCopySelection(true)">
-            剪切
+            {{ t('common.pxm_editor_cut') }}
           </button>
         </div>
         <div class="pe-button-row">
           <button type="button" class="pe-danger-outline" @click="handleDeleteSelection">
-            擦除
+            {{ t('common.pxm_editor_erase') }}
           </button>
           <button
             type="button"
@@ -129,7 +129,7 @@
             :class="{ active: activeTool === 'move' }"
             @click="handleSelectTool('move')"
           >
-            移动
+            {{ t('common.pxm_editor_move') }}
           </button>
         </div>
         <button
@@ -138,52 +138,52 @@
           :class="{ active: activeTool === 'magic' }"
           @click="handleSelectTool('magic')"
         >
-          魔法棒
+          {{ t('common.pxm_editor_magic') }}
         </button>
         <div class="pe-button-row">
           <button type="button" class="pe-secondary" @click="handleTransformSelection('rotate-cw')">
-            顺时针 5°
+            {{ t('common.pxm_editor_rotate_cw') }}
           </button>
           <button
             type="button"
             class="pe-secondary"
             @click="handleTransformSelection('rotate-ccw')"
           >
-            逆时针 5°
+            {{ t('common.pxm_editor_rotate_ccw') }}
           </button>
         </div>
         <div class="pe-button-row">
           <button type="button" class="pe-secondary" @click="handleTransformSelection('flip-h')">
-            左右镜像
+            {{ t('common.pxm_editor_flip_x') }}
           </button>
           <button type="button" class="pe-secondary" @click="handleTransformSelection('flip-v')">
-            上下镜像
+            {{ t('common.pxm_editor_flip_y') }}
           </button>
         </div>
         <div class="pe-button-row">
-          <button type="button" class="pe-secondary" @click="handleUndo">撤销</button>
-          <button type="button" class="pe-secondary" @click="handleRedo">重做</button>
+          <button type="button" class="pe-secondary" @click="handleUndo">{{ t('common.pxm_editor_undo') }}</button>
+          <button type="button" class="pe-secondary" @click="handleRedo">{{ t('common.pxm_editor_redo') }}</button>
         </div>
         <button type="button" class="pe-danger-outline pe-wide" @click="handleClearLayer">
-          清空当前图层
+          {{ t('common.pxm_editor_clear_layer') }}
         </button>
       </section>
 
       <section>
-        <h2>洋葱皮</h2>
+        <h2>{{ t('common.pxm_editor_onion') }}</h2>
         <label class="pe-switch-row">
           <input v-model="onion.enabled" type="checkbox" @change="renderAll" />
-          <span>显示相邻帧</span>
+          <span>{{ t('common.pxm_editor_show_adjacent') }}</span>
         </label>
         <div class="pe-control-row">
-          <label>颜色模式</label>
+          <label>{{ t('common.pxm_editor_color_title') }}</label>
           <select v-model="onion.colorMode" @change="renderAll">
-            <option value="real">真实颜色</option>
-            <option value="tint">前后帧染色</option>
+            <option value="real">{{ t('common.pxm_editor_real_color') }}</option>
+            <option value="tint">{{ t('common.pxm_editor_tint_color') }}</option>
           </select>
         </div>
         <div class="pe-control-row">
-          <label>前一帧透明度</label>
+          <label>{{ t('common.pxm_editor_prev_opacity') }}</label>
           <input
             v-model.number="onion.prevOpacity"
             type="range"
@@ -195,7 +195,7 @@
           <span>{{ Math.round(onion.prevOpacity * 100) }}%</span>
         </div>
         <div class="pe-control-row">
-          <label>后一帧透明度</label>
+          <label>{{ t('common.pxm_editor_next_opacity') }}</label>
           <input
             v-model.number="onion.nextOpacity"
             type="range"
@@ -209,30 +209,30 @@
       </section>
 
       <section>
-        <h2>像素文字</h2>
+        <h2>{{ t('common.pxm_editor_text') }}</h2>
         <textarea v-model="textTool.text" rows="3" />
         <div class="pe-control-row">
-          <label>字号</label>
+          <label>{{ t('common.pxm_editor_tool_font_size') }}</label>
           <select v-model.number="textTool.size">
             <option :value="8">8 px</option>
             <option :value="10">10 px</option>
             <option :value="12">12 px</option>
           </select>
-          <label>宽度模式</label>
+          <label>{{ t('common.pxm_editor_tool_width_mode') }}</label>
           <select v-model="textTool.widthMode">
-            <option value="monospaced">等宽</option>
-            <option value="proportional">比例</option>
+            <option value="monospaced">{{ t('common.pxm_editor_equal_width') }}</option>
+            <option value="proportional">{{ t('common.pxm_editor_proportional') }}</option>
           </select>
         </div>
         <div class="pe-button-row">
-          <button type="button" class="pe-secondary" @click="handleStampText(0)">左</button>
-          <button type="button" class="pe-secondary" @click="handleStampText(1)">中</button>
-          <button type="button" class="pe-secondary" @click="handleStampText(2)">右</button>
+          <button type="button" class="pe-secondary" @click="handleStampText(0)">{{ t('common.pxm_editor_left') }}</button>
+          <button type="button" class="pe-secondary" @click="handleStampText(1)">{{ t('common.pxm_editor_center') }}</button>
+          <button type="button" class="pe-secondary" @click="handleStampText(2)">{{ t('common.pxm_editor_right') }}</button>
         </div>
       </section>
 
       <section>
-        <h2>导入</h2>
+        <h2>{{ t('common.pxm_editor_import') }}</h2>
         <input
           ref="staticFileInputRef"
           type="file"
@@ -248,21 +248,21 @@
           @change="handleLoadGifImage"
         />
         <button type="button" class="pe-secondary pe-wide" @click="handleStaticFileInputClick">
-          导入静态图
+          {{ t('common.pxm_editor_import_static') }}
         </button>
         <button type="button" class="pe-secondary pe-wide" @click="handleGifFileInputClick">
-          导入 GIF 多帧
+          {{ t('common.pxm_editor_import_animated') }}
         </button>
       </section>
 
       <section>
-        <h2>导出</h2>
+        <h2>{{ t('common.pxm_editor_export') }}</h2>
         <div class="pe-button-row">
-          <button type="button" class="pe-primary" @click="handleExportPng">PNG</button>
-          <button type="button" class="pe-primary" @click="handleExportGif">GIF</button>
+          <button type="button" class="pe-primary" @click="handleExportPng">{{ t('common.pxm_editor_export_png') }}</button>
+          <button type="button" class="pe-primary" @click="handleExportGif">{{ t('common.pxm_editor_export_gif') }}</button>
         </div>
         <div class="pe-control-row">
-          <label>放大比例</label>
+          <label>{{ t('common.pxm_editor_scale_label') }}</label>
           <select v-model.number="exportScale">
             <option :value="1">1x</option>
             <option :value="4">4x</option>
@@ -278,7 +278,7 @@
       <div class="pe-panel pe-editor-toolbar">
         <div>
           <strong>{{ project.name }}</strong>
-          <span>{{ project.frames.length }} 帧 · 图层 {{ activeLayer + 1 }}</span>
+          <span>{{ project.frames.length }} {{ t('common.pxm_editor_frame_unit') }} · {{ t('common.pxm_editor_layer_unit') }} {{ activeLayer + 1 }}</span>
         </div>
         <ThemeSwitcher />
         <div class="pe-status">
@@ -289,15 +289,15 @@
       <section class="pe-panel pe-frames-panel">
         <div class="pe-frame-strip-head">
           <div class="pe-panel-title-row">
-            <h2>动画帧</h2>
-            <button type="button" class="pe-primary pe-small" @click="handleAddFrame">新增</button>
+            <h2>{{ t('common.pxm_editor_frames') }}</h2>
+            <button type="button" class="pe-primary pe-small" @click="handleAddFrame">{{ t('common.pxm_editor_add') }}</button>
           </div>
           <div class="pe-button-row">
-            <button type="button" class="pe-secondary" @click="handleDuplicateFrame">复制</button>
-            <button type="button" class="pe-danger-outline" @click="handleDeleteFrame">删除</button>
+            <button type="button" class="pe-secondary" @click="handleDuplicateFrame">{{ t('common.pxm_editor_duplicate') }}</button>
+            <button type="button" class="pe-danger-outline" @click="handleDeleteFrame">{{ t('common.pxm_editor_delete') }}</button>
           </div>
           <button type="button" class="pe-danger-outline pe-wide" @click="handleDeleteAllFrames">
-            删除全部
+            {{ t('common.pxm_editor_delete_all') }}
           </button>
         </div>
         <div class="pe-frames-list">
@@ -320,14 +320,14 @@
             @dragend="handleEndFrameDrag"
           >
             <canvas :ref="(el) => setFrameThumbRef(frame.id, el)" width="96" height="48" />
-            <span>第 {{ index + 1 }} 帧</span>
+            <span>{{ t('common.pxm_editor_frame_prefix') }} {{ index + 1 }} {{ t('common.pxm_editor_frame_unit') }}</span>
           </button>
         </div>
       </section>
 
       <div class="pe-panel pe-frame-settings-bar">
         <div class="pe-control-row">
-          <label>当前帧间隔</label>
+          <label>{{ t('common.pxm_editor_interval') }}</label>
           <input
             v-model="frameDelayInput"
             type="number"
@@ -361,14 +361,14 @@
         </div>
         <section class="pe-panel pe-layers-panel">
           <div class="pe-panel-title-row">
-            <h2>图层</h2>
+            <h2>{{ t('common.pxm_editor_layers') }}</h2>
             <button
               type="button"
               class="pe-primary pe-small"
               :disabled="currentFrame.layers.length >= 4"
               @click="handleAddLayer"
             >
-              新增
+              {{ t('common.pxm_editor_add') }}
             </button>
           </div>
           <div class="pe-layer-list">
@@ -403,7 +403,7 @@
                 :disabled="currentFrame.layers.length <= 2"
                 @click.stop="handleDeleteLayer(index)"
               >
-                删
+                {{ t('common.pxm_editor_delete_layer') }}
               </button>
             </div>
           </div>
@@ -424,7 +424,7 @@
             </div>
             <div class="pe-overview-actions">
               <label class="pe-overview-zoom-control">
-                <span>缩放 {{ overviewZoom.toFixed(2) }}x</span>
+                <span>{{ t('common.pxm_editor_zoom') }} {{ overviewZoom.toFixed(2) }}x</span>
                 <input
                   type="range"
                   min="1"
@@ -435,7 +435,7 @@
                 />
               </label>
               <button type="button" class="pe-secondary" @click="handleSaveOverviewPng">
-                保存
+                {{ t('common.pxm_editor_overview_save') }}
               </button>
               <span v-if="hoverOverviewPoint" class="pe-overview-coordinate"
                 >({{ hoverOverviewPoint.x }}, {{ hoverOverviewPoint.y }})</span
@@ -448,10 +448,10 @@
 
       <section class="pe-panel pe-preview-panel">
         <div class="pe-panel-title-row">
-          <h2>LED 预览</h2>
+          <h2>{{ t('common.pxm_editor_led_preview') }}</h2>
         </div>
         <button type="button" class="pe-secondary pe-preview-play-btn" @click="handleTogglePreview">
-          {{ previewPlaying ? '停止播放' : '播放全部帧' }}
+          {{ previewPlaying ? t('common.pxm_editor_stop_play') : t('common.pxm_editor_play_all_frames') }}
         </button>
         <canvas ref="previewCanvasRef" width="480" height="240" />
       </section>
@@ -461,14 +461,14 @@
   <div v-if="importDialog.open" class="pe-modal-backdrop">
     <section class="pe-modal">
       <div class="pe-panel-title-row">
-        <h2>图片像素化</h2>
-        <button type="button" class="pe-secondary" @click="handleCloseImportDialog">关闭</button>
+        <h2>{{ t('common.pxm_editor_import_image_pixelated') }}</h2>
+        <button type="button" class="pe-secondary" @click="handleCloseImportDialog">{{ t('common.pxm_common_cancel') }}</button>
       </div>
       <div class="pe-import-grid">
         <div class="pe-import-crop-area">
           <div class="pe-import-label-row">
-            <span>裁剪区域 32:16</span>
-            <span>拖动图片调整位置</span>
+            <span>{{ t('common.pxm_editor_import_crop') }}</span>
+            <span>{{ t('common.pxm_editor_import_drag') }}</span>
           </div>
           <canvas
             ref="importCropCanvasRef"
@@ -481,7 +481,7 @@
             @wheel.prevent="handleImportWheel"
           />
           <div class="pe-control-row">
-            <label>缩放</label>
+            <label>{{ t('common.pxm_editor_import_zoom') }}</label>
             <input
               v-model.number="importDialog.zoom"
               type="range"
@@ -496,33 +496,32 @@
         <div class="pe-import-controls">
           <div class="pe-import-preview">
             <div class="pe-import-label-row">
-              <span>像素预览</span>
-              <span>32 x 16</span>
+              <span>{{ t('common.pxm_editor_import_pixel_preview') }}</span>
+              <span>{{ t('common.pxm_editor_pixel_preview') }}</span>
             </div>
             <canvas ref="importCanvasRef" width="256" height="128" />
           </div>
           <div class="pe-control-row">
-            <label>适配</label>
+            <label>{{ t('common.pxm_editor_import_fit') }}</label>
             <select v-model="importDialog.fit" @change="handleResetImportCrop">
-              <option value="contain">完整显示</option>
-              <option value="cover">铺满裁剪</option>
-              <option value="stretch">拉伸</option>
+              <option value="contain">{{ t('common.pxm_editor_fit_contain') }}</option>
+              <option value="cover">{{ t('common.pxm_editor_fit_cover') }}</option>
+              <option value="stretch">{{ t('common.pxm_editor_fit_stretch') }}</option>
             </select>
           </div>
           <div class="pe-control-row">
-            <label>抖动</label>
+            <label>{{ t('common.pxm_editor_import_dither') }}</label>
             <select v-model="importDialog.dither" @change="renderImportPreview">
-              <option value="none">无</option>
-              <option value="ordered">有序抖动</option>
-              <option value="floyd">Floyd-Steinberg</option>
+              <option value="none">{{ t('common.pxm_editor_import_none') }}</option>
+              <option value="ordered">{{ t('common.pxm_editor_import_ordered') }}</option>
+              <option value="floyd">{{ t('common.pxm_editor_import_floyd') }}</option>
             </select>
           </div>
           <button type="button" class="pe-primary pe-wide" @click="handleApplyImportToLayer">
-            应用到当前图层
+            {{ t('common.pxm_editor_import_apply') }}
           </button>
           <p class="pe-import-hint">
-            静态 PNG 会保留原始 RGB 颜色；小于 256 x 256
-            的图片不会自动放大。完整显示保留全图，铺满裁剪保留比例但可能裁掉边缘，拉伸会改变比例。
+            {{ t('common.pxm_editor_import_hint') }}
           </p>
         </div>
       </div>
@@ -533,6 +532,11 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Ref, CanvasHTMLAttributes } from 'vue'
+
+// i18n
+import { useAppI18n } from '@@/composables/useI18n'
+const { t, getCurrentLocale } = useAppI18n()
+const currentLocale = getCurrentLocale()
 
 // Theme switcher
 import ThemeSwitcher from '../common/ThemeSwitcher.vue'
@@ -676,12 +680,12 @@ const palette = ref(corePalette)
 
 // Tools
 const tools = ref<Tool[]>([
-  { id: 'pencil', label: '画笔' },
-  { id: 'eraser', label: '橡皮' },
-  { id: 'fill', label: '填充' },
-  { id: 'eyedropper', label: '吸色' },
-  { id: 'shape', label: '绘制形状' },
-  { id: 'select', label: '选择区域' },
+  { id: 'pencil', label: t('common.pxm_editor_brush') },
+  { id: 'eraser', label: t('common.pxm_editor_eraser') },
+  { id: 'fill', label: t('common.pxm_editor_fill') },
+  { id: 'eyedropper', label: t('common.pxm_editor_picker') },
+  { id: 'shape', label: t('common.pxm_editor_shapes') },
+  { id: 'select', label: t('common.pxm_editor_selection') },
 ])
 
 // Drawing state
@@ -1190,7 +1194,7 @@ function handleJumpViewportFromOverview(event: MouseEvent): void {
     refreshLayerVisibleFromCanvas(layer, currentViewportX.value, currentViewportY.value)
   )
   clearSelectionState()
-  touchProject(`视窗 ${currentViewportX.value}, ${currentViewportY.value}`)
+  touchProject(t('common.pxm_editor_viewport', { x: currentViewportX.value, y: currentViewportY.value }))
 }
 
 function handleSetOverviewZoom(value: string): void {
@@ -1226,7 +1230,7 @@ function handleSaveOverviewPng(): void {
 
 // Project management
 function handleNewProject(): void {
-  const stamp = new Date().toLocaleString('zh-CN', {
+  const stamp = new Date().toLocaleString(currentLocale, {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
@@ -1260,7 +1264,7 @@ function handleDuplicateProject(projectId: string): void {
   if (!source) return
   const copy = sanitizeProject(JSON.parse(JSON.stringify(source)))
   copy.id = id('project')
-  copy.name = `${source.name} 副本`
+  copy.name = `${source.name} ${t('common.pxm_editor_copy_suffix')}`
   copy.createdAt = Date.now()
   copy.updatedAt = Date.now()
   projects.value.push(copy)
@@ -1269,7 +1273,7 @@ function handleDuplicateProject(projectId: string): void {
 }
 
 function handleDeleteProject(projectId: string): void {
-  if (!confirm('确定删除这个作品吗？')) return
+  if (!confirm(t('common.pxm_editor_confirm_delete_project'))) return
   projects.value = projects.value.filter((item) => item.id !== projectId)
   if (!projects.value.length) projects.value.push(makeProject())
   if (project.value.id === projectId) project.value = projects.value[0]
@@ -1307,7 +1311,7 @@ function handleExportProjectGif(
   const exportProject = getProjectForExport(projectId, projectOverride)
   if (!exportProject) return
   if (exportProject.frames.length > MAX_GIF_EXPORT_FRAMES) {
-    status.value = `GIF 最多导出 ${MAX_GIF_EXPORT_FRAMES} 帧，请先减少帧数`
+    status.value = t('common.pxm_editor_gif_export_limit', { n: MAX_GIF_EXPORT_FRAMES })
     alert(status.value)
     return
   }
@@ -1323,7 +1327,11 @@ function handleExportProjectGif(
     frames: resized.frames,
   })
   downloadBlob(blob, safeName(exportProject.name, 'gif'))
-  status.value = `GIF 已导出：${resized.frames.length} 帧，${resized.width} x ${resized.height}`
+  status.value = t('common.pxm_editor_gif_exported', {
+    count: resized.frames.length,
+    width: resized.width,
+    height: resized.height
+  })
 }
 
 function handleSelectTool(tool: string): void {
@@ -1334,7 +1342,7 @@ function handleSelectTool(tool: string): void {
     selectionTransformBase.value = null
   }
   const toolInfo = tools.value.find((item) => item.id === tool)
-  status.value = toolInfo?.label || (tool === 'move' ? '移动' : tool === 'magic' ? '魔法棒' : tool)
+  status.value = toolInfo?.label || tool
   renderAll()
 }
 
@@ -1369,7 +1377,7 @@ function handleKeydown(event: KeyboardEvent): void {
     ) {
       event.preventDefault()
       clearSelectionState()
-      status.value = '已取消选择'
+      status.value = t('common.pxm_editor_cancel_select')
       renderAll()
     }
     return
@@ -1407,14 +1415,14 @@ function handleUndo(): void {
   if (!history.value.length) return
   future.value.push(JSON.stringify(project.value))
   replaceProject(sanitizeProject(JSON.parse(history.value.pop() || 'null')))
-  status.value = '已撤销'
+  status.value = t('common.pxm_editor_undo')
 }
 
 function handleRedo(): void {
   if (!future.value.length) return
   history.value.push(JSON.stringify(project.value))
   replaceProject(sanitizeProject(JSON.parse(future.value.pop() || 'null')))
-  status.value = '已重做'
+  status.value = t('common.pxm_editor_redo')
 }
 
 function replaceProject(newProject: typeof project.value): void {
@@ -1429,7 +1437,7 @@ function replaceProject(newProject: typeof project.value): void {
 }
 
 // Project persistence
-function touchProject(message: string = '已自动保存'): void {
+function touchProject(message: string = t('common.pxm_editor_auto_saved')): void {
   if (currentFrame.value) {
     syncFrameCanvasFromVisible(currentFrame.value, currentViewportX.value, currentViewportY.value)
   }
@@ -1463,12 +1471,12 @@ function centerOverviewOnViewport(): void {
 }
 
 function handleUpdateLayerSettings(): void {
-  touchProject('图层设置已更新')
+  touchProject(t('common.pxm_editor_layer_settings_updated'))
 }
 
 function handleRenameProject(): void {
   project.value.name = String(project.value.name || '').slice(0, 48)
-  touchProject('作品名称已更新')
+  touchProject(t('common.pxm_editor_project_name_updated'))
 }
 
 // Frame management
@@ -1485,7 +1493,7 @@ function handleCommitFrameDelay(): void {
   const delay = Math.max(20, Math.min(5000, Number.isFinite(parsed) ? parsed : fallback))
   currentFrame.value.delay = delay
   frameDelayInput.value = String(delay)
-  touchProject('帧间隔已更新')
+  touchProject(t('common.pxm_editor_frame_interval_updated'))
 }
 
 function handleAddFrame(): void {
@@ -1493,7 +1501,7 @@ function handleAddFrame(): void {
   project.value.frames.splice(currentFrameIndex.value + 1, 0, makeFrame())
   currentFrameIndex.value += 1
   activeLayer.value = 0
-  touchProject('已新增帧')
+  touchProject(t('common.pxm_editor_frame_added'))
 }
 
 function handleDuplicateFrame(): void {
@@ -1505,7 +1513,7 @@ function handleDuplicateFrame(): void {
   copy.id = id('frame')
   project.value.frames.splice(currentFrameIndex.value + 1, 0, copy)
   currentFrameIndex.value += 1
-  touchProject('已复制帧')
+  touchProject(t('common.pxm_editor_frame_duplicated'))
 }
 
 function handleDeleteFrame(): void {
@@ -1513,7 +1521,7 @@ function handleDeleteFrame(): void {
   snapshot()
   project.value.frames.splice(currentFrameIndex.value, 1)
   currentFrameIndex.value = Math.min(currentFrameIndex.value, project.value.frames.length - 1)
-  touchProject('已删除帧')
+  touchProject(t('common.pxm_editor_frame_deleted'))
 }
 
 function handleDeleteAllFrames(): void {
@@ -1526,7 +1534,7 @@ function handleDeleteAllFrames(): void {
   currentFrameIndex.value = 0
   activeLayer.value = 0
   clearSelectionState()
-  touchProject('已删除全部帧，保留 1 帧空白帧')
+  touchProject(t('common.pxm_editor_frames_deleted'))
 }
 
 function handleSelectFrame(index: number): void {
@@ -1573,7 +1581,7 @@ function reorderFrame(fromIndex: number, toIndex: number): void {
   const [frame] = project.value.frames.splice(fromIndex, 1)
   project.value.frames.splice(toIndex, 0, frame)
   currentFrameIndex.value = project.value.frames.findIndex((item) => item.id === currentFrameId)
-  touchProject(`已移动到第 ${toIndex + 1} 帧`)
+  touchProject(t('common.pxm_editor_frame_moved', { n: toIndex + 1 }))
 }
 
 // Canvas interaction
@@ -1637,7 +1645,7 @@ function handlePointerMove(event: PointerEvent): void {
     const dy = point.y - dragPoint.value!.y
     if (dx || dy) {
       if (moveCanvasPixels(dx, dy)) {
-        status.value = `视窗 ${currentViewportX.value}, ${currentViewportY.value}`
+        status.value = t('common.pxm_editor_viewport', { x: currentViewportX.value, y: currentViewportY.value })
       }
       dragPoint.value = point
     }
@@ -1676,7 +1684,7 @@ function handlePointerUp(event: PointerEvent): void {
       normalizeHex(currentColor.value)
     )
   } else if (drawing.value && activeTool.value === 'move') {
-    touchProject('已移动画布像素')
+    touchProject(t('common.pxm_editor_canvas_pixels_moved'))
     drawing.value = false
     dragStart.value = null
     dragPoint.value = null
@@ -1684,7 +1692,7 @@ function handlePointerUp(event: PointerEvent): void {
   } else if (drawing.value && activeTool.value === 'select' && dragStart.value && dragPoint.value) {
     activeSelection.value = pointRect(dragStart.value, dragPoint.value) as SelectionRect
     selectionTransformBase.value = null
-    status.value = `已选择 ${activeSelection.value.width} x ${activeSelection.value.height} 区域`
+    status.value = t('common.pxm_editor_selection_size', { w: activeSelection.value.width, h: activeSelection.value.height })
     // Remove the last history snapshot since we're creating a selection
     history.value.pop()
     drawing.value = false
@@ -1693,7 +1701,7 @@ function handlePointerUp(event: PointerEvent): void {
     renderAll()
     return
   }
-  if (drawing.value) touchProject('已编辑像素')
+  if (drawing.value) touchProject(t('common.pxm_editor_pixels_edited'))
   drawing.value = false
   dragStart.value = null
   dragPoint.value = null
@@ -1738,7 +1746,7 @@ function applyTool(point: Point): void {
     floodFill(point.index, color)
     drawing.value = false
   }
-  if (activeTool.value !== 'shape') touchProject('已编辑像素')
+  if (activeTool.value !== 'shape') touchProject(t('common.pxm_editor_pixels_edited'))
 }
 
 function floodFill(start: number, color: string | null): void {
@@ -1831,13 +1839,13 @@ function selectConnectedRegion(point: Point): void {
   activeSelection.value = { ...rect, mask }
   selectionTransformBase.value = null
   pendingPaste.value = null
-  status.value = `已选择连通区域 ${selected.length} 像素`
+  status.value = t('common.pxm_editor_connected_pixels', { n: selected.length })
   renderAll()
 }
 
 function handleTransformSelection(mode: string): void {
   if (!activeSelection.value || !currentLayer.value) {
-    status.value = '请先使用选择区域工具框选区域'
+    status.value = t('common.pxm_editor_no_select_hint')
     return
   }
   const rect = activeSelection.value
@@ -1869,7 +1877,7 @@ function handleTransformSelection(mode: string): void {
 
     if (!placed.size) {
       base.angle -= mode === 'rotate-cw' ? 5 : -5
-      status.value = '选区内没有可旋转的像素'
+      status.value = t('common.pxm_editor_no_rotatable')
       return
     }
 
@@ -1916,12 +1924,12 @@ function handleTransformSelection(mode: string): void {
 
   pendingPaste.value = null
   activeTool.value = 'select'
-  touchProject('已变换选区')
+  touchProject(t('common.pxm_editor_transform_done'))
 }
 
 function handleCopySelection(cut: boolean): void {
   if (!activeSelection.value) {
-    status.value = '请先使用选择区域工具框选区域'
+    status.value = t('common.pxm_editor_no_select_hint')
     return
   }
   const rect = activeSelection.value
@@ -1931,37 +1939,37 @@ function handleCopySelection(cut: boolean): void {
     snapshot()
     selectionTransformBase.value = null
     clearSelectionPixels(rect)
-    preparePasteFromClipboard(rect, '已剪切区域，移动鼠标并单击放置')
-    touchProject('已剪切区域，移动鼠标并单击放置')
+    preparePasteFromClipboard(rect, t('common.pxm_editor_cut_paste_hint'))
+    touchProject(t('common.pxm_editor_cut_paste_hint'))
   } else {
-    preparePasteFromClipboard(rect, '已复制区域，移动鼠标并单击放置')
+    preparePasteFromClipboard(rect, t('common.pxm_editor_copy_area_hint'))
     renderAll()
   }
 }
 
 function handleDeleteSelection(): void {
   if (!activeSelection.value) {
-    status.value = '请先使用选择区域工具框选区域'
+    status.value = t('common.pxm_editor_no_select_hint')
     return
   }
   snapshot()
   clearSelectionPixels(activeSelection.value)
   clearSelectionState()
-  touchProject('已删除选区像素')
+  touchProject(t('common.pxm_editor_delete_selection'))
 }
 
 function handleBeginPasteSelection(): void {
   if (!selectionClipboard.value) {
-    status.value = '请先复制或剪切一个区域'
+    status.value = t('common.pxm_editor_copy_paste_hint')
     return
   }
-  preparePasteFromClipboard(activeSelection.value, '移动鼠标并单击放置区域')
+  preparePasteFromClipboard(activeSelection.value, t('common.pxm_editor_copy_area_hint'))
   renderAll()
 }
 
 function preparePasteFromClipboard(
   originRect: SelectionRect | null,
-  statusMsg: string = '移动鼠标并单击放置区域'
+  statusMsg: string = t('common.pxm_editor_copy_area_hint')
 ): void {
   if (!selectionClipboard.value) return
   pendingPaste.value = selectionClipboard.value
@@ -1994,7 +2002,7 @@ function pasteSelectionAt(point: Point): void {
   }
   selectionTransformBase.value = null
   pendingPaste.value = null
-  touchProject('已粘贴区域')
+  touchProject(t('common.pxm_editor_pasted'))
 }
 
 // Rendering
@@ -2183,7 +2191,7 @@ function handleAddLayer(): void {
   snapshot()
   currentFrame.value.layers.push(makeLayer(currentFrame.value.layers.length))
   activeLayer.value = currentFrame.value.layers.length - 1
-  touchProject('已新增图层')
+  touchProject(t('common.pxm_editor_layer_added'))
 }
 
 function handleDeleteLayer(index: number): void {
@@ -2191,7 +2199,7 @@ function handleDeleteLayer(index: number): void {
   snapshot()
   currentFrame.value.layers.splice(index, 1)
   activeLayer.value = Math.min(activeLayer.value, currentFrame.value.layers.length - 1)
-  touchProject('已删除图层')
+  touchProject(t('common.pxm_editor_layer_deleted'))
 }
 
 function handleClearLayer(): void {
@@ -2199,7 +2207,7 @@ function handleClearLayer(): void {
   snapshot()
   currentLayer.value.pixels = emptyPixels()
   currentLayer.value.canvasPixels = {}
-  touchProject('已清空当前图层')
+  touchProject(t('common.pxm_editor_layer_cleared'))
 }
 
 // Text stamp
@@ -2256,7 +2264,7 @@ async function handleStampText(align: number): Promise<void> {
       currentViewportY.value
     )
   }
-  touchProject('已生成像素文字')
+  touchProject(t('common.pxm_editor_text_stamped'))
 }
 
 // Image import
@@ -2446,7 +2454,7 @@ function handleApplyImportToLayer(): void {
   currentLayer.value.canvasPixels = pixelsToCanvasPixels(pixels, CANVAS_WIDTH, CANVAS_HEIGHT)
   refreshLayerVisibleFromCanvas(currentLayer.value, currentViewportX.value, currentViewportY.value)
   handleCloseImportDialog()
-  touchProject('图片已像素化导入')
+  touchProject(t('common.pxm_editor_import_image_pixelated'))
 }
 
 async function handleLoadGifImage(event: Event): Promise<void> {
@@ -2476,7 +2484,7 @@ async function handleLoadGifImage(event: Event): Promise<void> {
     })
     project.value.frames.splice(currentFrameIndex.value + 1, 0, ...frames)
     currentFrameIndex.value += 1
-    touchProject(`已导入 GIF ${frames.length} 帧`)
+    touchProject(t('common.pxm_editor_gif_imported', { count: frames.length }))
   } catch (error) {
     status.value = (error as Error).message
   }
@@ -2551,7 +2559,7 @@ function handleGifFileInputClick(): void {
 
 // Format time
 function formatTime(ts: number): string {
-  return new Date(ts || Date.now()).toLocaleString('zh-CN', {
+  return new Date(ts || Date.now()).toLocaleString(currentLocale, {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
