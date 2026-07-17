@@ -4,8 +4,12 @@
   <div class="admin-layout">
     <aside class="admin-sidebar">
       <div class="admin-brand">
-        <img class="brand-logo" src="./login-illustration.png.jpeg" alt="冒泡设备管理平台" />
-        <span>冒泡设备管理平台</span>
+        <img
+          class="brand-logo"
+          src="https://storage.qajeejio.com/luanzong/creatorhub/login/logo.png"
+          alt="冒泡设备管理平台"
+        />
+        <span>{{ $t('common.pxm_login_title') }}</span>
       </div>
 
       <div class="sidebar-menu">
