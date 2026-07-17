@@ -75,7 +75,6 @@ export default defineComponent({
     function handleLocaleChange(locale: string) {
       setLocale(locale as any)
       currentLocale.value = locale
-      window.location.reload()
     }
 
     const form = reactive<LoginForm>({
