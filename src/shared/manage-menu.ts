@@ -17,10 +17,9 @@ export interface AdminMenuGroup {
 export type AdminMenuEntry = AdminMenuItem | AdminMenuGroup
 
 export const ADMIN_MENUS: AdminMenuEntry[] = [
-  { title: "设置", path: "/settings", module: "setting", icon: Box },
-  { title: "像素编辑器", path: "/pixel-editor", module: "pixel-editor", icon: Key },
-  { title: "作品", path: "/works", module: "works", icon: Key },
-  { title: "发布", path: "/publish", module: "publish", icon: Key },
+  { title: "common.pxm_account_settings", path: "/settings", module: "setting", icon: Box },
+  { title: "common.pxm_nav_publish", path: "/publish", module: "publish", icon: Key },
+  { title: "common.pxm_nav_works", path: "/works", module: "works", icon: Key },
   { title: "Editortest", path: "/editortest", module: "editortest", icon: Key },
 ]
 

@@ -26,7 +26,7 @@
               @click="toggleGroup(item)"
             >
               <el-icon><component :is="item.icon" /></el-icon>
-              <span>{{ item.title }}22</span>
+              <span>{{ $t(item.title) }}</span>
               <span class="sidebar-group-arrow" :class="{ expanded: isGroupExpanded(item) }" />
             </button>
             <div v-show="isGroupExpanded(item)" class="sidebar-group-children">
@@ -37,7 +37,7 @@
                 :class="{ active: isActive(child) }"
                 :to="child.path"
               >
-                <span>{{ child.title }}</span>
+                <span>{{ $t(child.title) }}</span>
               </router-link>
             </div>
           </div>
@@ -48,7 +48,7 @@
             :to="item.path"
           >
             <el-icon><component :is="item.icon" /></el-icon>
-            <span>{{ item.title }}</span>
+            <span>{{ $t(item.title) }}</span>
           </router-link>
         </template>
       </div>
@@ -94,7 +94,7 @@
                     stroke-linecap="round"
                   />
                 </svg>
-                <span class="menu-label">Change language</span>
+                <span class="menu-label">{{ $t('common.pxm_account_language') }}</span>
                 <span class="menu-language">EN</span>
               </div>
 
@@ -116,7 +116,7 @@
                   <polyline points="16 17 21 12 16 7" />
                   <line x1="21" x2="9" y1="12" y2="12" />
                 </svg>
-                <span class="menu-label">Log out</span>
+                <span class="menu-label">{{ $t('common.pxm_account_logout') }}</span>
               </div>
             </div>
           </template>

@@ -14,7 +14,7 @@ export default defineComponent({
   name: "AdminLayout",
   components: { MoreFilled, Place, SwitchButton },
   setup() {
-    const { changeLocale, switchLocale, getCurrentLocale, formatDate } = useAppI18n()
+    const { t, changeLocale, switchLocale, getCurrentLocale, formatDate } = useAppI18n()
     const route = useRoute()
     const router = useRouter()
     const userStore = useUserStore()
@@ -81,7 +81,7 @@ export default defineComponent({
       toggleLocale()
 
 
-      alert('切换语言')
+      alert(t('common.pxm_account_language'))
       switchLocale()
     }
 
