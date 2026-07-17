@@ -77,20 +77,20 @@
             {{ $t('common.pxm_login_submit') }}
           </el-button>
         </el-form>
+      </div>
 
-        <!-- 底部版权 + 语言切换 -->
-        <div class="login-card-footer">
-          <span class="login-card-footer__copyright">
-            {{ $t('common.pxm_login_copyright') }}
-          </span>
-          <el-select
-            :model-value="currentLocale"
-            :options="localeOptions"
-            size="small"
-            class="login-card-footer__lang-select"
-            @change="handleLocaleChange"
-          />
-        </div>
+      <!-- 底部版权 + 语言切换 -->
+      <div class="login-card-footer">
+        <span class="login-card-footer__copyright">
+          {{ $t('common.pxm_login_copyright') }}
+        </span>
+        <el-select
+          :model-value="currentLocale"
+          :options="localeOptions"
+          size="small"
+          class="login-card-footer__lang-select"
+          @change="handleLocaleChange"
+        />
       </div>
     </div>
   </main>

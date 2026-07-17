@@ -1,6 +1,6 @@
 export default {
   // ====================== 登录认证模块 ======================
-  pxm_login_title: 'PxieMug クリエイターセンター',
+  pxm_login_title: 'PixelMug クリエイターセンター',
   pxm_login_code_tab: '認証コード',
   pxm_login_password_tab: 'パスワード',
   pxm_login_phone_label: '電話番号',
@@ -17,7 +17,7 @@ export default {
   pxm_login_submit: 'ログイン',
   pxm_login_switch_language: '言語',
   pxm_login_subtitle: 'Bubble アカウントでログイン',
-  pxm_login_copyright: 'Copyright © 2026 PxieMug Creator Center. All rights reserved.',
+  pxm_login_copyright: 'Copyright © 2026 PixelMug Creator Center. All rights reserved.',
   pxm_login_code_sent: '認証コードを送信しました',
   pxm_login_success: 'ログインしました',
   pxm_login_required: 'ログイン情報を入力してください',
@@ -27,7 +27,7 @@ export default {
   pxm_login_failed: 'ログインできません。アカウント情報を確認してください。',
 
   // ====================== 工作台导航与账号菜单模块 ======================
-  pxm_app_name: 'PxieMug クリエイターセンター',
+  pxm_app_name: 'PixelMug クリエイターセンター',
   pxm_nav_works: '作品',
   pxm_nav_publish: '公開管理',
   pxm_search_placeholder: '検索',

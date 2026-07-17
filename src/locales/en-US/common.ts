@@ -1,6 +1,6 @@
 export default {
   // ====================== 登录认证模块 ======================
-  pxm_login_title: 'PxieMug Creator Center',
+  pxm_login_title: 'PixelMug Creator Center',
   pxm_login_code_tab: 'Verification code',
   pxm_login_password_tab: 'Password',
   pxm_login_phone_label: 'Phone',
@@ -17,7 +17,7 @@ export default {
   pxm_login_submit: 'Sign in',
   pxm_login_switch_language: 'Language',
   pxm_login_subtitle: 'Sign in with your Bubble account',
-  pxm_login_copyright: 'Copyright © 2026 PxieMug Creator Center. All rights reserved.',
+  pxm_login_copyright: 'Copyright © 2026 PixelMug Creator Center. All rights reserved.',
   pxm_login_code_sent: 'Verification code sent',
   pxm_login_success: 'Signed in',
   pxm_login_required: 'Complete the sign-in information',
@@ -27,7 +27,7 @@ export default {
   pxm_login_failed: 'Sign-in failed. Check your account and try again.',
 
   // ====================== 工作台导航与账号菜单模块 ======================
-  pxm_app_name: 'PxieMug Creator Center',
+  pxm_app_name: 'PixelMug Creator Center',
   pxm_nav_works: 'Works',
   pxm_nav_publish: 'Publishing',
   pxm_search_placeholder: 'Search',
