@@ -314,12 +314,7 @@
 
     <template v-else>
       <section class="works-list">
-        <el-table
-          :data="sortedWorkList"
-          stripe
-          style="width: 100%"
-          @row-click="handleRowClick"
-        >
+        <el-table :data="sortedWorkList" stripe style="width: 100%" @row-click="handleRowClick">
           <el-table-column label="Name" min-width="240">
             <template #default="{ row }">
               <div class="row-name">
@@ -491,11 +486,11 @@ async function fetchWorks() {
 function buildSortParams() {
   const map = {
     name: 'TITLE',
-    createTime: 'CREATE_TIME',
-    lastView: 'LAST_VIEW',
+    createTime: 'CREATED_AT',
+    lastView: 'UPDATED_AT',
   } as const
   return {
-    sortBy: map[sortBy.value] as 'TITLE' | 'CREATE_TIME' | 'LAST_VIEW',
+    sortBy: map[sortBy.value],
     sortOrder: sortOrder.value.toUpperCase() as 'ASC' | 'DESC',
   }
 }
@@ -518,6 +513,7 @@ const sortLabel = computed(() => {
     createTime: '创建日期',
     lastView: 'Last viewed',
   }
+  alert(JSON.stringify(map[sortBy.value]))
   return map[sortBy.value]
 })
 

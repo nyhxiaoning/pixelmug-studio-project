@@ -313,7 +313,11 @@ const draftWorkList = ref([])
 /** 加载弹窗草稿列表 */
 async function loadDraftWorkList() {
   try {
-    const res = await pageReleaseCandidatesApi({ pageNumber: 1, pageSize: 100, keyword: searchDraftKey.value.trim() || undefined })
+    const res = await pageReleaseCandidatesApi({
+      pageNumber: 1,
+      pageSize: 100,
+      keyword: searchDraftKey.value.trim() || undefined,
+    })
     draftWorkList.value = ((res.result || {}).list || []).map((api) => ({
       id: api.id,
       name: api.title,

@@ -22,7 +22,6 @@ instance.interceptors.request.use((config) => {
 
 instance.interceptors.response.use(
   (response) => {
-    debugger
     const data = response.data
     if (response.config.responseType === "blob" || response.config.responseType === "arraybuffer") {
       return data

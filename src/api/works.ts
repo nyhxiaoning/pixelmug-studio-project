@@ -27,7 +27,7 @@ export interface CreatorWorkSaveRequest {
 /** 作品分页查询参数 */
 export interface CreatorWorkPageRequest extends PageQuery {
   keyword?: string
-  sortBy?: "CREATE_TIME" | "LAST_VIEW" | "TITLE"
+  sortBy?: "CREATED_AT" | "UPDATED_AT" | "TITLE"
   direction?: "ASC" | "DESC"
 }
 
