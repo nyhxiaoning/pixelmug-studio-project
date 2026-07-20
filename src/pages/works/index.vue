@@ -416,6 +416,7 @@ import {
   uploadImage,
   uploadStaticImgCover,
   uploadStaticImageWithJson,
+  uploadGifWithFrames,
 } from '@/lib/images/uploadFile'
 
 import {
@@ -635,49 +636,35 @@ const handleFileUpload = async (e: Event) => {
 
   const fileType = file.type
 
-  // 验证文件类型
-  if (fileType !== 'image/jpeg' && fileType !== 'image/png') {
-    ElMessage.error(t('common.fileTypeError'))
-    target.value = ''
-    return
-  }
-
   try {
-    // Step 1: 解析图片为像素数据
-    const imageFile = await imageFromFile(file)
-    const pixels = renderImageToPixels(imageFile, {
-      fit: 'contain',
-      cropX: 0.5,
-      cropY: 0.5,
-      zoom: 1,
-      preserveColors: true,
-      outputWidth: CANVAS_WIDTH,
-      outputHeight: CANVAS_HEIGHT,
-      allowUpscale: false,
-      dither: 'none',
-    })
+    if (fileType === 'image/gif') {
+      // Step 1: 解析 GIF 为多帧数据
+      const gifFrames = await decodeGifFrames(file)
 
-    console.log('Image parsed to pixels:', pixels.length, 'pixels')
+      console.log('GIF parsed to frames:', gifFrames.length, 'frames')
 
-    // Step 2: 创建项目数据
-    const projectId = `project_${Date.now()}`
-    const projectData = {
-      id: projectId,
-      version: 4,
-      name: file.name.split('.')[0],
-      width: CANVAS_WIDTH,
-      height: CANVAS_HEIGHT,
-      currentFrameIndex: 0,
-      activeLayer: 0,
-      frames: [
-        {
-          id: `frame_${Date.now()}`,
-          delay: 120,
+      // Step 2: 将每一帧转换为像素数据
+      const framesData = gifFrames.map(({ image, delay }) => {
+        const pixels = renderImageToPixels(image, {
+          fit: 'contain',
+          cropX: 0.5,
+          cropY: 0.5,
+          zoom: 1,
+          preserveColors: true,
+          outputWidth: CANVAS_WIDTH,
+          outputHeight: CANVAS_HEIGHT,
+          allowUpscale: false,
+          dither: 'none',
+        })
+
+        return {
+          id: `frame_${Date.now()}_${Math.random()}`,
+          delay: delay,
           viewportX: 0,
           viewportY: 0,
           layers: [
             {
-              id: `layer_${Date.now()}`,
+              id: `layer_${Date.now()}_${Math.random()}`,
               name: 'Layer 1',
               visible: true,
               opacity: 1,
@@ -685,41 +672,43 @@ const handleFileUpload = async (e: Event) => {
               canvasPixels: {},
             },
           ],
-        },
-      ],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+        }
+      })
+
+      // Step 3: 上传 GIF + 所有帧数据
+      const uploadResult = await uploadGifWithFrames(file, framesData)
+
+      console.log('GIF upload result:', uploadResult)
+
+      // Step 4: 创建作品
+      const workData: CreatorWorkSaveRequest = {
+        title: file.name.split('.')[0],
+        type: 'GIF',
+        coverUrl: uploadResult.cover,
+        gifFileUrl: uploadResult.fileUrl,
+        gifFileSize: uploadResult.fileSize,
+        editableFileUrl: uploadResult.binFileUrl,
+        binFileUrl: uploadResult.binFileUrl,
+        binFileSize: uploadResult.binSize,
+        width: CANVAS_WIDTH,
+        height: CANVAS_HEIGHT,
+        frameCount: framesData.length,
+        frameDelay: framesData[0]?.delay || 120,
+      }
+
+      const workResult = await createWorkApi(workData)
+
+      console.log('GIF work created:', workResult)
+
+      // Step 5: 刷新作品列表
+      ElMessage.success(t('common.pxm_upload_success'))
+      fetchWorks()
+    } else if (fileType === 'image/jpeg' || fileType === 'image/png') {
+      // 静态图上传逻辑
+      await handleStaticImageUpload(file)
+    } else {
+      throw new Error(t('common.fileTypeError'))
     }
-
-    // Step 3: 上传静态图 + JSON 数据
-    const uploadResult = await uploadStaticImageWithJson(file, projectData)
-
-    console.log('Upload result:', uploadResult)
-
-    // Step 4: 创建作品
-    const workData: CreatorWorkSaveRequest = {
-      title: file.name.split('.')[0],
-      type: 'STATIC',
-      coverUrl: uploadResult.coverUrl,
-      editableFileUrl: uploadResult.editableFileUrl,
-      binFileUrl: uploadResult.binFileUrl,
-      binFileSize: uploadResult.binFileSize,
-      width: CANVAS_WIDTH,
-      height: CANVAS_HEIGHT,
-      frameCount: 1,
-      frameDelay: 120,
-    }
-
-    const workResult = await createWorkApi(workData)
-
-    console.log('Work created:', workResult)
-
-    // Step 5: 刷新作品列表
-    ElMessage.success(t('common.pxm_upload_success'))
-    fetchWorks()
-
-    // Step 6: 跳转到编辑器预览（可选）
-    // router.push({ path: '/pixel-editor', query: { workId: workResult.result } })
   } catch (error) {
     console.error('Upload failed:', error)
     ElMessage.error(t('common.pxm_upload_failed'))
@@ -727,6 +716,86 @@ const handleFileUpload = async (e: Event) => {
     target.value = ''
     fileInputRef.value && (fileInputRef.value.value = '')
   }
+}
+
+/**
+ * 处理静态图上传
+ */
+const handleStaticImageUpload = async (file: File) => {
+  // Step 1: 解析图片为像素数据
+  const imageFile = await imageFromFile(file)
+  const pixels = renderImageToPixels(imageFile, {
+    fit: 'contain',
+    cropX: 0.5,
+    cropY: 0.5,
+    zoom: 1,
+    preserveColors: true,
+    outputWidth: CANVAS_WIDTH,
+    outputHeight: CANVAS_HEIGHT,
+    allowUpscale: false,
+    dither: 'none',
+  })
+
+  console.log('Image parsed to pixels:', pixels.length, 'pixels')
+
+  // Step 2: 创建项目数据
+  const projectId = `project_${Date.now()}`
+  const projectData = {
+    id: projectId,
+    version: 4,
+    name: file.name.split('.')[0],
+    width: CANVAS_WIDTH,
+    height: CANVAS_HEIGHT,
+    currentFrameIndex: 0,
+    activeLayer: 0,
+    frames: [
+      {
+        id: `frame_${Date.now()}`,
+        delay: 120,
+        viewportX: 0,
+        viewportY: 0,
+        layers: [
+          {
+            id: `layer_${Date.now()}`,
+            name: 'Layer 1',
+            visible: true,
+            opacity: 1,
+            pixels: pixels,
+            canvasPixels: {},
+          },
+        ],
+      },
+    ],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  }
+
+  // Step 3: 上传静态图 + JSON 数据
+  const uploadResult = await uploadStaticImageWithJson(file, projectData)
+
+  console.log('Upload result:', uploadResult)
+
+  // Step 4: 创建作品
+  const workData: CreatorWorkSaveRequest = {
+    title: file.name.split('.')[0],
+    type: 'STATIC',
+    coverUrl: uploadResult.coverUrl,
+    editableFileUrl: uploadResult.editableFileUrl,
+    binFileUrl: uploadResult.binFileUrl,
+    binFileSize: uploadResult.binFileSize,
+    width: CANVAS_WIDTH,
+    height: CANVAS_HEIGHT,
+    frameCount: 1,
+    frameDelay: 120,
+  }
+
+  const workResult = await createWorkApi(workData)
+
+  console.log('Work created:', workResult)
+
+  // Step 5: 刷新作品列表
+  ElMessage.success(t('common.pxm_upload_success'))
+  fetchWorks()
 }
 
 const goCreateEditor = () => {

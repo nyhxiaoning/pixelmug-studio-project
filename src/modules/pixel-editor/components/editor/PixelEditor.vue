@@ -2725,6 +2725,7 @@ async function handleLoadGifImage(event: Event): Promise<void> {
         outputHeight: CANVAS_HEIGHT,
         allowUpscale: false,
       })
+      frame.layers[0].pixels = pixels
       frame.layers[0].canvasPixels = pixelsToCanvasPixels(pixels, CANVAS_WIDTH, CANVAS_HEIGHT)
       refreshLayerVisibleFromCanvas(frame.layers[0], DEFAULT_VIEWPORT_X, DEFAULT_VIEWPORT_Y)
       return frame

@@ -13,6 +13,7 @@ import {
   convertImageToRGB565,
   convertRgb565BlobToPng,
 } from './rgb.ts';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@/modules/pixel-editor/core/index'
 
 import { createOssClient } from './AliOSS.ts';
 import { useAppI18n } from '@@/composables/useI18n'
@@ -28,7 +29,7 @@ const sanitizeFileName = (fileName: string): string => {
 // 上传图片的逻辑
 export enum UploadFileEnum {
   IMAGE = 7, //图片 封面图 COVER_IMAGE
-  GIF = 8, //GIF GIF_FILE
+  GIF = 'GIF_FILE', //GIF GIF_FILE
   EDITABLE_JSON = 9,// EDITABLE_JSON 编辑json
   STATIC_BIN = 6, //STATIC_BIN 静态图
 
@@ -386,6 +387,71 @@ export const uploadGif = (file: File): Promise<AddArtifactParam> => {
         console.error('上传图片到oss失败:', err);
         reject(err);
       });
+  });
+};
+
+/**
+ * 上传 GIF 并包含所有帧的像素数据
+ * @param file GIF 文件
+ * @param framesData 所有帧的数据（包含 layers）
+ * @returns 上传结果
+ */
+export const uploadGifWithFrames = async (
+  file: File,
+  framesData: Array<{
+    id?: string
+    delay: number
+    viewportX: number
+    viewportY: number
+    layers: Array<{
+      id?: string
+      name: string
+      visible: boolean
+      opacity: number
+      pixels: (string | null)[]
+      canvasPixels?: Record<string, string>
+    }>
+  }>
+): Promise<AddArtifactParam> => {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Step 1: 上传 GIF 文件
+      const gifUploadRes = await uploadFile(file, sanitizeFileName(file.name), UploadFileEnum.GIF)
+
+      // Step 2: 创建项目数据（包含所有帧）
+      const projectData = {
+        version: 4,
+        name: file.name,
+        width: CANVAS_WIDTH,
+        height: CANVAS_HEIGHT,
+        currentFrameIndex: 0,
+        activeLayer: 0,
+        frames: framesData.map((frame) => ({
+          ...frame,
+          layers: (frame.layers || []).map((layer) => ({
+            ...layer,
+            canvasPixels: undefined, // 移除 canvasPixels 以减小文件大小
+          })),
+        })),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      }
+
+      // Step 3: 上传 JSON 数据
+      const jsonUploadRes = await uploadPixelJSON(projectData)
+
+      resolve({
+        fileUrl: gifUploadRes.fileUrl,
+        fileSize: gifUploadRes.fileSize,
+        binFileUrl: jsonUploadRes.fileUrl, // 用 JSON URL 作为 binFileUrl
+        binSize: jsonUploadRes.fileSize,
+        cover: gifUploadRes.fileUrl,
+        type: AllowedArtifactTypes.GIF,
+      });
+    } catch (error) {
+      reject(error);
+    }
   });
 };
 

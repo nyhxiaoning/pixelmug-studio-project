@@ -12,6 +12,7 @@ export interface CreatorWorkSaveRequest {
   type?: string
   coverUrl?: string
   gifFileUrl?: string
+  gifFileSize?: number
   editableFileUrl?: string
   binFileUrl?: string
   binFileSize?: number
@@ -65,6 +66,7 @@ export interface CreatorWorkVO {
   type?: string
   coverUrl?: string
   gifFileUrl?: string
+  gifFileSize?: number
   editableFileUrl?: string
   binFileUrl?: string
   binFileSize?: number
