@@ -599,17 +599,31 @@ const handleFileUpload = (e: Event) => {
   const target = e.target as HTMLInputElement | null
   const file = target?.files?.[0]
   if (!file) return
-  createWorkApi({ title: file.name.split('.')[0] })
-    .then((res) => {
-      const newWorkId = res.result
-      ElMessage.success(t('common.pxm_upload_success'))
-      fetchWorks()
-      router.push({ path: '/editor', query: { workId: newWorkId } })
-    })
-    .catch(() => {
-      ElMessage.error(t('common.pxm_upload_failed'))
-    })
-  fileInputRef.value && (fileInputRef.value.value = '')
+
+    const fileType = file.type
+
+  alert(fileType)
+
+  if (fileType === 'image/jpeg' || fileType === 'image/png') {
+    // uploadFileAction(file, UploadFileEnum.IMAGE)
+  } else if (fileType === 'image/gif') {
+    // uploadFileAction(file, UploadFileEnum.GIF)
+  } else {
+    throw new Error(t('common.fileTypeError'))
+  }
+
+  target.value = ''
+  // createWorkApi({ title: file.name.split('.')[0] })
+  //   .then((res) => {
+  //     const newWorkId = res.result
+  //     ElMessage.success(t('common.pxm_upload_success'))
+  //     fetchWorks()
+  //     router.push({ path: '/editor', query: { workId: newWorkId } })
+  //   })
+  //   .catch(() => {
+  //     ElMessage.error(t('common.pxm_upload_failed'))
+  //   })
+  // fileInputRef.value && (fileInputRef.value.value = '')
 }
 
 const goCreateEditor = () => {

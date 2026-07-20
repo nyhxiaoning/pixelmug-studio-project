@@ -127,7 +127,7 @@ export default defineComponent({
     })
 
     async function handleLogin() {
-      ElMessage.success(t("common.pxm_login_success"))
+      // ElMessage.success(t("common.pxm_login_success"))
       // const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
       // router.replace(redirect)
       // return;
