@@ -930,6 +930,34 @@ onMounted(() => {
   gap: 18px;
 }
 
+/* 网格视图：每行最多6个 */
+@media (min-width: 1200px) {
+  .works-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* 中等屏幕：每行4个 */
+@media (min-width: 900px) and (max-width: 1199px) {
+  .works-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* 小屏幕：每行3个 */
+@media (min-width: 600px) and (max-width: 899px) {
+  .works-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 超小屏幕：每行2个 */
+@media (max-width: 599px) {
+  .works-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .work-card {
   background: #fff;
   border-radius: 8px;
@@ -986,8 +1014,9 @@ onMounted(() => {
 }
 
 .works-list .row-preview {
-  width: 44px;
-  height: 32px;
+  width: auto;
+  min-width: 50px;
+  height: 50px;
   border-radius: 6px;
   flex-shrink: 0;
   display: flex;
@@ -995,6 +1024,7 @@ onMounted(() => {
   justify-content: center;
   position: relative;
   overflow: hidden;
+  aspect-ratio: 16 / 9;
 }
 
 .works-list .row-preview .preview-image {
