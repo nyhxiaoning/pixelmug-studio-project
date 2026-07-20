@@ -642,6 +642,8 @@ interface Point {
   worldY: number
 }
 
+
+
 // Constants
 const THEME_KEY = 'pixelart-web-editor.theme'
 const FUSION_FONT_ROOT = 'assets/fonts'
@@ -709,6 +711,7 @@ const frameDelayInput = ref<string>(
   String(firstProject.value.frames[firstProject.value.currentFrameIndex || 0]?.delay || 120)
 )
 const status = ref<string>('准备就绪')
+
 
 // Drawing interaction state
 const drawing = ref<boolean>(false)
@@ -2575,6 +2578,8 @@ onMounted(() => {
   window.addEventListener('keydown', keydownHandler.value)
   persistNow()
   nextTick(renderAll)
+  alert('初始化直接进入')
+handleNewProject()
 })
 
 onBeforeUnmount(() => {

@@ -243,7 +243,7 @@
               :src="work.coverUrl"
               :alt="work.title"
               class="preview-image"
-            >
+            />
           </div>
           <div class="work-meta">
             <div>
@@ -328,7 +328,7 @@
                     :src="row.coverUrl"
                     :alt="row.title"
                     class="preview-image"
-                  >
+                  />
                   <span class="kind-icon bubble">&#9670;</span>
                 </div>
                 <span>{{ row.title }}</span>
@@ -410,13 +410,17 @@ import {
 } from '@/api/works'
 import type { CreatorDeviceVO } from '@/api/device'
 import { listDevicesApi, previewToDeviceApi } from '@/api/device'
-import { uploadUserFile,uploadGif,uploadImage,uploadStaticImgCover} from "@/lib/images/uploadFile"
+import {
+  uploadUserFile,
+  uploadGif,
+  uploadImage,
+  uploadStaticImgCover,
+} from '@/lib/images/uploadFile'
 
 import {
   decodeGifFrames,
   imageFromFile,
   renderImageToPixels,
-  
 } from '@/modules/pixel-editor/core/image-import'
 
 import { ref, computed, onMounted, watch } from 'vue'
@@ -604,12 +608,11 @@ const formatDate = (ts: number | null | undefined): string => {
   return `${y}.${m}.${day}`
 }
 
-
 // Image import
 
 /**
  * 导入静态图
- * @param event 
+ * @param event
  */
 async function handleLoadStaticImage(event: Event): Promise<void> {
   const target = event.target as HTMLInputElement
@@ -619,24 +622,23 @@ async function handleLoadStaticImage(event: Event): Promise<void> {
   let imageFile = await imageFromFile(file)
   // await renderImageToPixels(imageFile)
 
-  console.log(imageFile,'imageFile')
+  console.log(imageFile, 'imageFile')
 }
 
 const handleFileUpload = async (e: Event) => {
   const target = e.target as HTMLInputElement | null
   const file = target?.files?.[0]
-   let resImageInfo;
+  let resImageInfo
   if (!file) return
 
   const fileType = file.type
 
   if (fileType === 'image/jpeg' || fileType === 'image/png') {
     // uploadFileAction(file, UploadFileEnum.IMAGE)
-     resImageInfo = await uploadImage(file);
-    console.log('resImageInfo',resImageInfo)
+    resImageInfo = await uploadImage(file)
+    console.log('resImageInfo', resImageInfo)
 
     // await handleLoadStaticImage(e)
-
   } else if (fileType === 'image/gif') {
     // uploadFileAction(file, UploadFileEnum.GIF)
   } else {
@@ -646,7 +648,15 @@ const handleFileUpload = async (e: Event) => {
   target.value = ''
 
   // 测试STATIC
-  createWorkApi({ title: file.name.split('.')[0],type:"STATIC",coverUrl:resImageInfo?.cover,editableFileUrl:"https://storage.qajeejio.com/im/bin/01KXZ5SE0VB96G95536TRF2C97/PixelMug-07-20-14-27.png",binFileUrl: resImageInfo?.binFileUrl,binFileSize:resImageInfo?.binSize})
+  createWorkApi({
+    title: file.name.split('.')[0],
+    type: 'STATIC',
+    coverUrl: resImageInfo?.cover,
+    editableFileUrl:
+      'https://storage.qajeejio.com/im/bin/01KXZ5SE0VB96G95536TRF2C97/PixelMug-07-20-14-27.png',
+    binFileUrl: resImageInfo?.binFileUrl,
+    binFileSize: resImageInfo?.binSize,
+  })
     .then((res) => {
       const newWorkId = res.result
       ElMessage.success(t('common.pxm_upload_success'))
@@ -660,6 +670,13 @@ const handleFileUpload = async (e: Event) => {
 }
 
 const goCreateEditor = () => {
+   // TODO:这里和导入有点区别
+  // 直接点击进入，创建作品，进入路由：
+  router.push({ path: '/pixel-editor' })
+
+  return
+
+  // TODO:这里和导入有点区别
   createWorkApi({ title: 'Untitled' })
     .then((res) => {
       router.push({ path: '/editor', query: { workId: res.result } })
