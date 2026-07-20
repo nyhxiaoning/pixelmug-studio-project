@@ -22,10 +22,10 @@ export enum UploadFileEnum {
   IMAGE = 7, //图片 封面图 COVER_IMAGE
   GIF = 8, //GIF GIF_FILE
   EDITABLE_JSON = 9,// EDITABLE_JSON 编辑json
-  STATIC_BIN = 10, //STATIC_BIN 静态图
+  STATIC_BIN = 6, //STATIC_BIN 静态图
 
-  OTHER = 11, //其他文件
-  BASE64IMG = 12, //BASE64图片，这里使用7和12是一个BASE
+  OTHER = 10, //其他文件
+  BASE64IMG = 11, //BASE64图片，这里使用7和12是一个BASE
 
 }
 
@@ -277,15 +277,15 @@ export const uploadDoodle = (colors: Array<string>): Promise<AddArtifactParam> =
       const doodleImgBlob = await convertHexArrayToPng(colors, defaultImageSize.width, defaultImageSize.height);
       const pngFileUpload = await uploadFile(doodleImgBlob, doodleImgFileName, UploadFileEnum.IMAGE);
       const colorBlob = colorsToBlob(colors);
-      const binFileUpload = await uploadFile(colorBlob, binFileName, UploadFileEnum.BIN);
+      const binFileUpload = await uploadFile(colorBlob, binFileName, 'STATIC_BIN');
 
       resolve({
         fileUrl: jsonFileUpload.fileUrl,
         fileSize: jsonFileUpload.fileSize,
         binFileUrl: binFileUpload.fileUrl,
         binSize: binFileUpload.fileSize,
-        cover: pngFileUpload.fileUrl,
-        type: AllowedArtifactTypes.DOODLE,
+        cover: pngFileUpload.fileUrl
+        // type: AllowedArtifactTypes.DOODLE,
       });
     } catch (err) {
       console.error('上传涂鸦失败:', err);
