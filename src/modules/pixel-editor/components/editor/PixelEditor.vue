@@ -548,7 +548,11 @@ const { t, getCurrentLocale } = useAppI18n()
 const currentLocale = getCurrentLocale()
 
 // Upload functions
-import { uploadPixelJSON } from '@/lib/images/uploadFile'
+import { uploadPixelJSON, uploadDoodle } from '@/lib/images/uploadFile'
+
+// API
+import { createWorkApi } from '@/api/works'
+import type { CreatorWorkSaveRequest } from '@/api/works'
 
 // Theme switcher
 import ThemeSwitcher from '../common/ThemeSwitcher.vue'
@@ -1246,7 +1250,7 @@ function handleSaveOverviewPng(): void {
   canvas.toBlob((blob) => blob && downloadBlob(blob, 'canvas256x256.png'), 'image/png')
 }
 
-// OSS Save
+// OSS Save & Create Work
 async function handleSaveToOSS(): Promise<void> {
   if (saving.value) return
 
@@ -1254,7 +1258,7 @@ async function handleSaveToOSS(): Promise<void> {
     saving.value = true
     status.value = t('common.pxm_editor_saving')
 
-    // 使用与 localStorage 相同的序列化逻辑（移除 canvasPixels）
+    // Step 1: Upload editable JSON data
     const projectData = {
       id: project.value.id,
       version: project.value.version,
@@ -1274,10 +1278,44 @@ async function handleSaveToOSS(): Promise<void> {
       updatedAt: Date.now(),
     }
 
-    // Upload to OSS using uploadPixelJSON
-    const result = await uploadPixelJSON(projectData)
+    const jsonUploadResult = await uploadPixelJSON(projectData)
+    const editableFileUrl = jsonUploadResult.fileUrl
 
-    console.log('Save to OSS success:', result)
+    // Step 2: Upload doodle/pixels data from first frame
+    let coverUrl: string | undefined
+    let binFileUrl: string | undefined
+    let binFileSize: number | undefined
+
+    if (project.value.frames && project.value.frames.length > 0) {
+      const firstFrame = project.value.frames[0]
+      if (firstFrame.layers && firstFrame.layers.length > 0) {
+        const firstLayerPixels = firstFrame.layers[0].pixels
+
+        // Upload pixels using uploadDoodle
+        const doodleUploadResult = await uploadDoodle(firstLayerPixels)
+        coverUrl = doodleUploadResult.cover
+        binFileUrl = doodleUploadResult.binFileUrl
+        binFileSize = doodleUploadResult.binSize // uploadDoodle returns binSize
+      }
+    }
+
+    // Step 3: Create work via API
+    const workData: CreatorWorkSaveRequest = {
+      title: project.value.name,
+      type: 'STATIC',
+      editableFileUrl: editableFileUrl,
+      coverUrl: coverUrl,
+      binFileUrl: binFileUrl,
+      binFileSize: binFileSize,
+      width: project.value.width,
+      height: project.value.height,
+      frameCount: project.value.frames.length,
+      frameDelay: project.value.frames[0]?.delay || 120,
+    }
+
+    const workResult = await createWorkApi(workData)
+
+    console.log('Save to OSS and create work success:', workResult)
     status.value = t('common.pxm_editor_saved')
     ElMessage.success(t('common.pxm_editor_save_success'))
   } catch (error) {

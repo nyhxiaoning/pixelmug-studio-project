@@ -273,9 +273,9 @@ export const uploadDoodle = (colors: Array<string>): Promise<AddArtifactParam> =
   return new Promise(async (resolve, reject) => {
     try {
       const jsonBlob = colorsToJsonBlob(colors);
-      const jsonFileUpload = await uploadFile(jsonBlob, doodleJsonFileName, UploadFileEnum.OTHER);
+      const jsonFileUpload = await uploadFile(jsonBlob, doodleJsonFileName,'STATIC_BIN');
       const doodleImgBlob = await convertHexArrayToPng(colors, defaultImageSize.width, defaultImageSize.height);
-      const pngFileUpload = await uploadFile(doodleImgBlob, doodleImgFileName, UploadFileEnum.IMAGE);
+      const pngFileUpload = await uploadFile(doodleImgBlob, doodleImgFileName, 'STATIC_BIN');
       const colorBlob = colorsToBlob(colors);
       const binFileUpload = await uploadFile(colorBlob, binFileName, 'STATIC_BIN');
 
