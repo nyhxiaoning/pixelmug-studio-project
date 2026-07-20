@@ -1,4 +1,11 @@
 export default {
+  // uploadService
+  uploadError: '上传失败',
+  imgSizeError: '图片大小不能超过50KB',
+  imgSpecsError: '图片宽高比必须为4:1',
+  gifSizeError: '图片大小不能超过50kb',
+  gifSpecsError: 'gif图必须是64*16的尺寸',
+  fileTypeError: '只支持jpeg或者png或者gif',
   // ====================== 登录认证模块 ======================
   pxm_login_title: 'PixelMug 创作者中心',
   pxm_login_code_tab: '验证码登录',

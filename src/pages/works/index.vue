@@ -474,6 +474,9 @@ async function fetchWorks() {
   loading.value = true
   try {
     const params = buildSortParams()
+    console.log('初始化searchQuery', searchQuery.value.trim())
+    console.log('params.sortBy', params.sortBy)
+
     const res = await pageWorksApi({
       pageNumber: pageNumber.value,
       pageSize: pageSize.value,
@@ -495,7 +498,7 @@ function buildSortParams() {
   const map = {
     name: 'TITLE',
     createTime: 'CREATED_AT',
-    lastView: 'UPDATED_AT',
+    lastView: 'LAST_VIEW_TIME',
   } as const
   return {
     sortBy: map[sortBy.value],

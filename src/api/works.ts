@@ -27,7 +27,7 @@ export interface CreatorWorkSaveRequest {
 /** 作品分页查询参数 */
 export interface CreatorWorkPageRequest extends PageQuery {
   keyword?: string
-  sortBy?: "CREATED_AT" | "UPDATED_AT" | "TITLE"
+  sortBy?: "CREATED_AT" | "LAST_VIEW_TIME" | "TITLE"
   direction?: "ASC" | "DESC"
 }
 
@@ -36,9 +36,15 @@ export interface WorkSubmitRequest {
   remark?: string
 }
 
-/** 作品上传凭证请求 这个对应eidtorfile，这个还没有使用 */
+/** 作品上传凭证请求 这个对应eidtorfile，这个还没有使用
+ * 传入不同role即可，
+ * COVER_IMAGE
+ * GIF_FILE
+ * GIF_FILE
+ * STATIC_BIN
+ */
 export interface CreatorUploadTokenRequest {
-  role: "COVER_IMAGE" | "GIF_FILE" | "EDITABLE_JSON" | "STATIC_BIN"
+  role: "COVER_IMAGE" | "GIF_FILE" | "GIF_FILE" | "STATIC_BIN"
   fileName?: string
   fileSize?: number
   fileType?: string
@@ -192,11 +198,11 @@ export function deleteWorkApi(id: string) {
  * 获取 OSS 上传凭证
  * POST /api/creator/works/upload-token
  */
-export function getUploadTokenApi(data: CreatorUploadTokenRequest) {
+export function getUploadTokenApi(typeRole: CreatorUploadTokenRequest) {
   return request<OSSTokenVO>({
     url: "/api/creator/works/upload-token",
     method: "post",
-    data,
+    data: { role: typeRole },
   })
 }
 

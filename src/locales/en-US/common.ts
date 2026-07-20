@@ -1,4 +1,11 @@
 export default {
+  // uploadService
+  uploadError: 'Upload failed',
+  imgSizeError: 'Image size cannot exceed 50KB',
+  imgSpecsError: 'Image must have 4:1 aspect ratio',
+  gifSizeError: 'GIF size cannot exceed 50kb',
+  gifSpecsError: 'GIF size must be 64px * 16px',
+  fileTypeError: 'Only supports jpeg, png, or gif',
   // ====================== 登录认证模块 ======================
   pxm_login_title: 'PixelMug Creator Center',
   pxm_login_code_tab: 'Verification code',
