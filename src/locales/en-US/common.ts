@@ -1,7 +1,7 @@
 export default {
   // uploadService
   uploadError: 'Upload failed',
-  imgSizeError: 'Image size cannot exceed 50KB',
+  imgSizeError: 'Image size cannot exceed 5M',
   imgSpecsError: 'Image must have 4:1 aspect ratio',
   gifSizeError: 'GIF size cannot exceed 50kb',
   gifSpecsError: 'GIF size must be 64px * 16px',
@@ -213,6 +213,9 @@ export default {
   pxm_editor_board_size: 'Canvas W 32, H 16',
   pxm_editor_saved: 'Saved',
   pxm_editor_saving: 'Saving...',
+  pxm_editor_no_editable_file: 'This work has no editable data available.',
+  pxm_editor_load_failed: 'Failed to load work. Please try again.',
+  pxm_editor_editing_mode: 'Editing',
 
   // ====================== 像素编辑器 - 作品库 ======================
   pxm_editor_library_title: 'My Works',

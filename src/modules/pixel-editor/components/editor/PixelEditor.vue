@@ -279,6 +279,17 @@
         <div>
           <strong>{{ project.name }}</strong>
           <span>{{ project.frames.length }} {{ t('common.pxm_editor_frame_unit') }} · {{ t('common.pxm_editor_layer_unit') }} {{ activeLayer + 1 }}</span>
+          <span v-if="editingWork" class="pe-editing-badge" style="
+            margin-left: 8px;
+            padding: 2px 8px;
+            background: #409eff;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+          ">
+            {{ t('common.pxm_editor_editing_mode') }}
+          </span>
         </div>
         <ThemeSwitcher />
         <div class="pe-status">
@@ -540,6 +551,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Ref, CanvasHTMLAttributes } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
 // i18n
@@ -551,8 +563,8 @@ const currentLocale = getCurrentLocale()
 import { uploadPixelJSON, uploadDoodle } from '@/lib/images/uploadFile'
 
 // API
-import { createWorkApi } from '@/api/works'
-import type { CreatorWorkSaveRequest } from '@/api/works'
+import { createWorkApi, updateWorkApi, getWorkDetailApi } from '@/api/works'
+import type { CreatorWorkSaveRequest, CreatorWorkVO } from '@/api/works'
 
 // Theme switcher
 import ThemeSwitcher from '../common/ThemeSwitcher.vue'
@@ -695,6 +707,12 @@ const project = ref(firstProject.value)
 
 // Palette
 const palette = ref(corePalette)
+
+// Route
+const route = useRoute()
+const editingWorkId = ref<string | null>(null)
+const editingWork = ref<CreatorWorkVO | null>(null)
+const loadingWork = ref(false)
 
 // Tools
 const tools = ref<Tool[]>([
@@ -1250,7 +1268,7 @@ function handleSaveOverviewPng(): void {
   canvas.toBlob((blob) => blob && downloadBlob(blob, 'canvas256x256.png'), 'image/png')
 }
 
-// OSS Save & Create Work
+// OSS Save & Create/Update Work
 async function handleSaveToOSS(): Promise<void> {
   if (saving.value) return
 
@@ -1299,7 +1317,7 @@ async function handleSaveToOSS(): Promise<void> {
       }
     }
 
-    // Step 3: Create work via API
+    // Step 3: Create or Update work via API
     const workData: CreatorWorkSaveRequest = {
       title: project.value.name,
       type: 'STATIC',
@@ -1313,9 +1331,27 @@ async function handleSaveToOSS(): Promise<void> {
       frameDelay: project.value.frames[0]?.delay || 120,
     }
 
-    const workResult = await createWorkApi(workData)
+    let workResult: string | void
 
-    console.log('Save to OSS and create work success:', workResult)
+    // 判断是创建还是更新
+    if (editingWorkId.value) {
+      // 编辑模式：更新已有作品
+      console.log('Updating existing work:', editingWorkId.value)
+      await updateWorkApi(editingWorkId.value, workData)
+      workResult = editingWorkId.value
+      console.log('Work updated successfully:', workResult)
+    } else {
+      // 创建模式：新建作品
+      console.log('Creating new work')
+      workResult = await createWorkApi(workData)
+      console.log('Work created successfully:', workResult)
+    }
+
+    // 如果是新创建的作品，记录 ID
+    if (workResult && typeof workResult === 'string' && !editingWorkId.value) {
+      editingWorkId.value = workResult
+    }
+
     status.value = t('common.pxm_editor_saved')
     ElMessage.success(t('common.pxm_editor_save_success'))
   } catch (error) {
@@ -1328,6 +1364,118 @@ async function handleSaveToOSS(): Promise<void> {
 }
 
 // Project management
+async function loadWorkForEdit(workId: string): Promise<void> {
+  if (!workId) return
+
+  try {
+    loadingWork.value = true
+    editingWorkId.value = workId
+
+    // Step 1: 获取作品详情
+    const workDetail = await getWorkDetailApi(workId)
+    editingWork.value = workDetail
+
+    console.log('Work detail loaded:', workDetail)
+
+    // Step 2: 从 editableFileUrl 加载 JSON 数据
+    if (workDetail?.result?.editableFileUrl) {
+      const projectData = await fetchJsonFromUrl<ProjectData>(workDetail?.result?.editableFileUrl)
+
+      console.log('Project data loaded from URL:', projectData)
+
+      // Step 3: 转换数据为 Project 格式
+      const frames = (projectData.frames || []).map((frameData) => ({
+        id: frameData.id || id('frame'),
+        delay: frameData.delay || 120,
+        viewportX: frameData.viewportX || DEFAULT_VIEWPORT_X,
+        viewportY: frameData.viewportY || DEFAULT_VIEWPORT_Y,
+        layers: (frameData.layers || []).map((layerData) => ({
+          id: layerData.id || id('layer'),
+          name: layerData.name || t('common.pxm_editor_layer_one'),
+          visible: layerData.visible !== false,
+          opacity: layerData.opacity ?? 1,
+          pixels: Array.isArray(layerData.pixels) ? layerData.pixels : emptyPixels(),
+          canvasPixels: {},
+        })),
+      }))
+
+      // Step 4: 创建新项目
+      const newProject = sanitizeProject({
+        id: projectData.id || id('project'),
+        version: projectData.version || 4,
+        name: projectData.name || workDetail.title || t('common.pxm_editor_library_new'),
+        width: projectData.width || WIDTH,
+        height: projectData.height || HEIGHT,
+        currentFrameIndex: projectData.currentFrameIndex || 0,
+        activeLayer: projectData.activeLayer || 0,
+        frames: frames,
+        createdAt: projectData.createdAt || Date.now(),
+        updatedAt: Date.now(),
+      })
+
+      // Step 5: 切换到编辑模式
+      projects.value.push(newProject)
+      project.value = newProject
+      view.value = 'editor'
+      currentId.value = newProject.id
+      localStorage.setItem(CURRENT_KEY, newProject.id)
+
+      clearSelectionState()
+      syncFrameDelayInput()
+      persistNow()
+
+      console.log('Work loaded for editing:', newProject)
+    } else {
+      ElMessage.warning(t('common.pxm_editor_no_editable_file'))
+      // 如果没有 editableFileUrl，创建一个新项目
+      handleNewProject()
+    }
+  } catch (error) {
+    console.error('Failed to load work for editing:', error)
+    ElMessage.error(t('common.pxm_editor_load_failed'))
+    // 失败时回到库视图
+    view.value = 'library'
+  } finally {
+    loadingWork.value = false
+  }
+}
+
+// 从 URL 加载 JSON 数据
+async function fetchJsonFromUrl<T>(url: string): Promise<T> {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`)
+  }
+  return response.json()
+}
+
+// Project data interface for loading
+interface ProjectData {
+  id?: string
+  version?: number
+  name?: string
+  width?: number
+  height?: number
+  currentFrameIndex?: number
+  activeLayer?: number
+  frames: Array<{
+    id?: string
+    delay?: number
+    viewportX?: number
+    viewportY?: number
+    layers: Array<{
+      id?: string
+      name?: string
+      visible?: boolean
+      opacity?: number
+      pixels: (string | null)[]
+      canvasPixels?: Record<string, string>
+    }>
+  }>
+  createdAt?: number
+  updatedAt?: number
+}
+
 function handleNewProject(): void {
   const stamp = new Date().toLocaleString(currentLocale, {
     month: '2-digit',
@@ -2674,9 +2822,16 @@ onMounted(() => {
   window.addEventListener('keydown', keydownHandler.value)
   persistNow()
   nextTick(renderAll)
-  // TODO:完成编辑数据进入的对齐后，这里放开数据结构的限制实现
-//   alert('初始化直接进入')
-// handleNewProject()
+
+  // 检查是否有编辑作品的路由参数
+  const workId = route.query.workId as string
+  if (workId) {
+    console.log('Loading work for editing:', workId)
+    loadWorkForEdit(workId)
+  } else {
+    // 没有编辑参数，进入库视图
+    view.value = 'library'
+  }
 })
 
 onBeforeUnmount(() => {

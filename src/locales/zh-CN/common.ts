@@ -1,7 +1,7 @@
 export default {
   // uploadService
   uploadError: '上传失败',
-  imgSizeError: '图片大小不能超过50KB',
+  imgSizeError: '图片大小不能超过5M',
   imgSpecsError: '图片宽高比必须为4:1',
   gifSizeError: '图片大小不能超过50kb',
   gifSpecsError: 'gif图必须是64*16的尺寸',
@@ -213,6 +213,9 @@ export default {
   pxm_editor_board_size: '画板 W 32 个，H 16 个',
   pxm_editor_saved: '已保存',
   pxm_editor_saving: '保存中...',
+  pxm_editor_no_editable_file: '该作品暂无可用编辑数据',
+  pxm_editor_load_failed: '加载作品失败，请重试',
+  pxm_editor_editing_mode: '编辑中',
 
   // ====================== 像素编辑器 - 作品库 ======================
   pxm_editor_library_title: '我的作品',
