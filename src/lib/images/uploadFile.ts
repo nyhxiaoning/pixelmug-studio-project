@@ -265,6 +265,73 @@ const uploadeditorJson = (data: any, name: string, uploadType: string): Promise<
   });
 };
 
+export const uploadStaticImage = (file: File): Promise<AddArtifactParam> => {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Step 1: 上传原始图片作为封面
+      const coverUploadRes = await uploadFile(file, file.name, 'COVER_IMAGE')
+
+      // Step 2: 转换为 RGB565 二进制数据
+      const rgb565Blob = await convertImageToRGB565(file, UploadFileEnum.STATIC_BIN)
+      const binUploadRes = await uploadFile(rgb565Blob, binFileName, 'STATIC_BIN')
+
+      // Step 3: 转换为 PNG 预览图
+      const pngBlob = await convertRgb565BlobToPng(rgb565Blob, defaultImageSize.width, defaultImageSize.height)
+      const pngUploadRes = await uploadFile(pngBlob, file.name, 'STATIC_BIN')
+
+      resolve({
+        fileUrl: coverUploadRes.fileUrl,
+        fileSize: coverUploadRes.fileSize,
+        binFileUrl: binUploadRes.fileUrl,
+        binSize: binUploadRes.fileSize,
+        cover: pngUploadRes.fileUrl,
+        type: AllowedArtifactTypes.IMAGE,
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+export const uploadStaticImageWithJson = async (
+  file: File,
+  projectData: object
+): Promise<{
+  coverUrl: string
+  binFileUrl: string
+  binFileSize: number
+  editableFileUrl: string
+}> => {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Step 1: 上传原始图片作为封面
+      await uploadFile(file, file.name, 'COVER_IMAGE')
+
+      // Step 2: 转换为 RGB565 二进制数据
+      const rgb565Blob = await convertImageToRGB565(file, UploadFileEnum.STATIC_BIN)
+      const binUploadRes = await uploadFile(rgb565Blob, binFileName, 'STATIC_BIN')
+
+      // Step 3: 转换为 PNG 预览图
+      const pngBlob = await convertRgb565BlobToPng(rgb565Blob, defaultImageSize.width, defaultImageSize.height)
+      const pngUploadRes = await uploadFile(pngBlob, file.name, 'STATIC_BIN')
+
+      // Step 4: 上传项目 JSON 数据
+      const jsonUploadRes = await uploadPixelJSON(projectData)
+
+      resolve({
+        coverUrl: pngUploadRes.fileUrl,
+        binFileUrl: binUploadRes.fileUrl,
+        binFileSize: binUploadRes.fileSize,
+        editableFileUrl: jsonUploadRes.fileUrl,
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 export const uploadDoodle = (colors: Array<string>): Promise<AddArtifactParam> => {
   // alert('uploadDoodle');
   // const { t } = useAppI18n()

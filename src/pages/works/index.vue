@@ -408,13 +408,14 @@ import {
   pageWorksApi,
   CreatorWorkVO,
 } from '@/api/works'
-import type { CreatorDeviceVO } from '@/api/device'
+import type { CreatorDeviceVO, CreatorWorkSaveRequest } from '@/api/device'
 import { listDevicesApi, previewToDeviceApi } from '@/api/device'
 import {
   uploadUserFile,
   uploadGif,
   uploadImage,
   uploadStaticImgCover,
+  uploadStaticImageWithJson,
 } from '@/lib/images/uploadFile'
 
 import {
@@ -422,6 +423,8 @@ import {
   imageFromFile,
   renderImageToPixels,
 } from '@/modules/pixel-editor/core/image-import'
+
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@/modules/pixel-editor/core/index'
 
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
@@ -628,45 +631,102 @@ async function handleLoadStaticImage(event: Event): Promise<void> {
 const handleFileUpload = async (e: Event) => {
   const target = e.target as HTMLInputElement | null
   const file = target?.files?.[0]
-  let resImageInfo
   if (!file) return
 
   const fileType = file.type
 
-  if (fileType === 'image/jpeg' || fileType === 'image/png') {
-    // uploadFileAction(file, UploadFileEnum.IMAGE)
-    resImageInfo = await uploadImage(file)
-    console.log('resImageInfo', resImageInfo)
-
-    // await handleLoadStaticImage(e)
-  } else if (fileType === 'image/gif') {
-    // uploadFileAction(file, UploadFileEnum.GIF)
-  } else {
-    throw new Error(t('common.fileTypeError'))
+  // 验证文件类型
+  if (fileType !== 'image/jpeg' && fileType !== 'image/png') {
+    ElMessage.error(t('common.fileTypeError'))
+    target.value = ''
+    return
   }
 
-  target.value = ''
+  try {
+    // Step 1: 解析图片为像素数据
+    const imageFile = await imageFromFile(file)
+    const pixels = renderImageToPixels(imageFile, {
+      fit: 'contain',
+      cropX: 0.5,
+      cropY: 0.5,
+      zoom: 1,
+      preserveColors: true,
+      outputWidth: CANVAS_WIDTH,
+      outputHeight: CANVAS_HEIGHT,
+      allowUpscale: false,
+      dither: 'none',
+    })
 
-  // 测试STATIC
-  createWorkApi({
-    title: file.name.split('.')[0],
-    type: 'STATIC',
-    coverUrl: resImageInfo?.cover,
-    editableFileUrl:
-      'https://storage.qajeejio.com/im/bin/01KXZ5SE0VB96G95536TRF2C97/PixelMug-07-20-14-27.png',
-    binFileUrl: resImageInfo?.binFileUrl,
-    binFileSize: resImageInfo?.binSize,
-  })
-    .then((res) => {
-      const newWorkId = res.result
-      ElMessage.success(t('common.pxm_upload_success'))
-      fetchWorks()
-      // router.push({ path: '/editor', query: { workId: newWorkId } })
-    })
-    .catch(() => {
-      ElMessage.error(t('common.pxm_upload_failed'))
-    })
-  fileInputRef.value && (fileInputRef.value.value = '')
+    console.log('Image parsed to pixels:', pixels.length, 'pixels')
+
+    // Step 2: 创建项目数据
+    const projectId = `project_${Date.now()}`
+    const projectData = {
+      id: projectId,
+      version: 4,
+      name: file.name.split('.')[0],
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      currentFrameIndex: 0,
+      activeLayer: 0,
+      frames: [
+        {
+          id: `frame_${Date.now()}`,
+          delay: 120,
+          viewportX: 0,
+          viewportY: 0,
+          layers: [
+            {
+              id: `layer_${Date.now()}`,
+              name: 'Layer 1',
+              visible: true,
+              opacity: 1,
+              pixels: pixels,
+              canvasPixels: {},
+            },
+          ],
+        },
+      ],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
+
+    // Step 3: 上传静态图 + JSON 数据
+    const uploadResult = await uploadStaticImageWithJson(file, projectData)
+
+    console.log('Upload result:', uploadResult)
+
+    // Step 4: 创建作品
+    const workData: CreatorWorkSaveRequest = {
+      title: file.name.split('.')[0],
+      type: 'STATIC',
+      coverUrl: uploadResult.coverUrl,
+      editableFileUrl: uploadResult.editableFileUrl,
+      binFileUrl: uploadResult.binFileUrl,
+      binFileSize: uploadResult.binFileSize,
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      frameCount: 1,
+      frameDelay: 120,
+    }
+
+    const workResult = await createWorkApi(workData)
+
+    console.log('Work created:', workResult)
+
+    // Step 5: 刷新作品列表
+    ElMessage.success(t('common.pxm_upload_success'))
+    fetchWorks()
+
+    // Step 6: 跳转到编辑器预览（可选）
+    // router.push({ path: '/pixel-editor', query: { workId: workResult.result } })
+  } catch (error) {
+    console.error('Upload failed:', error)
+    ElMessage.error(t('common.pxm_upload_failed'))
+  } finally {
+    target.value = ''
+    fileInputRef.value && (fileInputRef.value.value = '')
+  }
 }
 
 const goCreateEditor = () => {
