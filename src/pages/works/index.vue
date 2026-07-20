@@ -238,14 +238,12 @@
           @click="openEditWork(work)"
         >
           <div class="preview preview-dark-cluster">
-            <div class="dark-cluster-art">
-              <span class="mini-phone"><i /><i /><i /></span>
-              <span class="mini-phone"><i /><i /><i /></span>
-              <span class="mini-phone"><i /><i /><i /></span>
-              <span class="tiny-node n1" />
-              <span class="tiny-node n2" />
-              <span class="tiny-node n3" />
-            </div>
+            <img
+              v-if="work.coverUrl"
+              :src="work.coverUrl"
+              :alt="work.title"
+              class="preview-image"
+            >
           </div>
           <div class="work-meta">
             <div>
@@ -325,14 +323,12 @@
             <template #default="{ row }">
               <div class="row-name">
                 <div class="row-preview preview-dark-cluster">
-                  <div class="dark-cluster-art">
-                    <span class="mini-phone"><i /><i /><i /></span>
-                    <span class="mini-phone"><i /><i /><i /></span>
-                    <span class="mini-phone"><i /><i /><i /></span>
-                    <span class="tiny-node n1" />
-                    <span class="tiny-node n2" />
-                    <span class="tiny-node n3" />
-                  </div>
+                  <img
+                    v-if="row.coverUrl"
+                    :src="row.coverUrl"
+                    :alt="row.title"
+                    class="preview-image"
+                  >
                   <span class="kind-icon bubble">&#9670;</span>
                 </div>
                 <span>{{ row.title }}</span>
@@ -874,6 +870,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .work-meta {
   padding: 12px;
@@ -915,10 +917,13 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
 }
 
-.works-list .row-preview .dark-cluster-art {
-  transform: scale(0.55);
+.works-list .row-preview .preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .works-list .kind-icon {
