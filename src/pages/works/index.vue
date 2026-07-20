@@ -423,7 +423,7 @@ import {
   
 } from '@/modules/pixel-editor/core/image-import'
 
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -650,7 +650,7 @@ const handleFileUpload = async (e: Event) => {
       const newWorkId = res.result
       ElMessage.success(t('common.pxm_upload_success'))
       fetchWorks()
-      router.push({ path: '/editor', query: { workId: newWorkId } })
+      // router.push({ path: '/editor', query: { workId: newWorkId } })
     })
     .catch(() => {
       ElMessage.error(t('common.pxm_upload_failed'))
