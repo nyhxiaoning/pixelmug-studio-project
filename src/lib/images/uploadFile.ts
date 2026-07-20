@@ -127,6 +127,38 @@ export const uploadStaticImgCover = (file: File): Promise<any> => {
 };
 
 
+
+export const uploadPixelJSON = (data: any): Promise<any> => {
+  // alert('uploadImage');
+
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    try {
+      // const { t } = useAppI18n()
+      // 判断一下，file.type
+  
+      const uploadImgRes = await uploadeditorJson(JSON.stringify(data), data?.name, 'EDITABLE_JSON');
+      console.log(uploadImgRes, 'uploadPixelJSON')
+      // const imgBlob = await convertImageToRGB565(file, UploadFileEnum.IMAGE);
+      // const uploadBinRes = await uploadFile(imgBlob, binFileName, UploadFileEnum.BIN);
+      // const pngDefailt = await convertRgb565BlobToPng(imgBlob, defaultImageSize.width, defaultImageSize.height);
+      // const pngFileUpload = await uploadFile(pngDefailt, file.name, UploadFileEnum.IMAGE);
+      resolve({
+        originData:data,
+        fileUrl: uploadImgRes.fileUrl,
+        fileSize: uploadImgRes.fileSize,
+        // binFileUrl: uploadBinRes.fileUrl,
+        // binSize: uploadBinRes.fileSize,
+        // cover: pngFileUpload.fileUrl,
+        // type: AllowedArtifactTypes.IMAGE,
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+
 export const uploadGifCover = (file: File): Promise<any> => {
   // alert('uploadImage');
 
@@ -190,6 +222,29 @@ const uploadFile = (file: any, name: string, uploadType: string): Promise<FileRe
       const ossConfig = await createOssClient(uploadType);
       const fileName = ossConfig.path + '/' + name;
       const uploadResponse = await ossConfig.client.put(fileName, file, {});
+      resolve({
+        fileUrl: ossConfig.fullPath + '/' + name,
+        fileSize: file.size,
+      });
+    } catch (err) {
+      console.error('上传失败:', err);
+      reject(err);
+    }
+  });
+};
+
+
+
+const uploadeditorJson = (file: any, name: string, uploadType: string): Promise<FileResponse> => {
+  // alert('uploadFile');
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    try {
+      // 配置当前的类型：
+      alert(uploadType)
+      const ossConfig = await createOssClient(uploadType);
+      const fileName = ossConfig.path + '/' + name;
+      // const uploadResponse = await ossConfig.client.put(fileName, file, {});
       resolve({
         fileUrl: ossConfig.fullPath + '/' + name,
         fileSize: file.size,
