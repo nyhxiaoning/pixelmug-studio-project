@@ -438,6 +438,12 @@ const devicePanelOpen = ref(false)
 const viewMode = ref<'grid' | 'list'>('grid')
 const searchQuery = ref('')
 
+// 监听搜索关键词变化，自动触发搜索
+watch(searchQuery, () => {
+  pageNumber.value = 1 // 重置到第一页
+  fetchWorks()
+})
+
 // 加载状态
 const loading = ref(false)
 
@@ -482,7 +488,6 @@ async function fetchWorks() {
   loading.value = true
   try {
     const params = buildSortParams()
-    console.log('初始化searchQuery', searchQuery.value.trim())
     console.log('params.sortBy', params.sortBy)
 
     const res = await pageWorksApi({
