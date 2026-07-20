@@ -112,6 +112,39 @@ export async function imageFromFile(file: File): Promise<HTMLImageElement> {
   return image;
 }
 
+
+/**
+ * 加载gif图片
+ * @param _e 
+ * @returns 
+ */
+async function loadGifImage(_e: Event) {
+  // const input = gifFileInput.value
+  // const file = input?.files?.[0]
+  // if (!file) return
+  // if (input) input.value = ''
+  // try {
+  //   const gifFrames = await decodeGifFrames(file)
+  //   editor.snapshot()
+  //   const frames = gifFrames.map(({ image, delay }: any) => {
+  //     const frame = createFrame()
+  //     frame.delay = delay
+  //     const pixels = renderImageToPixels(image, { fit: 'contain', cropX: 0.5, cropY: 0.5, zoom: 1, preserveColors: true, outputWidth: CANVAS_WIDTH, outputHeight: CANVAS_HEIGHT, allowUpscale: false, dither: 'none' })
+  //     frame.layers[0].canvasPixels = pixelsToCanvasPixels(pixels, CANVAS_WIDTH, CANVAS_HEIGHT)
+  //     return frame
+  //   })
+  //   editor.activeProject.frames.splice(editor.currentFrameIndex + 1, 0, ...frames)
+  //   editor.currentFrameIndex += 1
+  //   editor.touchProject(`已导入 GIF ${frames.length} 帧`)
+  // } catch (err: any) { ui.setStatus(err.message) }
+}
+
+/**
+ * 导入内容渲染到当前的图层
+ * @param image 
+ * @param options 
+ * @returns 
+ */
 export function renderImageToPixels(image: HTMLImageElement | HTMLCanvasElement, options: ImageImportOptions): (string | null)[] {
   const width = Math.max(1, Number(options.outputWidth || WIDTH));
   const height = Math.max(1, Number(options.outputHeight || HEIGHT));

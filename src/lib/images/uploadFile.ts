@@ -15,8 +15,27 @@ import {
 } from './rgb.ts';
 
 import { createOssClient } from './AliOSS.ts';
-import { useAppI18n } from "@/common/composables/useI18n.ts"
+import { useAppI18n } from '@@/composables/useI18n'
 
+// 上传图片的逻辑
+export enum UploadFileEnum {
+  IMAGE = 7, //图片 封面图 COVER_IMAGE
+  GIF = 8, //GIF GIF_FILE
+  EDITABLE_JSON = 9,// EDITABLE_JSON 编辑json
+  STATIC_BIN = 10, //STATIC_BIN 静态图
+
+  OTHER = 11, //其他文件
+  BASE64IMG = 12, //BASE64图片，这里使用7和12是一个BASE
+
+}
+
+// export enum UploadFileEnum {
+//     IMAGE = 7, //图片
+//     GIF = 8, //GIF
+//     BIN = 9, //二进制文件
+//     OTHER = 10, //其他文件
+//     BASE64IMG = 11, //BASE64图片
+// }
 
 export interface AddArtifactParam {
   //作品ID，新增时可以不传，修改时必传
@@ -38,23 +57,67 @@ export interface AddArtifactParam {
 }
 
 
-export const uploadImage = (file: File): Promise<AddArtifactParam> => {
+export const uploadImage = (file: File): Promise<any> => {
   // alert('uploadImage');
-  const { t } = useAppI18n()
+
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     try {
-      const uploadImgRes = await uploadFile(file, file.name, UploadFileEnum.IMAGE);
+      // const { t } = useAppI18n()
+      // 判断一下，file.type
+      let fileType = '';
+      console.log('file.type',file.type)
+      console.log(file.type === 'image/jpeg',)
+
+      if (file.type === 'image/jpeg' || file.type === 'image/png') {
+        // alert('file')
+        fileType = "STATIC_BIN"
+      }
+
+      const uploadImgRes = await uploadFile(file, file.name, fileType);
+
+      console.log(uploadImgRes, 'uploadImgResuploadImgRes')
       const imgBlob = await convertImageToRGB565(file, UploadFileEnum.IMAGE);
-      const uploadBinRes = await uploadFile(imgBlob, binFileName, UploadFileEnum.BIN);
+      const uploadBinRes = await uploadFile(imgBlob, binFileName, fileType);
       const pngDefailt = await convertRgb565BlobToPng(imgBlob, defaultImageSize.width, defaultImageSize.height);
-      const pngFileUpload = await uploadFile(pngDefailt, file.name, UploadFileEnum.IMAGE);
+      const pngFileUpload = await uploadFile(pngDefailt, file.name, fileType);
       resolve({
         fileUrl: uploadImgRes.fileUrl,
         fileSize: uploadImgRes.fileSize,
         binFileUrl: uploadBinRes.fileUrl,
         binSize: uploadBinRes.fileSize,
         cover: pngFileUpload.fileUrl,
+        // type: AllowedArtifactTypes.IMAGE,
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+
+
+export const uploadStaticImgCover = (file: File): Promise<any> => {
+  // alert('uploadImage');
+
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    try {
+      // const { t } = useAppI18n()
+      // 判断一下，file.type
+      alert(file.type)
+      const uploadImgRes = await uploadFile(file, file.name, 'COVER_IMAGE');
+      console.log(uploadImgRes, 'uploadImgResuploadImgRes')
+      // const imgBlob = await convertImageToRGB565(file, UploadFileEnum.IMAGE);
+      // const uploadBinRes = await uploadFile(imgBlob, binFileName, UploadFileEnum.BIN);
+      // const pngDefailt = await convertRgb565BlobToPng(imgBlob, defaultImageSize.width, defaultImageSize.height);
+      // const pngFileUpload = await uploadFile(pngDefailt, file.name, UploadFileEnum.IMAGE);
+      resolve({
+        fileUrl: uploadImgRes.fileUrl,
+        fileSize: uploadImgRes.fileSize,
+        // binFileUrl: uploadBinRes.fileUrl,
+        // binSize: uploadBinRes.fileSize,
+        // cover: pngFileUpload.fileUrl,
         type: AllowedArtifactTypes.IMAGE,
       });
     } catch (error) {
@@ -62,8 +125,38 @@ export const uploadImage = (file: File): Promise<AddArtifactParam> => {
     }
   });
 };
+
+
+export const uploadGifCover = (file: File): Promise<any> => {
+  // alert('uploadImage');
+
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    try {
+      // const { t } = useAppI18n()
+      // 判断一下，file.type
+      alert(file.type)
+      const uploadImgRes = await uploadFile(file, file.name, 'COVER_IMAGE');
+      console.log(uploadImgRes, 'uploadImgResuploadImgRes')
+      // const imgBlob = await convertImageToRGB565(file, UploadFileEnum.IMAGE);
+      // const uploadBinRes = await uploadFile(imgBlob, binFileName, UploadFileEnum.BIN);
+      // const pngDefailt = await convertRgb565BlobToPng(imgBlob, defaultImageSize.width, defaultImageSize.height);
+      // const pngFileUpload = await uploadFile(pngDefailt, file.name, UploadFileEnum.IMAGE);
+      resolve({
+        fileUrl: uploadImgRes.fileUrl,
+        fileSize: uploadImgRes.fileSize,
+        // binFileUrl: uploadBinRes.fileUrl,
+        // binSize: uploadBinRes.fileSize,
+        // cover: pngFileUpload.fileUrl,
+        type: AllowedArtifactTypes.IMAGE,
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 export const uploadBase64Image = (file: string): Promise<AddArtifactParam> => {
-  const { t } = useAppI18n()
   // alert('uploadBase64Image');
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
@@ -86,12 +179,14 @@ export const uploadBase64Image = (file: string): Promise<AddArtifactParam> => {
     }
   });
 };
-const uploadFile = (file: any, name: string, uploadType: UploadFileEnum): Promise<FileResponse> => {
-  const { t } = useAppI18n()
+const uploadFile = (file: any, name: string, uploadType: string): Promise<FileResponse> => {
+
   // alert('uploadFile');
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     try {
+      // 配置当前的类型：
+      alert(uploadType)
       const ossConfig = await createOssClient(uploadType);
       const fileName = ossConfig.path + '/' + name;
       const uploadResponse = await ossConfig.client.put(fileName, file, {});
@@ -108,7 +203,7 @@ const uploadFile = (file: any, name: string, uploadType: UploadFileEnum): Promis
 
 export const uploadDoodle = (colors: Array<string>): Promise<AddArtifactParam> => {
   // alert('uploadDoodle');
-  const { t } = useAppI18n()
+  // const { t } = useAppI18n()
   console.log('上传涂鸦colors is', colors[0]);
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
@@ -136,7 +231,7 @@ export const uploadDoodle = (colors: Array<string>): Promise<AddArtifactParam> =
 };
 
 export const uploadGif = (file: File): Promise<AddArtifactParam> => {
-  const { t } = useAppI18n()
+  // const { t } = useAppI18n()
   return new Promise((resolve, reject) => {
     uploadFile(file, defaultGifName, UploadFileEnum.GIF)
       .then((gifResponse) => {
@@ -156,7 +251,7 @@ export const uploadGif = (file: File): Promise<AddArtifactParam> => {
 
 export const checkFile = async (file: any) => {
   // alert('checkFile');
-  const { t } = useAppI18n()
+  let { t } = useAppI18n()
   console.log('checkFilekkkk');
   const fileType = file.type;
   if (fileType === 'image/jpeg' || fileType === 'image/png') {
@@ -288,13 +383,7 @@ export interface GetOssTokenParam {
   type: number;
 }
 
-export enum UploadFileEnum {
-  IMAGE = 7, //图片
-  GIF = 8, //GIF
-  BIN = 9, //二进制文件
-  OTHER = 10, //其他文件
-  BASE64IMG = 11, //BASE64图片
-}
+
 
 export enum AllowedArtifactTypes {
   IMAGE = 0, //图片

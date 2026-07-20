@@ -414,6 +414,14 @@ import {
 } from '@/api/works'
 import type { CreatorDeviceVO } from '@/api/device'
 import { listDevicesApi, previewToDeviceApi } from '@/api/device'
+import { uploadUserFile,uploadGif,uploadImage,uploadStaticImgCover} from "@/lib/images/uploadFile"
+
+import {
+  decodeGifFrames,
+  imageFromFile,
+  renderImageToPixels,
+  
+} from '@/modules/pixel-editor/core/image-import'
 
 import { ref, computed, onMounted } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
@@ -595,17 +603,39 @@ const formatDate = (ts: number | null | undefined): string => {
   return `${y}.${m}.${day}`
 }
 
-const handleFileUpload = (e: Event) => {
+
+// Image import
+
+/**
+ * 导入静态图
+ * @param event 
+ */
+async function handleLoadStaticImage(event: Event): Promise<void> {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  target.value = ''
+  if (!file) return
+  let imageFile = await imageFromFile(file)
+  // await renderImageToPixels(imageFile)
+
+  console.log(imageFile,'imageFile')
+}
+
+const handleFileUpload = async (e: Event) => {
   const target = e.target as HTMLInputElement | null
   const file = target?.files?.[0]
+   let resImageInfo;
   if (!file) return
 
-    const fileType = file.type
-
-  alert(fileType)
+  const fileType = file.type
 
   if (fileType === 'image/jpeg' || fileType === 'image/png') {
     // uploadFileAction(file, UploadFileEnum.IMAGE)
+     resImageInfo = await uploadImage(file);
+    console.log('resImageInfo',resImageInfo)
+
+    // await handleLoadStaticImage(e)
+
   } else if (fileType === 'image/gif') {
     // uploadFileAction(file, UploadFileEnum.GIF)
   } else {
@@ -613,17 +643,19 @@ const handleFileUpload = (e: Event) => {
   }
 
   target.value = ''
-  // createWorkApi({ title: file.name.split('.')[0] })
-  //   .then((res) => {
-  //     const newWorkId = res.result
-  //     ElMessage.success(t('common.pxm_upload_success'))
-  //     fetchWorks()
-  //     router.push({ path: '/editor', query: { workId: newWorkId } })
-  //   })
-  //   .catch(() => {
-  //     ElMessage.error(t('common.pxm_upload_failed'))
-  //   })
-  // fileInputRef.value && (fileInputRef.value.value = '')
+
+  // 测试STATIC
+  createWorkApi({ title: file.name.split('.')[0],type:"STATIC",coverUrl:resImageInfo?.cover,editableFileUrl:"https://storage.qajeejio.com/im/bin/01KXZ5SE0VB96G95536TRF2C97/PixelMug-07-20-14-27.png",binFileUrl: resImageInfo?.binFileUrl,binFileSize:resImageInfo?.binSize})
+    .then((res) => {
+      const newWorkId = res.result
+      ElMessage.success(t('common.pxm_upload_success'))
+      fetchWorks()
+      router.push({ path: '/editor', query: { workId: newWorkId } })
+    })
+    .catch(() => {
+      ElMessage.error(t('common.pxm_upload_failed'))
+    })
+  fileInputRef.value && (fileInputRef.value.value = '')
 }
 
 const goCreateEditor = () => {
