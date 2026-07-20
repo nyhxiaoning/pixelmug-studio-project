@@ -284,6 +284,14 @@
         <div class="pe-status">
           {{ status }}
         </div>
+        <button
+          type="button"
+          class="pe-save-btn"
+          :class="{ disabled: saving }"
+          @click="handleSaveToOSS"
+        >
+          {{ saving ? t('common.pxm_editor_saving') : t('common.pxm_editor_save') }}
+        </button>
       </div>
 
       <section class="pe-panel pe-frames-panel">
@@ -532,11 +540,15 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Ref, CanvasHTMLAttributes } from 'vue'
+import { ElMessage } from 'element-plus'
 
 // i18n
 import { useAppI18n } from '@@/composables/useI18n'
 const { t, getCurrentLocale } = useAppI18n()
 const currentLocale = getCurrentLocale()
+
+// Upload functions
+import { uploadPixelJSON } from '@/lib/images/uploadFile'
 
 // Theme switcher
 import ThemeSwitcher from '../common/ThemeSwitcher.vue'
@@ -744,6 +756,9 @@ const future = ref<string[]>([])
 
 // Auto-save
 const saveTimer = ref<number | null>(null)
+
+// OSS Save state
+const saving = ref<boolean>(false)
 
 // Preview playback
 const previewPlaying = ref<boolean>(false)
@@ -1229,6 +1244,49 @@ function handleSaveOverviewPng(): void {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   drawOverviewContent(ctx, 1)
   canvas.toBlob((blob) => blob && downloadBlob(blob, 'canvas256x256.png'), 'image/png')
+}
+
+// OSS Save
+async function handleSaveToOSS(): Promise<void> {
+  if (saving.value) return
+
+  try {
+    saving.value = true
+    status.value = t('common.pxm_editor_saving')
+
+    // 使用与 localStorage 相同的序列化逻辑（移除 canvasPixels）
+    const projectData = {
+      id: project.value.id,
+      version: project.value.version,
+      name: project.value.name,
+      width: project.value.width,
+      height: project.value.height,
+      currentFrameIndex: project.value.currentFrameIndex,
+      activeLayer: project.value.activeLayer,
+      frames: (project.value.frames || []).map((frame) => ({
+        ...frame,
+        layers: (frame.layers || []).map((layer) => ({
+          ...layer,
+          canvasPixels: undefined,
+        })),
+      })),
+      createdAt: project.value.createdAt,
+      updatedAt: Date.now(),
+    }
+
+    // Upload to OSS using uploadPixelJSON
+    const result = await uploadPixelJSON(projectData)
+
+    console.log('Save to OSS success:', result)
+    status.value = t('common.pxm_editor_saved')
+    ElMessage.success(t('common.pxm_editor_save_success'))
+  } catch (error) {
+    console.error('Save to OSS failed:', error)
+    status.value = t('common.pxm_editor_save_failed')
+    ElMessage.error(t('common.pxm_editor_save_failed'))
+  } finally {
+    saving.value = false
+  }
 }
 
 // Project management

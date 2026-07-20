@@ -212,6 +212,7 @@ export default {
   pxm_editor_coordinate_y: 'Y',
   pxm_editor_board_size: 'Canvas W 32, H 16',
   pxm_editor_saved: 'Saved',
+  pxm_editor_saving: 'Saving...',
 
   // ====================== 像素编辑器 - 作品库 ======================
   pxm_editor_library_title: 'My Works',

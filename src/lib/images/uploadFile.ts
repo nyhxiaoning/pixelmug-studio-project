@@ -129,30 +129,23 @@ export const uploadStaticImgCover = (file: File): Promise<any> => {
 
 
 export const uploadPixelJSON = (data: any): Promise<any> => {
-  // alert('uploadImage');
-
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     try {
-      // const { t } = useAppI18n()
-      // 判断一下，file.type
-  
-      const uploadImgRes = await uploadeditorJson(JSON.stringify(data), data?.name, 'EDITABLE_JSON');
-      console.log(uploadImgRes, 'uploadPixelJSON')
-      // const imgBlob = await convertImageToRGB565(file, UploadFileEnum.IMAGE);
-      // const uploadBinRes = await uploadFile(imgBlob, binFileName, UploadFileEnum.BIN);
-      // const pngDefailt = await convertRgb565BlobToPng(imgBlob, defaultImageSize.width, defaultImageSize.height);
-      // const pngFileUpload = await uploadFile(pngDefailt, file.name, UploadFileEnum.IMAGE);
+      // 生成安全文件名（不包含时间戳，避免重复）
+      const projectName = data?.name || 'untitled';
+      const safeFileName = `${projectName.replace(/[^a-zA-Z0-9一-龥_-]/g, '_')}.json`;
+
+      const uploadRes = await uploadeditorJson(JSON.stringify(data), safeFileName, 'EDITABLE_JSON');
+      console.log('uploadPixelJSON success:', uploadRes)
+
       resolve({
-        originData:data,
-        fileUrl: uploadImgRes.fileUrl,
-        fileSize: uploadImgRes.fileSize,
-        // binFileUrl: uploadBinRes.fileUrl,
-        // binSize: uploadBinRes.fileSize,
-        // cover: pngFileUpload.fileUrl,
-        // type: AllowedArtifactTypes.IMAGE,
+        originData: data,
+        fileUrl: uploadRes.fileUrl,
+        fileSize: uploadRes.fileSize,
       });
     } catch (error) {
+      console.error('uploadPixelJSON failed:', error);
       reject(error);
     }
   });
@@ -218,7 +211,6 @@ const uploadFile = (file: any, name: string, uploadType: string): Promise<FileRe
   return new Promise(async (resolve, reject) => {
     try {
       // 配置当前的类型：
-      alert(uploadType)
       const ossConfig = await createOssClient(uploadType);
       const fileName = ossConfig.path + '/' + name;
       const uploadResponse = await ossConfig.client.put(fileName, file, {});
@@ -235,22 +227,39 @@ const uploadFile = (file: any, name: string, uploadType: string): Promise<FileRe
 
 
 
-const uploadeditorJson = (file: any, name: string, uploadType: string): Promise<FileResponse> => {
-  // alert('uploadFile');
+const uploadeditorJson = (data: any, name: string, uploadType: string): Promise<FileResponse> => {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     try {
       // 配置当前的类型：
-      alert(uploadType)
       const ossConfig = await createOssClient(uploadType);
-      const fileName = ossConfig.path + '/' + name;
-      // const uploadResponse = await ossConfig.client.put(fileName, file, {});
+
+      // 确保文件名以 .json 结尾
+      let safeFileName = name;
+      if (!safeFileName.endsWith('.json')) {
+        safeFileName = `${safeFileName}.json`;
+      }
+
+      // 将数据转换为 Blob
+      const jsonString = typeof data === 'string' ? data : JSON.stringify(data);
+      const jsonBlob = new Blob([jsonString], { type: 'application/json' });
+
+      // 生成文件名
+      const fileName = `${ossConfig.path}/${safeFileName}`;
+
+      // 执行实际上传
+      const uploadResponse = await ossConfig.client.put(fileName, jsonBlob, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
       resolve({
-        fileUrl: ossConfig.fullPath + '/' + name,
-        fileSize: file.size,
+        fileUrl: `${ossConfig.fullPath}/${safeFileName}`,
+        fileSize: jsonBlob.size,
       });
     } catch (err) {
-      console.error('上传失败:', err);
+      console.error('上传编辑器JSON失败:', err);
       reject(err);
     }
   });
