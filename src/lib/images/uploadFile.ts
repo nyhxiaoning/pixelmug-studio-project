@@ -17,6 +17,14 @@ import {
 import { createOssClient } from './AliOSS.ts';
 import { useAppI18n } from '@@/composables/useI18n'
 
+// 文件名清理函数
+const sanitizeFileName = (fileName: string): string => {
+  // 移除扩展名
+  const nameWithoutExt = fileName.replace(/\.[^.]+$/, '')
+  // 移除所有特殊字符（括号、空格、特殊符号等），只保留字母、数字、中文、下划线、连字符
+  return nameWithoutExt.replace(/[^a-zA-Z0-9一-龥_-]/g, '')
+}
+
 // 上传图片的逻辑
 export enum UploadFileEnum {
   IMAGE = 7, //图片 封面图 COVER_IMAGE
@@ -74,13 +82,14 @@ export const uploadImage = (file: File): Promise<any> => {
         fileType = "STATIC_BIN"
       }
 
-      const uploadImgRes = await uploadFile(file, file.name, fileType);
+      const safeName = sanitizeFileName(file.name)
+      const uploadImgRes = await uploadFile(file, safeName, fileType);
 
       console.log(uploadImgRes, 'uploadImgResuploadImgRes')
       const imgBlob = await convertImageToRGB565(file, UploadFileEnum.IMAGE);
       const uploadBinRes = await uploadFile(imgBlob, binFileName, fileType);
       const pngDefailt = await convertRgb565BlobToPng(imgBlob, defaultImageSize.width, defaultImageSize.height);
-      const pngFileUpload = await uploadFile(pngDefailt, file.name, fileType);
+      const pngFileUpload = await uploadFile(pngDefailt, safeName, fileType);
       resolve({
         fileUrl: uploadImgRes.fileUrl,
         fileSize: uploadImgRes.fileSize,
@@ -106,7 +115,7 @@ export const uploadStaticImgCover = (file: File): Promise<any> => {
       // const { t } = useAppI18n()
       // 判断一下，file.type
       alert(file.type)
-      const uploadImgRes = await uploadFile(file, file.name, 'COVER_IMAGE');
+      const uploadImgRes = await uploadFile(file, sanitizeFileName(file.name), 'COVER_IMAGE');
       console.log(uploadImgRes, 'uploadImgResuploadImgRes')
       // const imgBlob = await convertImageToRGB565(file, UploadFileEnum.IMAGE);
       // const uploadBinRes = await uploadFile(imgBlob, binFileName, UploadFileEnum.BIN);
@@ -161,7 +170,7 @@ export const uploadGifCover = (file: File): Promise<any> => {
       // const { t } = useAppI18n()
       // 判断一下，file.type
       alert(file.type)
-      const uploadImgRes = await uploadFile(file, file.name, 'COVER_IMAGE');
+      const uploadImgRes = await uploadFile(file, sanitizeFileName(file.name), 'COVER_IMAGE');
       console.log(uploadImgRes, 'uploadImgResuploadImgRes')
       // const imgBlob = await convertImageToRGB565(file, UploadFileEnum.IMAGE);
       // const uploadBinRes = await uploadFile(imgBlob, binFileName, UploadFileEnum.BIN);
@@ -270,7 +279,7 @@ export const uploadStaticImage = (file: File): Promise<AddArtifactParam> => {
   return new Promise(async (resolve, reject) => {
     try {
       // Step 1: 上传原始图片作为封面
-      const coverUploadRes = await uploadFile(file, file.name, 'COVER_IMAGE')
+      const coverUploadRes = await uploadFile(file, sanitizeFileName(file.name), 'COVER_IMAGE')
 
       // Step 2: 转换为 RGB565 二进制数据
       const rgb565Blob = await convertImageToRGB565(file, UploadFileEnum.STATIC_BIN)
@@ -278,7 +287,7 @@ export const uploadStaticImage = (file: File): Promise<AddArtifactParam> => {
 
       // Step 3: 转换为 PNG 预览图
       const pngBlob = await convertRgb565BlobToPng(rgb565Blob, defaultImageSize.width, defaultImageSize.height)
-      const pngUploadRes = await uploadFile(pngBlob, file.name, 'STATIC_BIN')
+      const pngUploadRes = await uploadFile(pngBlob, sanitizeFileName(file.name), 'STATIC_BIN')
 
       resolve({
         fileUrl: coverUploadRes.fileUrl,
@@ -307,7 +316,7 @@ export const uploadStaticImageWithJson = async (
   return new Promise(async (resolve, reject) => {
     try {
       // Step 1: 上传原始图片作为封面
-      await uploadFile(file, file.name, 'COVER_IMAGE')
+      await uploadFile(file, sanitizeFileName(file.name), 'COVER_IMAGE')
 
       // Step 2: 转换为 RGB565 二进制数据
       const rgb565Blob = await convertImageToRGB565(file, UploadFileEnum.STATIC_BIN)
@@ -315,7 +324,7 @@ export const uploadStaticImageWithJson = async (
 
       // Step 3: 转换为 PNG 预览图
       const pngBlob = await convertRgb565BlobToPng(rgb565Blob, defaultImageSize.width, defaultImageSize.height)
-      const pngUploadRes = await uploadFile(pngBlob, file.name, 'STATIC_BIN')
+      const pngUploadRes = await uploadFile(pngBlob, sanitizeFileName(file.name), 'STATIC_BIN')
 
       // Step 4: 上传项目 JSON 数据
       const jsonUploadRes = await uploadPixelJSON(projectData)
