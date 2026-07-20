@@ -2578,8 +2578,9 @@ onMounted(() => {
   window.addEventListener('keydown', keydownHandler.value)
   persistNow()
   nextTick(renderAll)
-  alert('初始化直接进入')
-handleNewProject()
+  // TODO:完成编辑数据进入的对齐后，这里放开数据结构的限制实现
+//   alert('初始化直接进入')
+// handleNewProject()
 })
 
 onBeforeUnmount(() => {
