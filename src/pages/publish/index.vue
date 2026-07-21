@@ -426,7 +426,7 @@ const statusMap = {
   published: t('common.pxm_publish_status_live'),
   rejected: t('common.pxm_publish_status_rejected'),
   offline: t('common.pxm_publish_status_offline'),
-  draft: t('common.pxm_publish_status_pending'),
+  draft: t('common.pxm_publish_status_offline'),
 }
 const getStatusLabel = (val) => statusMap[val] || val
 const getStatusTagType = (status) => {

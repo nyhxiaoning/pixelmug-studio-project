@@ -21,7 +21,7 @@ export interface CreatorWorkSaveRequest {
   frameCount?: number
   frameDelay?: number
   preview?: string
-  publishStatus?: "DRAFT" | "PENDING" | "LIVE" | "REJECTED" | "OFFLINE" | "UPDATE_PENDING"
+  publishStatus?: "REJECTED" | "OFFLINE" |  "REVIEWING" | "PUBLISHED",
   remark?: string
 }
 
@@ -75,7 +75,7 @@ export interface CreatorWorkVO {
   frameCount?: number
   frameDelay?: number
   preview?: string
-  publishStatus: "DRAFT" | "PENDING" | "LIVE" | "REJECTED" | "OFFLINE" | "UPDATE_PENDING",
+  publishStatus: "REJECTED" | "OFFLINE" |  "REVIEWING" | "PUBLISHED",
   status?:   "REJECTED" | "OFFLINE" |  "REVIEWING" | "PUBLISHED",
   workVersion?: string
   hasUnpublishedChanges?: boolean
@@ -105,7 +105,7 @@ export interface CreatorReleaseManagementVO {
 /** 发布审核分页查询参数 */
 export interface CreatorReleasePageRequest extends PageQuery {
   keyword?: string
-  status?: "DRAFT" | "PENDING" | "LIVE" | "REJECTED" | "OFFLINE" | "UPDATE_PENDING"
+  status?: "REJECTED" | "OFFLINE" |  "REVIEWING" | "PUBLISHED",
 }
 
 /** 审核工作条目 */
