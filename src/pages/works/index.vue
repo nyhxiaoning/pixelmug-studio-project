@@ -461,6 +461,7 @@ interface WorkItem {
   lastViewTime: number
   coverUrl: string
   gifFileUrl: string
+  gifFileSize:number
   editableFileUrl: string
   binFileSize: number
 }
@@ -475,6 +476,7 @@ function toWorkItem(api: CreatorWorkVO): WorkItem {
     lastViewTime: api.lastViewTime ?? api.updateTime ?? 0,
     coverUrl: api.coverUrl ?? '',
     gifFileUrl: api.gifFileUrl ?? '',
+    gifFileSize: api.gifFileSize ?? 0,
     editableFileUrl: api.editableFileUrl ?? '',
     binFileSize: api.binFileSize ?? 0,
   }
@@ -830,6 +832,7 @@ const sendWorkToDevice = async (work: WorkItem) => {
     return
   }
   try {
+    console.log('sendWorkToDevice-work',work)
     const fileUrl = work.coverUrl || work.gifFileUrl || work.editableFileUrl || ''
     if (!fileUrl) {
       ElMessage.warning('作品暂无可用文件，无法预览')
@@ -839,7 +842,7 @@ const sendWorkToDevice = async (work: WorkItem) => {
       deviceIds: selectedDevices.value.map((d) => d.id),
       type: work.gifFileUrl ? 'GIF' : 'STATIC',
       fileUrl,
-      fileSize: work.binFileSize || 0,
+      fileSize: work.gifFileUrl ?work?.gifFileSize: work.binFileSize,
     })
     const failed = (res.result ?? []).filter((r) => !r.success)
     if (failed.length === 0) {
