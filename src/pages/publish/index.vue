@@ -386,7 +386,7 @@ const selectedDraftIds = ref([])
 
 // 滚动加载分页
 const draftPage = ref(1)
-const draftPageSize = ref(12)
+const draftPageSize = ref(4)
 const draftTotal = ref(0)
 const draftLoadingMore = ref(false)
 

@@ -488,7 +488,7 @@ function toWorkItem(api: CreatorWorkVO): WorkItem {
 
 /** 分页参数 */
 const pageNumber = ref(1)
-const pageSize = ref(6)
+const pageSize = ref(20)
 
 // 无限滚动状态
 const hasMore = ref(true)
