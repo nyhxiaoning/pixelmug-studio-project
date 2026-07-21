@@ -54,7 +54,7 @@
               v-model="queryParams.status"
               :placeholder="$t('common.pxm_publish_all_statuses')"
               pxm_publish_status_filter
-              @change="loadTableData"
+              @change="handleStatusChange"
             >
               <el-option :label="$t('common.pxm_publish_all_statuses')" value="all" />
               <el-option :label="$t('common.pxm_publish_status_pending')" value="reviewing" />
@@ -297,7 +297,24 @@ const loadingMore = ref(false)
 const loadingInitial = ref(false)
 const tableTotalCount = ref(0)
 
-/** 发布管理列表（追加模式） */
+/** 仅加载统计数据（首次加载 / 状态筛选时调用一次） */
+async function loadStatsData() {
+  try {
+    const status = queryParams.status === 'all' ? undefined : queryParams.status.toUpperCase()
+    const res = await pageReleasesApi({
+      pageNumber: 1,
+      pageSize: tablePageSize.value,
+      status,
+    })
+    statData.value.live = res.result?.publishedCount || 0
+    statData.value.review = res.result?.reviewingCount || 0
+    statData.value.draft = res.result?.applicableCount || 0
+  } catch (e) {
+    console.error('loadStatsData error:', e)
+  }
+}
+
+/** 发布管理列表（追加模式，不更新统计数据） */
 async function loadTableDataInitial() {
   loadingInitial.value = true
   hasMore.value = true
@@ -318,10 +335,6 @@ async function loadTableDataInitial() {
       tableData.value = [...tableData.value, ...newItems]
     }
     tablePageNumber.value = pageNum + 1
-    // 更新统计数值
-    statData.value.live = res.result?.publishedCount || 0
-    statData.value.review = res.result?.reviewingCount || 0
-    statData.value.draft = res.result?.applicableCount || 0
     hasMore.value = tableData.value.length < tableTotalCount.value
   } catch (e) {
     console.error('loadTableData error:', e)
@@ -329,6 +342,14 @@ async function loadTableDataInitial() {
   } finally {
     loadingInitial.value = false
   }
+}
+
+/** 重置列表并重新加载（操作后刷新表格，不更新统计数据） */
+async function resetTableData() {
+  tableData.value = []
+  tablePageNumber.value = 1
+  hasMore.value = true
+  await loadTableDataInitial()
 }
 
 /** 滚动加载更多（追加而非替换） */
@@ -357,14 +378,14 @@ async function loadTableDataMore() {
   }
 }
 
-/**
- * @deprecated Use loadTableDataInitial instead.
- */
-async function loadTableData() {
-  await loadTableDataInitial()
+// ===================== 事件逻辑 a~i =====================
+
+/** 状态筛选切换：重新加载统计数据 + 列表 */
+async function handleStatusChange() {
+  await loadStatsData()
+  await resetTableData()
 }
 
-// ===================== 事件逻辑 a~i =====================
 /** d. 打开资源选择弹窗 */
 const openResourceDialog = () => {
   resourceDialogVisible.value = true
@@ -390,7 +411,7 @@ const submitBatchPublish = () => {
     .then(() => {
       ElMessage.success(t('common.pxm_publish_apply'))
       resourceDialogVisible.value = false
-      loadTableData()
+      resetTableData()
     })
     .catch(() => {
       ElMessage.error(t('common.pxm_publish_action_failed'))
@@ -413,7 +434,7 @@ const singlePublish = (row) => {
     })
     .then(() => {
       ElMessage.success(t('common.pxm_publish_apply'))
-      loadTableData()
+      resetTableData()
     })
     .catch(() => {})
 }
@@ -434,10 +455,12 @@ const handleUpdate = (row) => {
     })
     .then(() => {
       ElMessage.success(t('common.pxm_publish_update'))
-      loadTableData()
+      resetTableData()
     })
     .catch(() => {})
 }
+
+// ========== 弹窗草稿列表（可发布作品） ==========
 
 // ========== 弹窗草稿列表（可发布作品） ==========
 const resourceDialogVisible = ref(false)
@@ -560,7 +583,7 @@ const handleUnpublish = (row) => {
     })
     .then(() => {
       ElMessage.success(t('common.pxm_publish_unpublish'))
-      loadTableData()
+      resetTableData()
     })
     .catch(() => {})
 }
@@ -581,7 +604,7 @@ const handleWithdraw = (row) => {
     })
     .then(() => {
       ElMessage.success(t('common.pxm_publish_withdraw'))
-      loadTableData()
+      resetTableData()
     })
     .catch(() => {})
 }
@@ -602,7 +625,7 @@ const handleDelete = (row) => {
     })
     .then(() => {
       ElMessage.success(t('common.pxm_delete_success'))
-      loadTableData()
+      resetTableData()
     })
     .catch(() => {})
 }
@@ -616,7 +639,8 @@ function handleSearchDraft() {
 }
 
 onMounted(() => {
-  loadTableData()
+  loadStatsData()
+  loadTableDataInitial()
 })
 
 onBeforeUnmount(() => {
