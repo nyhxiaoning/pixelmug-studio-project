@@ -148,7 +148,7 @@ export default defineComponent({
         userStore.avatar = result?.avatar
         console.log(result?.avatar, 'avatarrrrrr')
         ElMessage.success(t("common.pxm_login_success"))
-        const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
+        const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/works"
         router.replace(redirect)
       } finally {
         submitting.value = false
