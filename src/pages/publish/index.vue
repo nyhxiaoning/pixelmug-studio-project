@@ -163,20 +163,15 @@
     </section>
 
     <!-- 弹窗：选择未发布作品 D E -->
-    <el-dialog
-      v-model="resourceDialogVisible"
-      width="70%"
-      @close="resetDialogSelect"
-    >
-
-     <template #header>
-    <div class="dialog-header-wrap">
-      <!-- 弹窗主标题 -->
-      <span class="dialog-title">{{ $t('common.pxm_publish_resources') }}</span>
-      <!-- 右侧说明内容 -->
-      <div class="header-desc">{{    $t('common.pxm_publish_files')}}</div>
-    </div>
-  </template>
+    <el-dialog v-model="resourceDialogVisible" width="70%" @close="resetDialogSelect">
+      <template #header>
+        <div class="dialog-header-wrap">
+          <!-- 弹窗主标题 -->
+          <span class="dialog-title">{{ $t('common.pxm_publish_resources') }}</span>
+          <!-- 右侧说明内容 -->
+          <div class="header-desc">{{ $t('common.pxm_publish_files') }}</div>
+        </div>
+      </template>
 
       <el-input
         v-model="searchDraftKey"
@@ -730,7 +725,6 @@ onMounted(() => {
   flex-shrink: 0; /* 按钮区域不压缩 */
 }
 
-
 /* 头部布局：左右并排，垂直居中 */
 .dialog-header-wrap {
   display: flex;
@@ -748,9 +742,9 @@ onMounted(() => {
 
 /* 右侧说明文本样式，可自行调整颜色大小 */
 .header-desc {
-  padding:2px 10px;
+  padding: 2px 10px;
   color: #909399;
-  background:#f3f3f3;
+  background: #f3f3f3;
   font-size: 13px;
 }
 </style>
