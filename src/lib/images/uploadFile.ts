@@ -16,6 +16,9 @@ import {
 import { WIDTH, HEIGHT } from '@/modules/pixel-editor/core/index'
 
 import { createOssClient } from './AliOSS.ts';
+import { ElMessage } from 'element-plus'
+
+
 import { useAppI18n } from '@@/composables/useI18n'
 
 // 文件名清理函数
@@ -75,7 +78,7 @@ export const uploadImage = (file: File): Promise<any> => {
       // const { t } = useAppI18n()
       // 判断一下，file.type
       let fileType = '';
-      console.log('file.type',file.type)
+      console.log('file.type', file.type)
       console.log(file.type === 'image/jpeg',)
 
       if (file.type === 'image/jpeg' || file.type === 'image/png') {
@@ -350,7 +353,7 @@ export const uploadDoodle = (colors: Array<string>): Promise<AddArtifactParam> =
   return new Promise(async (resolve, reject) => {
     try {
       const jsonBlob = colorsToJsonBlob(colors);
-      const jsonFileUpload = await uploadFile(jsonBlob, doodleJsonFileName,'STATIC_BIN');
+      const jsonFileUpload = await uploadFile(jsonBlob, doodleJsonFileName, 'STATIC_BIN');
       const doodleImgBlob = await convertHexArrayToPng(colors, defaultImageSize.width, defaultImageSize.height);
       const pngFileUpload = await uploadFile(doodleImgBlob, doodleImgFileName, 'STATIC_BIN');
       const colorBlob = colorsToBlob(colors);
@@ -455,31 +458,39 @@ export const uploadGifWithFrames = async (
   });
 };
 
-export const checkFile = async (file: any) => {
+export const checkFile = async (file: any, t: any) => {
   // alert('checkFile');
-  let { t } = useAppI18n()
+  // let { t } = useAppI18n()
   console.log('checkFilekkkk');
   const fileType = file.type;
   if (fileType === 'image/jpeg' || fileType === 'image/png') {
-    if (checkFileSize(file, AllowedArtifactTypes.IMAGE)) {
+    if (checkFileSize(file, AllowedArtifactTypes.IMAGE, t)) {
+      ElMessage.error(t('common.imgSizeError'))
+
       throw new Error(t('common.imgSizeError'));
     }
     const img = await getImageDimensions(file);
     const ratio = img.width / img.height;
     if (Math.abs(ratio - 4) > 0.01) {
+      ElMessage.error(t('common.imgSpecsError'))
+
       throw new Error(t('common.imgSpecsError'));
     }
     return Promise.resolve();
   } else if (fileType === 'image/gif') {
-    if (checkFileSize(file, AllowedArtifactTypes.GIF)) {
+    if (checkFileSize(file, AllowedArtifactTypes.GIF, t)) {
+      ElMessage.error(t('common.gifSizeError'))
       throw new Error(t('common.gifSizeError'));
+
     }
     return isGifSizeValid(file).then((resut) => {
       if (resut) {
+        ElMessage.error(t('common.gifSpecsError'))
         throw new Error(t('common.gifSpecsError'));
       }
     });
   } else {
+    ElMessage.error(t('common.fileTypeError'))
     throw new Error(t('common.fileTypeError'));
   }
 };
@@ -558,8 +569,8 @@ export const uploadMutFile = (file: File): Promise<FileResponse> => {
   });
 };
 
-const checkFileSize = (file: File, type: AllowedArtifactTypes) => {
-  const { t } = useAppI18n()
+const checkFileSize = (file: File, type: AllowedArtifactTypes, t: any) => {
+
   switch (type) {
     // unfold特殊处理：50KB，宽高比：4:1
     case AllowedArtifactTypes.IMAGE:

@@ -415,6 +415,7 @@ import {
 import type { CreatorDeviceVO, CreatorWorkSaveRequest } from '@/api/device'
 import { listDevicesApi, previewToDeviceApi } from '@/api/device'
 import {
+  checkFile,
   uploadUserFile,
   uploadGif,
   uploadImage,
@@ -681,6 +682,8 @@ const handleFileUpload = async (e: Event) => {
   if (!file) return
 
   const fileType = file.type
+
+  await checkFile(file,t)
 
   try {
     if (fileType === 'image/gif') {
