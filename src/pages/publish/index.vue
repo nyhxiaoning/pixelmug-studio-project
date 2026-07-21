@@ -74,6 +74,7 @@
                 <div class="publish-thumb" />
                 <div>
                   <h3>{{ row.name }}</h3>
+                  <h2>{{ row.rejectReason }}</h2>
                   <em v-if="row.rejectReason" class="reject-tip">{{ row.rejectReason }}</em>
                 </div>
               </div>
@@ -82,14 +83,14 @@
           <el-table-column :label="$t('common.pxm_publish_version')" prop="version" width="100" />
           <el-table-column :label="$t('common.pxm_publish_last_submit')" prop="lastSubmit" width="140" />
           <el-table-column :label="$t('common.pxm_publish_latest_update')" prop="lastUpdate" width="140" />
-          <el-table-column :label="$t('common.pxm_publish_status_filter')" width="110">
+          <el-table-column :label="$t('common.pxm_publish_status_filter')" width="150">
             <template #default="{ row }">
               <el-tag :type="getStatusTagType(row.status)">
                 {{ getStatusLabel(row.status) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column :label="$t('common.pxm_column_actions')" min-width="240">
+          <el-table-column :label="$t('common.pxm_column_actions')" min-width="200">
             <template #default="{ row }">
               <div class="publish-actions">
                 <!-- 无状态/默认：提交发布 -->
