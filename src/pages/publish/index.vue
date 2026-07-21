@@ -163,7 +163,7 @@
     </section>
 
     <!-- 弹窗：选择未发布作品 D E -->
-    <el-dialog v-model="resourceDialogVisible" width="70%" @close="resetDialogSelect">
+    <el-dialog v-model="resourceDialogVisible" width="55%" @close="resetDialogSelect">
       <template #header>
         <div class="dialog-header-wrap">
           <!-- 弹窗主标题 -->
@@ -177,7 +177,7 @@
         v-model="searchDraftKey"
         :placeholder="$t('common.pxm_publish_search_placeholder')"
         clearable
-        style="margin-bottom: 12px"
+        style="margin-bottom: 16px"
       />
       <div
         class="publish-card-list"
@@ -193,7 +193,12 @@
           :class="{ selected: selectedDraftIds.includes(item.id) }"
           @click="toggleDraftSelect(item)"
         >
-          <img :src="item.coverUrl" class="publish-card-image" />
+          <div class="publish-card-image-wrap">
+            <img :src="item.coverUrl" class="publish-card-image" />
+            <div v-if="selectedDraftIds.includes(item.id)" class="publish-card-check">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#fff"/></svg>
+            </div>
+          </div>
           <div class="publish-card-body">
             <span class="publish-card-name">{{ item.name }}</span>
             <time class="publish-card-time">{{ item.updatedAt }}</time>
@@ -648,14 +653,24 @@ onMounted(() => {
   gap: 8px;
 }
 
-/* ========== 草稿列表卡片网格 ========== */
+/* ========== 草稿列表卡片网格：每行固定 3 个 ========== */
 .publish-card-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  max-height: 500px;
+  max-height: 480px;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 8px;
+}
+.publish-card-list::-webkit-scrollbar {
+  width: 6px;
+}
+.publish-card-list::-webkit-scrollbar-thumb {
+  background: #d0d7e2;
+  border-radius: 3px;
+}
+.publish-card-list::-webkit-scrollbar-thumb:hover {
+  background: #b8c4d8;
 }
 .publish-work-card {
   cursor: pointer;
@@ -663,24 +678,49 @@ onMounted(() => {
     border-color 0.2s,
     box-shadow 0.2s;
   border: 2px solid transparent;
+  border-radius: 10px;
+  overflow: hidden;
 }
 .publish-work-card:hover {
-  border-color: #409eff;
-  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.25);
+  border-color: #b3d4fc;
+  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.18);
+  transform: translateY(-2px);
 }
 .publish-work-card.selected {
   border-color: #409eff;
-  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.35);
+  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.35);
+  background-color: #f0f7ff;
+}
+.publish-card-image-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  background: #e8ecf0;
+  overflow: hidden;
 }
 .publish-card-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 140px;
+  height: 100%;
   object-fit: cover;
   display: block;
-  background: #f0f0f0;
+}
+.publish-card-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #409eff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 .publish-card-body {
-  padding: 12px 14px;
+  padding: 12px 14px 14px;
 }
 .publish-card-name {
   display: block;
@@ -690,6 +730,7 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.4;
 }
 .publish-card-time {
   display: block;
