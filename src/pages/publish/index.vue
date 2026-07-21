@@ -74,8 +74,7 @@
                 <div class="publish-thumb" />
                 <div>
                   <h3>{{ row.name }}</h3>
-                  <h2>{{ row.rejectReason }}</h2>
-                  <em v-if="row.rejectReason" class="reject-tip">{{ row.rejectReason }}</em>
+                  <em v-if="row.rejectReason" class="reject-tip">{{$t('common.pxm_publish_reason')}}{{ row.rejectReason }}</em>
                 </div>
               </div>
             </template>
@@ -242,7 +241,7 @@ function toTableRow(api) {
     lastSubmit: formatDate(api.submittedTime || api.createTime),
     lastUpdate: formatDate(api.updateTime),
     status: api.status || api.publishStatus ? (api.status || api.publishStatus).toLowerCase() : '',
-    rejectReason: api.rejectedReason || '',
+    rejectReason: api.rejectReason || '',
     coverUrl: api.coverUrl || '',
   }
 }

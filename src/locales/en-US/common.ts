@@ -114,7 +114,7 @@ export default {
   pxm_publish_last_submit: 'Last submitted',
   pxm_publish_latest_update: 'Latest update',
   pxm_publish_version: 'Version',
-  pxm_publish_reason: 'Reason',
+  pxm_publish_reason: 'Reason：',
   pxm_publish_rejected_reason: 'The image has blank edges. Crop it and submit again.',
   pxm_publish_stats_live: 'Listed',
   pxm_publish_stats_review: 'In review',

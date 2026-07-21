@@ -114,7 +114,7 @@ export default {
   pxm_publish_last_submit: '最近提交',
   pxm_publish_latest_update: '最新更新',
   pxm_publish_version: '版本',
-  pxm_publish_reason: '原因',
+  pxm_publish_reason: '原因:',
   pxm_publish_rejected_reason: '图片边缘有空白，建议裁剪后重新提交',
   pxm_publish_stats_live: '已上架',
   pxm_publish_stats_review: '审核中',
