@@ -135,6 +135,8 @@ export default {
   // ====================== 像素编辑器模块 ======================
   pxm_editor_title_label: 'Work title',
   pxm_editor_save: 'Save',
+  pxm_editor_isornot_tile:"Save current work?",
+  pxm_editor_back_home:"Back to Works",
   pxm_editor_ready: 'Ready',
   pxm_editor_frame_unit: 'frame',
   pxm_editor_layer_unit: 'layer',

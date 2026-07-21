@@ -6,7 +6,9 @@
         <p>{{ projects.length }} {{ t('common.pxm_editor_library_local_count') }}</p>
       </div>
       <ThemeSwitcher />
-      <button type="button" class="pe-primary" @click="handleNewProject">{{ t('common.pxm_editor_library_new') }}</button>
+      <button type="button" class="pe-primary" @click="handleNewProject">
+        {{ t('common.pxm_editor_library_new') }}
+      </button>
     </section>
 
     <section v-if="projects.length" class="pe-project-grid">
@@ -15,7 +17,8 @@
         <div class="pe-project-card-body">
           <h2>{{ item.name }}</h2>
           <p>
-            {{ item.width }} x {{ item.height }} · {{ item.frames.length }} {{ t('common.pxm_editor_frame_unit') }} ·
+            {{ item.width }} x {{ item.height }} · {{ item.frames.length }}
+            {{ t('common.pxm_editor_frame_unit') }} ·
             {{ formatTime(item.updatedAt) }}
           </p>
           <div class="pe-project-card-actions">
@@ -161,8 +164,12 @@
           </button>
         </div>
         <div class="pe-button-row">
-          <button type="button" class="pe-secondary" @click="handleUndo">{{ t('common.pxm_editor_undo') }}</button>
-          <button type="button" class="pe-secondary" @click="handleRedo">{{ t('common.pxm_editor_redo') }}</button>
+          <button type="button" class="pe-secondary" @click="handleUndo">
+            {{ t('common.pxm_editor_undo') }}
+          </button>
+          <button type="button" class="pe-secondary" @click="handleRedo">
+            {{ t('common.pxm_editor_redo') }}
+          </button>
         </div>
         <button type="button" class="pe-danger-outline pe-wide" @click="handleClearLayer">
           {{ t('common.pxm_editor_clear_layer') }}
@@ -225,9 +232,15 @@
           </select>
         </div>
         <div class="pe-button-row">
-          <button type="button" class="pe-secondary" @click="handleStampText(0)">{{ t('common.pxm_editor_left') }}</button>
-          <button type="button" class="pe-secondary" @click="handleStampText(1)">{{ t('common.pxm_editor_center') }}</button>
-          <button type="button" class="pe-secondary" @click="handleStampText(2)">{{ t('common.pxm_editor_right') }}</button>
+          <button type="button" class="pe-secondary" @click="handleStampText(0)">
+            {{ t('common.pxm_editor_left') }}
+          </button>
+          <button type="button" class="pe-secondary" @click="handleStampText(1)">
+            {{ t('common.pxm_editor_center') }}
+          </button>
+          <button type="button" class="pe-secondary" @click="handleStampText(2)">
+            {{ t('common.pxm_editor_right') }}
+          </button>
         </div>
       </section>
 
@@ -258,8 +271,12 @@
       <section>
         <h2>{{ t('common.pxm_editor_export') }}</h2>
         <div class="pe-button-row">
-          <button type="button" class="pe-primary" @click="handleExportPng">{{ t('common.pxm_editor_export_png') }}</button>
-          <button type="button" class="pe-primary" @click="handleExportGif">{{ t('common.pxm_editor_export_gif') }}</button>
+          <button type="button" class="pe-primary" @click="handleExportPng">
+            {{ t('common.pxm_editor_export_png') }}
+          </button>
+          <button type="button" class="pe-primary" @click="handleExportGif">
+            {{ t('common.pxm_editor_export_gif') }}
+          </button>
         </div>
         <div class="pe-control-row">
           <label>{{ t('common.pxm_editor_scale_label') }}</label>
@@ -278,16 +295,23 @@
       <div class="pe-panel pe-editor-toolbar">
         <div>
           <strong>{{ project.name }}</strong>
-          <span>{{ project.frames.length }} {{ t('common.pxm_editor_frame_unit') }} · {{ t('common.pxm_editor_layer_unit') }} {{ activeLayer + 1 }}</span>
-          <span v-if="editingWork" class="pe-editing-badge" style="
-            margin-left: 8px;
-            padding: 2px 8px;
-            background: #409eff;
-            color: white;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-          ">
+          <span
+            >{{ project.frames.length }} {{ t('common.pxm_editor_frame_unit') }} ·
+            {{ t('common.pxm_editor_layer_unit') }} {{ activeLayer + 1 }}</span
+          >
+          <span
+            v-if="editingWork"
+            class="pe-editing-badge"
+            style="
+              margin-left: 8px;
+              padding: 2px 8px;
+              background: #409eff;
+              color: white;
+              border-radius: 4px;
+              font-size: 12px;
+              font-weight: 500;
+            "
+          >
             {{ t('common.pxm_editor_editing_mode') }}
           </span>
         </div>
@@ -303,17 +327,30 @@
         >
           {{ saving ? t('common.pxm_editor_saving') : t('common.pxm_editor_save') }}
         </el-button>
+        <el-button
+          type="button"
+          class="pe-save-btn"
+          @click="backHome"
+        >
+          {{  t('common.pxm_editor_back_home') }}
+        </el-button>
       </div>
 
       <section class="pe-panel pe-frames-panel">
         <div class="pe-frame-strip-head">
           <div class="pe-panel-title-row">
             <h2>{{ t('common.pxm_editor_frames') }}</h2>
-            <button type="button" class="pe-primary pe-small" @click="handleAddFrame">{{ t('common.pxm_editor_add') }}</button>
+            <button type="button" class="pe-primary pe-small" @click="handleAddFrame">
+              {{ t('common.pxm_editor_add') }}
+            </button>
           </div>
           <div class="pe-button-row">
-            <button type="button" class="pe-secondary" @click="handleDuplicateFrame">{{ t('common.pxm_editor_duplicate') }}</button>
-            <button type="button" class="pe-danger-outline" @click="handleDeleteFrame">{{ t('common.pxm_editor_delete') }}</button>
+            <button type="button" class="pe-secondary" @click="handleDuplicateFrame">
+              {{ t('common.pxm_editor_duplicate') }}
+            </button>
+            <button type="button" class="pe-danger-outline" @click="handleDeleteFrame">
+              {{ t('common.pxm_editor_delete') }}
+            </button>
           </div>
           <button type="button" class="pe-danger-outline pe-wide" @click="handleDeleteAllFrames">
             {{ t('common.pxm_editor_delete_all') }}
@@ -339,7 +376,10 @@
             @dragend="handleEndFrameDrag"
           >
             <canvas :ref="(el) => setFrameThumbRef(frame.id, el)" width="96" height="48" />
-            <span>{{ t('common.pxm_editor_frame_prefix') }} {{ index + 1 }} {{ t('common.pxm_editor_frame_unit') }}</span>
+            <span
+              >{{ t('common.pxm_editor_frame_prefix') }} {{ index + 1 }}
+              {{ t('common.pxm_editor_frame_unit') }}</span
+            >
           </button>
         </div>
       </section>
@@ -470,7 +510,11 @@
           <h2>{{ t('common.pxm_editor_led_preview') }}</h2>
         </div>
         <button type="button" class="pe-secondary pe-preview-play-btn" @click="handleTogglePreview">
-          {{ previewPlaying ? t('common.pxm_editor_stop_play') : t('common.pxm_editor_play_all_frames') }}
+          {{
+            previewPlaying
+              ? t('common.pxm_editor_stop_play')
+              : t('common.pxm_editor_play_all_frames')
+          }}
         </button>
         <canvas ref="previewCanvasRef" width="480" height="240" />
       </section>
@@ -481,7 +525,9 @@
     <section class="pe-modal">
       <div class="pe-panel-title-row">
         <h2>{{ t('common.pxm_editor_import_image_pixelated') }}</h2>
-        <button type="button" class="pe-secondary" @click="handleCloseImportDialog">{{ t('common.pxm_common_cancel') }}</button>
+        <button type="button" class="pe-secondary" @click="handleCloseImportDialog">
+          {{ t('common.pxm_common_cancel') }}
+        </button>
       </div>
       <div class="pe-import-grid">
         <div class="pe-import-crop-area">
@@ -551,8 +597,8 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Ref, CanvasHTMLAttributes } from 'vue'
-import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 // i18n
 import { useAppI18n } from '@@/composables/useI18n'
@@ -670,8 +716,6 @@ interface Point {
   worldY: number
 }
 
-
-
 // Constants
 const THEME_KEY = 'pixelart-web-editor.theme'
 const FUSION_FONT_ROOT = 'assets/fonts'
@@ -710,6 +754,7 @@ const palette = ref(corePalette)
 
 // Route
 const route = useRoute()
+const router = useRouter()
 const editingWorkId = ref<string | null>(null)
 const editingWork = ref<CreatorWorkVO | null>(null)
 const loadingWork = ref(false)
@@ -745,7 +790,6 @@ const frameDelayInput = ref<string>(
   String(firstProject.value.frames[firstProject.value.currentFrameIndex || 0]?.delay || 120)
 )
 const status = ref<string>('准备就绪')
-
 
 // Drawing interaction state
 const drawing = ref<boolean>(false)
@@ -1234,7 +1278,9 @@ function handleJumpViewportFromOverview(event: MouseEvent): void {
     refreshLayerVisibleFromCanvas(layer, currentViewportX.value, currentViewportY.value)
   )
   clearSelectionState()
-  touchProject(t('common.pxm_editor_viewport', { x: currentViewportX.value, y: currentViewportY.value }))
+  touchProject(
+    t('common.pxm_editor_viewport', { x: currentViewportX.value, y: currentViewportY.value })
+  )
 }
 
 function handleSetOverviewZoom(value: string): void {
@@ -1364,6 +1410,19 @@ async function handleSaveToOSS(): Promise<void> {
   } finally {
     saving.value = false
   }
+}
+
+async function backHome() {
+  ElMessageBox.confirm(t('common.pxm_editor_isornot_tile'), t('common.pxm_publish_confirm_title'), {
+    type: 'warning',
+    confirmButtonText: t('common.pxm_common_confirm'),
+    cancelButtonText: t('common.pxm_common_cancel'),
+  }).then(async (res) => {
+    await handleSaveToOSS()
+    router.push('/works')
+  }).catch(error=>{
+      router.push('/works')
+  })
 }
 
 // Project management
@@ -1585,7 +1644,7 @@ function handleExportProjectGif(
   status.value = t('common.pxm_editor_gif_exported', {
     count: resized.frames.length,
     width: resized.width,
-    height: resized.height
+    height: resized.height,
   })
 }
 
@@ -1900,7 +1959,10 @@ function handlePointerMove(event: PointerEvent): void {
     const dy = point.y - dragPoint.value!.y
     if (dx || dy) {
       if (moveCanvasPixels(dx, dy)) {
-        status.value = t('common.pxm_editor_viewport', { x: currentViewportX.value, y: currentViewportY.value })
+        status.value = t('common.pxm_editor_viewport', {
+          x: currentViewportX.value,
+          y: currentViewportY.value,
+        })
       }
       dragPoint.value = point
     }
@@ -1947,7 +2009,10 @@ function handlePointerUp(event: PointerEvent): void {
   } else if (drawing.value && activeTool.value === 'select' && dragStart.value && dragPoint.value) {
     activeSelection.value = pointRect(dragStart.value, dragPoint.value) as SelectionRect
     selectionTransformBase.value = null
-    status.value = t('common.pxm_editor_selection_size', { w: activeSelection.value.width, h: activeSelection.value.height })
+    status.value = t('common.pxm_editor_selection_size', {
+      w: activeSelection.value.width,
+      h: activeSelection.value.height,
+    })
     // Remove the last history snapshot since we're creating a selection
     history.value.pop()
     drawing.value = false

@@ -135,6 +135,8 @@ export default {
   // ====================== 像素编辑器模块 ======================
   pxm_editor_title_label: '作品标题',
   pxm_editor_save: '保存',
+  pxm_editor_isornot_tile:"是否保存当前的作品？",
+  pxm_editor_back_home:"返回作品",
   pxm_editor_ready: '准备就绪',
   pxm_editor_frame_unit: '帧',
   pxm_editor_layer_unit: '图层',
