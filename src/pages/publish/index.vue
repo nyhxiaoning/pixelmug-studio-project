@@ -482,7 +482,7 @@ onMounted(() => {
 <style scoped>
 .content {
   padding: 24px;
-  background-color: #f5f7fa;
+  background-color: #ffffff;
   min-height: 100vh;
 }
 .topbar {

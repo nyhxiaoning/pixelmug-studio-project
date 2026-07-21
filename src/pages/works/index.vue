@@ -2,7 +2,7 @@
   <main class="content">
     <!-- 顶部标题栏 -->
     <header class="topbar">
-      <h1 class="work-title">Works</h1>
+      <h2 class="work-title">{{ $t('common.pxm_nav_works') }}</h2>
       <div class="top-actions">
         <!-- Upload 上传按钮 pxm_action_upload -->
         <el-button pxm_action_upload @click="triggerUpload">
@@ -23,7 +23,7 @@
               <line x1="12" x2="12" y1="3" y2="15" />
             </svg>
           </template>
-          Upload
+          {{ $t('common.pxm_action_upload') }}
         </el-button>
         <!-- Create 创建空白作品 pxm_action_create -->
         <el-button type="primary" class="black-btn" pxm_action_create @click="goCreateEditor">
@@ -43,7 +43,7 @@
               <path d="M12 5v14" />
             </svg>
           </template>
-          Create
+          {{ $t('common.pxm_action_create') }}
         </el-button>
         <!-- 隐藏文件上传input -->
         <input
@@ -461,7 +461,7 @@ interface WorkItem {
   lastViewTime: number
   coverUrl: string
   gifFileUrl: string
-  gifFileSize:number
+  gifFileSize: number
   editableFileUrl: string
   binFileSize: number
 }
@@ -832,7 +832,7 @@ const sendWorkToDevice = async (work: WorkItem) => {
     return
   }
   try {
-    console.log('sendWorkToDevice-work',work)
+    console.log('sendWorkToDevice-work', work)
     const fileUrl = work.coverUrl || work.gifFileUrl || work.editableFileUrl || ''
     if (!fileUrl) {
       ElMessage.warning('作品暂无可用文件，无法预览')
@@ -842,7 +842,7 @@ const sendWorkToDevice = async (work: WorkItem) => {
       deviceIds: selectedDevices.value.map((d) => d.id),
       type: work.gifFileUrl ? 'GIF' : 'STATIC',
       fileUrl,
-      fileSize: work.gifFileUrl ?work?.gifFileSize: work.binFileSize,
+      fileSize: work.gifFileUrl ? work?.gifFileSize : work.binFileSize,
     })
     const failed = (res.result ?? []).filter((r) => !r.success)
     if (failed.length === 0) {
@@ -904,7 +904,7 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 .work-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #27272a;
   margin: 0;
@@ -1143,9 +1143,7 @@ onMounted(() => {
 /* 深度穿透修改内部组件样式 */
 /* 未选中整体按钮样式：灰色背景 + 灰色图标文字 #d1d5db */
 
-
 /* 选中状态：白色背景 + 白色图标 #fff */
-
 
 /* 选中 hover 轻微浅白 */
 
