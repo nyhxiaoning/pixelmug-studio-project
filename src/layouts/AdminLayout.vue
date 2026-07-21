@@ -56,8 +56,7 @@
       <div class="sidebar-footer">
         <el-dropdown @command="handleUserCommand">
           <div class="user-info">
-            <el-avatar :size="32">
-              {{ userAvartar || 'https://devstorage.jeejio.com/temphenry/image/paihangbang.png' }}
+            <el-avatar :src="userAvartar"  :size="32">
             </el-avatar>
             <span class="user-name"> {{ ' ' }}{{ userName || 'Admin' }}</span>
             <el-icon class="user-arrow">
@@ -75,7 +74,7 @@
               <!-- 上部：用户信息区域 -->
               <div class="menu-profile">
                 <span class="avatar avatar-large">
-                  <el-avatar :size="56" src="userAvartar" />
+                  <el-avatar :size="56" :src="userAvartar" />
                 </span>
                 <strong class="username">{{ userName }}</strong>
                 <span class="user-email">{{ userLoginUserName }}</span>
