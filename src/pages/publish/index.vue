@@ -156,16 +156,27 @@
         clearable
         style="margin-bottom: 12px"
       />
-      <el-table ref="draftTableRef" :data="draftWorkList" row-key="id" style="width: 100%">
-        <el-table-column type="selection" />
-        <el-table-column label="预览" width="80">
-          <template #default="{ row }">
-            <div class="publish-thumb small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="作品名称" prop="name" />
-        <el-table-column :label="$t('common.pxm_publish_version')" prop="version" width="100" />
-      </el-table>
+      <div
+        class="publish-card-list"
+        v-infinite-scroll="loadMoreDrafts"
+        :infinite-scroll-disabled="draftNoMore"
+        :infinite-scroll-distance="100"
+      >
+        <el-card
+          v-for="item in draftWorkList"
+          :key="item.id"
+          :body-style="{ padding: '0px' }"
+          class="publish-work-card"
+          :class="{ selected: selectedDraftIds.includes(item.id) }"
+          @click="toggleDraftSelect(item)"
+        >
+          <img :src="item.coverUrl" class="publish-card-image" />
+          <div class="publish-card-body">
+            <span class="publish-card-name">{{ item.name }}</span>
+            <time class="publish-card-time">{{ item.updatedAt }}</time>
+          </div>
+        </el-card>
+      </div>
       <template #footer>
         <el-button @click="resourceDialogVisible = false">{{ $t("common.pxm_common_cancel") }}</el-button>
         <el-button type="primary" pxm_publish_apply @click="submitBatchPublish">{{ $t("common.pxm_publish_apply") }}</el-button>
@@ -175,7 +186,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -262,17 +273,19 @@ const openResourceDialog = () => {
 /** 重置弹窗多选 */
 const resetDialogSelect = () => {
   searchDraftKey.value = ''
-  draftTableRef.value?.clearSelection()
+  selectedDraftIds.value = []
+  draftWorkList.value = []
+  draftPage.value = 1
+  draftTotal.value = 0
 }
 
 /** e. 批量提交发布 */
 const submitBatchPublish = () => {
-  const selectedRows = draftTableRef.value?.getSelectionRows() || []
-  if (selectedRows.length === 0) {
+  if (selectedDraftIds.value.length === 0) {
     ElMessage.warning(t('common.pxm_publish_incomplete'))
     return
   }
-  Promise.all(selectedRows.map((row) => submitWorkApi(row.id)))
+  Promise.all(selectedDraftIds.value.map((id) => submitWorkApi(id)))
     .then(() => {
       ElMessage.success(t('common.pxm_publish_apply'))
       resourceDialogVisible.value = false
@@ -312,25 +325,79 @@ const handleUpdate = (row) => {
 // ========== 弹窗草稿列表（可发布作品） ==========
 const resourceDialogVisible = ref(false)
 const searchDraftKey = ref('')
-const draftTableRef = ref(null)
 const draftWorkList = ref([])
+const selectedDraftIds = ref([])
 
-/** 加载弹窗草稿列表 */
+// 滚动加载分页
+const draftPage = ref(1)
+const draftPageSize = ref(12)
+const draftTotal = ref(0)
+const draftLoadingMore = ref(false)
+
+const draftNoMore = computed(() => {
+  return draftWorkList.value.length >= draftTotal.value && draftTotal.value > 0
+})
+
+/** 加载弹窗草稿列表（首屏/搜索） */
 async function loadDraftWorkList() {
   try {
+    draftPage.value = 1
+    draftTotal.value = 0
+    selectedDraftIds.value = []
     const res = await pageReleaseCandidatesApi({
       pageNumber: 1,
-      pageSize: 100,
+      pageSize: draftPageSize.value,
       keyword: searchDraftKey.value.trim() || undefined,
     })
-    draftWorkList.value = ((res.result || {}).list || []).map((api) => ({
+    const pageData = (res.result || {}).list || []
+    draftTotal.value = (res.result || {}).total || pageData.length
+    draftWorkList.value = pageData.map((api) => ({
       id: api.id,
       name: api.title,
-      version: '',
+      coverUrl: api.coverUrl || '',
+      updatedAt: formatDate(api.updateTime),
     }))
   } catch (e) {
     console.error('loadDraftWorkList error:', e)
     ElMessage.error(t('common.pxm_publish_action_failed'))
+  }
+}
+
+/** 滚动加载更多 */
+async function loadMoreDrafts() {
+  if (draftLoadingMore.value || draftNoMore.value) return
+  try {
+    draftLoadingMore.value = true
+    const nextPage = draftPage.value + 1
+    const res = await pageReleaseCandidatesApi({
+      pageNumber: nextPage,
+      pageSize: draftPageSize.value,
+      keyword: searchDraftKey.value.trim() || undefined,
+    })
+    const pageData = (res.result || {}).list || []
+    draftTotal.value = (res.result || {}).total || draftTotal.value
+    const newItems = pageData.map((api) => ({
+      id: api.id,
+      name: api.title,
+      coverUrl: api.coverUrl || '',
+      updatedAt: formatDate(api.updateTime),
+    }))
+    draftWorkList.value.push(...newItems)
+    draftPage.value = nextPage
+  } catch (e) {
+    console.error('loadMoreDrafts error:', e)
+  } finally {
+    draftLoadingMore.value = false
+  }
+}
+
+/** 切换卡片选中状态 */
+function toggleDraftSelect(item) {
+  const idx = selectedDraftIds.value.indexOf(item.id)
+  if (idx === -1) {
+    selectedDraftIds.value.push(item.id)
+  } else {
+    selectedDraftIds.value.splice(idx, 1)
   }
 }
 
@@ -501,6 +568,54 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* ========== 草稿列表卡片网格 ========== */
+.publish-card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.publish-work-card {
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+}
+.publish-work-card:hover {
+  border-color: #409eff;
+  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.25);
+}
+.publish-work-card.selected {
+  border-color: #409eff;
+  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.35);
+}
+.publish-card-image {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+  background: #f0f0f0;
+}
+.publish-card-body {
+  padding: 12px 14px;
+}
+.publish-card-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.publish-card-time {
+  display: block;
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
 }
 
 /* scoped下需要深度选择器 */
