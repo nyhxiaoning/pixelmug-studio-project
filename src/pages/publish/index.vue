@@ -57,8 +57,8 @@
               @change="loadTableData"
             >
               <el-option :label="$t('common.pxm_publish_all_statuses')" value="all" />
-              <el-option :label="$t('common.pxm_publish_status_pending')" value="pending" />
-              <el-option :label="$t('common.pxm_publish_status_live')" value="live" />
+              <el-option :label="$t('common.pxm_publish_status_pending')" value="reviewing" />
+              <el-option :label="$t('common.pxm_publish_status_live')" value="published" />
               <el-option :label="$t('common.pxm_publish_status_rejected')" value="rejected" />
               <el-option :label="$t('common.pxm_publish_status_offline')" value="offline" />
             </el-select>
@@ -233,6 +233,7 @@ const tableData = ref([])
 /** 加载发布管理列表 */
 async function loadTableData() {
   try {
+    // all默认传递空，其他的对应
     const status = queryParams.status === 'all' ? undefined : queryParams.status.toUpperCase()
     const res = await pageReleasesApi({
       pageNumber: 1,

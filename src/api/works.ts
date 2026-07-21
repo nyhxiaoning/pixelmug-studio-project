@@ -75,8 +75,8 @@ export interface CreatorWorkVO {
   frameCount?: number
   frameDelay?: number
   preview?: string
-  publishStatus: "DRAFT" | "PENDING" | "LIVE" | "REJECTED" | "OFFLINE" | "UPDATE_PENDING"
-  status?: "DRAFT" | "PENDING" | "LIVE" | "REJECTED" | "OFFLINE" | "UPDATE_PENDING" | "REVIEWING"
+  publishStatus: "DRAFT" | "PENDING" | "LIVE" | "REJECTED" | "OFFLINE" | "UPDATE_PENDING",
+  status?:   "REJECTED" | "OFFLINE" |  "REVIEWING" | "PUBLISHED",
   workVersion?: string
   hasUnpublishedChanges?: boolean
   submittedTime?: number
