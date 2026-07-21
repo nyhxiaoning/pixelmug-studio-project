@@ -818,7 +818,7 @@ const goCreateEditor = () => {
 }
 
 const openEditWork = (work: WorkItem) => {
-  updateWorkApi(work.id, { title: work.title }).catch(() => {})
+  // updateWorkApi(work.id, { title: work.title }).catch(() => {})
   router.push({ path: '/pixel-editor', query: { workId: work.id } })
 }
 
