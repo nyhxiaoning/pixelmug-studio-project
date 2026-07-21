@@ -71,7 +71,8 @@
           <el-table-column :label="$t('common.pxm_publish_files')" min-width="280">
             <template #default="{ row }">
               <div class="publish-name">
-                <div class="publish-thumb" />
+                <!-- <div class="publish-thumb" /> -->
+                <img :src="row?.coverUrl" width="128" height="64" alt="">
                 <div>
                   <h3>{{ row.name }}</h3>
                   <em v-if="row.rejectReason" class="reject-tip">{{$t('common.pxm_publish_reason')}}{{ row.rejectReason }}</em>
@@ -570,12 +571,13 @@ onMounted(() => {
   min-width: 150px;
 }
 .publish-name {
+  height:80px;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 .publish-thumb {
-  width: 64px;
+  width: 128px;
   height: 64px;
   background: #222;
   border-radius: 6px;
