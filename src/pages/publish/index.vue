@@ -307,7 +307,11 @@ const submitBatchPublish = () => {
 
 /** h. 单行直接发布（已驳回/已下架） */
 const singlePublish = (row) => {
-  ElMessageBox.confirm(t('common.pxm_publish_confirm_publish'))
+   ElMessageBox.confirm(t('common.pxm_publish_confirm_publish'),t("common.pxm_publish_confirm_title"), {
+          type: "warning",
+   confirmButtonText: t('common.pxm_common_confirm'),
+    cancelButtonText: t('common.pxm_common_cancel'),
+        })
     .then(() => {
       return submitWorkApi(row.id)
     })
@@ -320,7 +324,12 @@ const singlePublish = (row) => {
 
 /** f. 已上架 - 提交更新 */
 const handleUpdate = (row) => {
-  ElMessageBox.confirm(t('common.pxm_publish_confirm_update'))
+
+   ElMessageBox.confirm(t('common.pxm_publish_confirm_update'),t("common.pxm_publish_confirm_title"), {
+          type: "warning",
+   confirmButtonText: t('common.pxm_common_confirm'),
+    cancelButtonText: t('common.pxm_common_cancel'),
+        })
     .then(() => {
       return submitWorkUpdateApi(row.id)
     })
@@ -435,7 +444,11 @@ const getStatusTagType = (status) => {
 
 /** f. 已上架 - 下架 */
 const handleUnpublish = (row) => {
-  ElMessageBox.confirm(t('common.pxm_publish_confirm_unpublish'))
+   ElMessageBox.confirm(t('common.pxm_publish_confirm_unpublish'),t("common.pxm_publish_confirm_title"), {
+          type: "warning",
+   confirmButtonText: t('common.pxm_common_confirm'),
+    cancelButtonText: t('common.pxm_common_cancel'),
+        })
     .then(() => {
       return unpublishWorkApi(row.id)
     })
@@ -448,7 +461,11 @@ const handleUnpublish = (row) => {
 
 /** g. 审核中 - 撤回 */
 const handleWithdraw = (row) => {
-  ElMessageBox.confirm(t('common.pxm_publish_confirm_withdraw'))
+  ElMessageBox.confirm(t('common.pxm_publish_confirm_withdraw'),t("common.pxm_publish_confirm_title"), {
+          type: "warning",
+   confirmButtonText: t('common.pxm_common_confirm'),
+    cancelButtonText: t('common.pxm_common_cancel'),
+        })
     .then(() => {
       return withdrawWorkApi(row.id)
     })
@@ -461,9 +478,11 @@ const handleWithdraw = (row) => {
 
 /** i. 已下架 - 删除作品 */
 const handleDelete = (row) => {
-  ElMessageBox.confirm(t('common.pxm_publish_confirm_delete'), t('common.pxm_publish_confirm_title'), {
-    type: 'error',
-  })
+   ElMessageBox.confirm(t('common.pxm_publish_confirm_delete'),t("common.pxm_publish_confirm_title"), {
+          type: "error",
+   confirmButtonText: t('common.pxm_common_confirm'),
+    cancelButtonText: t('common.pxm_common_cancel'),
+        })
     .then(() => {
       return removeFromReleasesApi(row.id)
     })

@@ -859,7 +859,7 @@ const sendWorkToDevice = async (work: WorkItem) => {
 }
 
 const handleDeleteWork = (work: WorkItem) => {
-  ElMessageBox.confirm(`确定要删除作品【${work.title}】吗？删除后不可恢复！`, '删除提示', {
+  ElMessageBox.confirm(`${t('common.pxm_delete_message')}`, t('common.pxm_delete_title'), {
     confirmButtonText: t('common.pxm_common_confirm'),
     cancelButtonText: t('common.pxm_common_cancel'),
     type: 'warning',
