@@ -1165,7 +1165,7 @@ onMounted(() => {
 /* ===== list 选中类 is-active-list：白色背景、黑色图标 ===== */
 :deep(.is-active-list .el-radio-button__inner) {
   background-color: #ffffff !important;
-  border-color: #000000;
+  border-color: #000000 !important;
   color: #000000 !important;
   box-shadow: none;
 }
