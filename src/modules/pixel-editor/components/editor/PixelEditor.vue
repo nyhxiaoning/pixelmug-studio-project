@@ -295,14 +295,14 @@
         <div class="pe-status">
           {{ status }}
         </div>
-        <button
+        <el-button
           type="button"
           class="pe-save-btn"
           :class="{ disabled: saving }"
           @click="handleSaveToOSS"
         >
           {{ saving ? t('common.pxm_editor_saving') : t('common.pxm_editor_save') }}
-        </button>
+        </el-button>
       </div>
 
       <section class="pe-panel pe-frames-panel">
@@ -453,9 +453,9 @@
                   @input="handleSetOverviewZoom($event.target.value)"
                 />
               </label>
-              <button type="button" class="pe-secondary" @click="handleSaveOverviewPng">
+              <el-button type="button" class="pe-secondary" @click="handleSaveOverviewPng">
                 {{ t('common.pxm_editor_overview_save') }}
-              </button>
+              </el-button>
               <span v-if="hoverOverviewPoint" class="pe-overview-coordinate"
                 >({{ hoverOverviewPoint.x }}, {{ hoverOverviewPoint.y }})</span
               >
