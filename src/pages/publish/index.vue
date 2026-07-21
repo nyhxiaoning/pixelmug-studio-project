@@ -45,7 +45,7 @@
         </div>
       </div>
 
-      <section class="community-section">
+      <section class="community-section" v-infinite-scroll="loadTableDataMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
         <div class="community-section-head">
           <h2>{{ $t('common.pxm_publish_management') }}</h2>
           <div class="community-status-filter">
@@ -67,7 +67,7 @@
 
         <!-- 发布管理表格 -->
         <el-empty v-if="tableData.length === 0 && !loadingInitial" description="No works yet" />
-        <div v-else class="publish-table-wrap" v-infinite-scroll="loadTableDataMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
+        <div v-else class="publish-table-wrap">
           <el-table :data="tableData" stripe style="width: 100%" v-loading="loadingMore" element-loading-text="Loading...">
           <el-table-column :label="$t('common.pxm_publish_files')" min-width="280">
             <template #default="{ row }">
@@ -290,7 +290,7 @@ const tableData = ref([])
 
 // 表格分页状态
 const tablePageNumber = ref(1)
-const tablePageSize = ref(8)
+const tablePageSize = ref(4)
 const hasMore = ref(true)
 const loadingMore = ref(false)
 const loadingInitial = ref(false)
@@ -339,7 +339,8 @@ async function loadTableDataMore() {
     const newItems = (res.result?.page?.list ?? []).map(toTableRow)
     tableData.value = [...tableData.value, ...newItems]
     tablePageNumber.value = nextPage
-    hasMore.value = tableData.value.length < tableTotalCount.value
+    // 没有更多数据：返回为空 或 已加载总数 >= 总数
+    hasMore.value = newItems.length > 0 && tableData.value.length < tableTotalCount.value
   } catch (e) {
     console.error('loadTableDataMore error:', e)
   } finally {
@@ -437,7 +438,7 @@ const selectedDraftIds = ref([])
 
 // 滚动加载分页
 const draftPage = ref(1)
-const draftPageSize = ref(4)
+const draftPageSize = ref(20)
 const draftTotal = ref(0)
 const draftLoadingMore = ref(false)
 
@@ -482,7 +483,7 @@ async function loadMoreDrafts() {
       keyword: searchDraftKey.value.trim() || undefined,
     })
     const pageData = (res.result || {}).list || []
-    draftTotal.value = (res.result || {}).total || draftTotal.value
+    draftTotal.value = (res.result?.total ?? draftTotal.value)
     const newItems = pageData.map((api) => ({
       id: api.id,
       name: api.title,
@@ -603,7 +604,9 @@ onMounted(() => {
 .content {
   padding: 24px;
   background-color: #ffffff;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: hidden;
+  box-sizing: border-box;
 }
 .topbar {
   display: flex;
@@ -647,6 +650,8 @@ onMounted(() => {
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
 }
 .community-section-head {
   display: flex;
