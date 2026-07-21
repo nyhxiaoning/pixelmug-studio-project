@@ -290,26 +290,33 @@ const tableData = ref([])
 
 // 表格分页状态
 const tablePageNumber = ref(1)
-const tablePageSize = ref(4)
+const tablePageSize = ref(20)
 const hasMore = ref(true)
 const loadingMore = ref(false)
 const loadingInitial = ref(false)
 const tableTotalCount = ref(0)
 
-/** 首屏加载发布管理列表（替换而非追加） */
+/** 发布管理列表（追加模式） */
 async function loadTableDataInitial() {
   loadingInitial.value = true
   hasMore.value = true
-  tablePageNumber.value = 1
   try {
     const status = queryParams.status === 'all' ? undefined : queryParams.status.toUpperCase()
+    // 使用当前分页页码：首次为空则重置为1，滚动场景则从当前页继续
+    const pageNum = tablePageNumber.value || 1
     const res = await pageReleasesApi({
-      pageNumber: 1,
+      pageNumber: pageNum,
       pageSize: tablePageSize.value,
       status,
     })
-    tableTotalCount.value = (res.result?.page?.total ?? 0)
-    tableData.value = (res.result?.page?.list ?? []).map(toTableRow)
+    tableTotalCount.value = (res.result?.page?.total ?? tableTotalCount.value)
+    const newItems = (res.result?.page?.list ?? []).map(toTableRow)
+    if (tableData.value.length === 0) {
+      tableData.value = newItems
+    } else {
+      tableData.value = [...tableData.value, ...newItems]
+    }
+    tablePageNumber.value = pageNum + 1
     // 更新统计数值
     statData.value.live = res.result?.publishedCount || 0
     statData.value.review = res.result?.reviewingCount || 0
@@ -328,17 +335,18 @@ async function loadTableDataMore() {
   if (loadingMore.value || !hasMore.value) return
   try {
     loadingMore.value = true
-    const nextPage = tablePageNumber.value + 1
+    // 使用当前页码（不 +1，避免和 loadTableDataInitial 的递进逻辑冲突）
+    const pageNum = tablePageNumber.value
     const status = queryParams.status === 'all' ? undefined : queryParams.status.toUpperCase()
     const res = await pageReleasesApi({
-      pageNumber: nextPage,
+      pageNumber: pageNum,
       pageSize: tablePageSize.value,
       status,
     })
     tableTotalCount.value = (res.result?.page?.total ?? tableTotalCount.value)
     const newItems = (res.result?.page?.list ?? []).map(toTableRow)
     tableData.value = [...tableData.value, ...newItems]
-    tablePageNumber.value = nextPage
+    tablePageNumber.value = pageNum + 1
     // 没有更多数据：返回为空 或 已加载总数 >= 总数
     hasMore.value = newItems.length > 0 && tableData.value.length < tableTotalCount.value
   } catch (e) {
