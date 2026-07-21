@@ -6,7 +6,7 @@
         <h1>{{ $t("common.pxm_publish_title") }}</h1>
         <p>{{ $t("common.pxm_publish_subtitle") }}</p>
       </div>
-      <el-button type="primary" @click="openResourceDialog">
+      <el-button class="black-btn" type="primary" @click="openResourceDialog">
         <template #icon>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -24,7 +24,7 @@
             <line x1="12" x2="12" y1="3" y2="15" />
           </svg>
         </template>
-        <span>{{ $t("common.pxm_publish_apply") }}</span>
+        <span >{{ $t("common.pxm_publish_apply") }}</span>
       </el-button>
     </header>
 
@@ -500,5 +500,11 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* scoped下需要深度选择器 */
+:deep(.black-btn) {
+  background-color: #000 !important;
+  border-color: #000 !important;
 }
 </style>

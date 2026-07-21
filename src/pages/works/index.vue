@@ -26,7 +26,7 @@
           Upload
         </el-button>
         <!-- Create 创建空白作品 pxm_action_create -->
-        <el-button type="primary" pxm_action_create @click="goCreateEditor">
+        <el-button type="primary" class="black-btn" pxm_action_create @click="goCreateEditor">
           <template #icon>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -185,7 +185,7 @@
 
         <!-- 视图切换：el-radio-group 按钮组 -->
         <el-radio-group v-model="viewMode" size="default">
-          <el-radio-button label="grid">
+          <el-radio-button :class="{ 'is-active-grid': viewMode === 'grid' }" label="grid">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="18"
@@ -202,7 +202,7 @@
               <rect x="3" y="3" width="18" height="18" rx="2" />
             </svg>
           </el-radio-button>
-          <el-radio-button label="list">
+          <el-radio-button :class="{ 'is-active-list': viewMode === 'list' }" label="list">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="18"
@@ -799,7 +799,7 @@ const handleStaticImageUpload = async (file: File) => {
 }
 
 const goCreateEditor = () => {
-   // TODO:这里和导入有点区别
+  // TODO:这里和导入有点区别
   // 直接点击进入，创建作品，进入路由：
   router.push({ path: '/pixel-editor' })
 
@@ -1129,5 +1129,47 @@ onMounted(() => {
 .works-list .row-actions {
   display: flex;
   gap: 8px;
+}
+
+/* scoped下需要深度选择器 */
+:deep(.black-btn) {
+  background-color: #000 !important;
+  border-color: #000 !important;
+}
+
+/* 深度穿透修改内部组件样式 */
+/* 未选中整体按钮样式：灰色背景 + 灰色图标文字 #d1d5db */
+
+
+/* 选中状态：白色背景 + 白色图标 #fff */
+
+
+/* 选中 hover 轻微浅白 */
+
+/* 清除原生蓝色焦点阴影，替换黑色 */
+:deep(.el-radio-button__orig-radio:focus-visible + .el-radio-button__inner) {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== grid 选中类 is-active-grid：白色背景、黑色图标 ===== */
+:deep(.is-active-grid .el-radio-button__inner) {
+  background-color: #ffffff !important;
+  border-color: #000000 !important;
+  color: #000000 !important;
+  box-shadow: none;
+}
+:deep(.is-active-grid .el-radio-button__inner:hover) {
+  background-color: #f9f9f9 !important;
+}
+
+/* ===== list 选中类 is-active-list：白色背景、黑色图标 ===== */
+:deep(.is-active-list .el-radio-button__inner) {
+  background-color: #ffffff !important;
+  border-color: #000000;
+  color: #000000 !important;
+  box-shadow: none;
+}
+:deep(.is-active-list .el-radio-button__inner:hover) {
+  background-color: #f9f9f9 !important;
 }
 </style>
