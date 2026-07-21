@@ -2,7 +2,7 @@ import { computed, defineComponent, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { ADMIN_MENUS, isMenuGroup, type AdminMenuEntry, type AdminMenuItem } from "@/shared/manage-menu"
 import { useUserStore } from "@/pinia/modules/user"
-import { MoreFilled, Place, SwitchButton } from "@element-plus/icons-vue"
+import { MoreFilled, Place, SwitchButton, ArrowDown } from "@element-plus/icons-vue"
 import { getLocale, getLocaleDisplayName, toggleLocale } from "@/locales"
 import { sendLoginOut } from "@/api/auth"
 import { UserSearch } from "lucide-vue-next"
@@ -12,7 +12,7 @@ import { UserSearch } from "lucide-vue-next"
 
 export default defineComponent({
   name: "AdminLayout",
-  components: { MoreFilled, Place, SwitchButton },
+  components: { MoreFilled, Place, SwitchButton, ArrowDown },
   setup() {
     const route = useRoute()
     const router = useRouter()
