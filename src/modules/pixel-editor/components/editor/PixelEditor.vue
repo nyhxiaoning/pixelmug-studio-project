@@ -1,5 +1,5 @@
 <template>
-  <div v-if="view === 'library'" class="pe-library-view">
+  <!-- <div v-if="view === 'library'" class="pe-library-view">
     <section class="pe-library-head">
       <div>
         <h1>{{ t('common.pxm_editor_library_title') }}</h1>
@@ -45,9 +45,9 @@
       <h2>{{ t('common.pxm_editor_library_empty') }}</h2>
       <p>{{ t('common.pxm_editor_library_empty_hint') }}</p>
     </section>
-  </div>
+  </div> -->
 
-  <div v-else class="pe-workspace">
+  <div  class="pe-workspace">
     <aside class="pe-panel pe-tools-panel">
       <section>
         <h2>{{ t('common.pxm_editor_tools') }}</h2>
