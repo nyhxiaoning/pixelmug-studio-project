@@ -484,7 +484,7 @@ function toWorkItem(api: CreatorWorkVO): WorkItem {
 
 /** 分页参数 */
 const pageNumber = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(6)
 
 // ============ 作品列表（来自接口） ============
 const workList = ref<WorkItem[]>([])
