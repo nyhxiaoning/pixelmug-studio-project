@@ -3,8 +3,8 @@
     <!-- 顶部标题区域 a -->
     <header class="topbar community-topbar">
       <div>
-        <h1>{{ $t("common.pxm_publish_title") }}</h1>
-        <p>{{ $t("common.pxm_publish_subtitle") }}</p>
+        <h1>{{ $t('common.pxm_publish_title') }}</h1>
+        <p>{{ $t('common.pxm_publish_subtitle') }}</p>
       </div>
       <el-button class="black-btn" type="primary" @click="openResourceDialog">
         <template #icon>
@@ -24,7 +24,7 @@
             <line x1="12" x2="12" y1="3" y2="15" />
           </svg>
         </template>
-        <span >{{ $t("common.pxm_publish_apply") }}</span>
+        <span>{{ $t('common.pxm_publish_apply') }}</span>
       </el-button>
     </header>
 
@@ -33,23 +33,23 @@
       <div class="community-stats">
         <div class="stat-card">
           <strong pxm_publish_stats_live>{{ statData.live }}</strong>
-          <span>{{ $t("common.pxm_publish_stats_live") }}</span>
+          <span>{{ $t('common.pxm_publish_stats_live') }}</span>
         </div>
         <div class="stat-card">
           <strong pxm_publish_stats_review>{{ statData.review }}</strong>
-          <span>{{ $t("common.pxm_publish_stats_review") }}</span>
+          <span>{{ $t('common.pxm_publish_stats_review') }}</span>
         </div>
         <div class="stat-card">
           <strong pxm_publish_stats_draft>{{ statData.draft }}</strong>
-          <span>{{ $t("common.pxm_publish_stats_draft") }}</span>
+          <span>{{ $t('common.pxm_publish_stats_draft') }}</span>
         </div>
       </div>
 
       <section class="community-section">
         <div class="community-section-head">
-          <h2>{{ $t("common.pxm_publish_management") }}</h2>
+          <h2>{{ $t('common.pxm_publish_management') }}</h2>
           <div class="community-status-filter">
-            <span>{{ $t("common.pxm_publish_status_filter") }}</span>
+            <span>{{ $t('common.pxm_publish_status_filter') }}</span>
             <el-select
               v-model="queryParams.status"
               :placeholder="$t('common.pxm_publish_all_statuses')"
@@ -72,17 +72,27 @@
             <template #default="{ row }">
               <div class="publish-name">
                 <!-- <div class="publish-thumb" /> -->
-                <img :src="row?.coverUrl" width="128" height="64" alt="">
+                <img :src="row?.coverUrl" width="128" height="64" alt="" />
                 <div>
                   <h3>{{ row.name }}</h3>
-                  <em v-if="row.rejectReason" class="reject-tip">{{$t('common.pxm_publish_reason')}}{{ row.rejectReason }}</em>
+                  <em v-if="row.rejectReason" class="reject-tip"
+                    >{{ $t('common.pxm_publish_reason') }}{{ row.rejectReason }}</em
+                  >
                 </div>
               </div>
             </template>
           </el-table-column>
           <el-table-column :label="$t('common.pxm_publish_version')" prop="version" width="100" />
-          <el-table-column :label="$t('common.pxm_publish_last_submit')" prop="lastSubmit" width="140" />
-          <el-table-column :label="$t('common.pxm_publish_latest_update')" prop="lastUpdate" width="140" />
+          <el-table-column
+            :label="$t('common.pxm_publish_last_submit')"
+            prop="lastSubmit"
+            width="140"
+          />
+          <el-table-column
+            :label="$t('common.pxm_publish_latest_update')"
+            prop="lastUpdate"
+            width="140"
+          />
           <el-table-column :label="$t('common.pxm_publish_status_filter')" width="150">
             <template #default="{ row }">
               <el-tag :type="getStatusTagType(row.status)">
@@ -155,10 +165,19 @@
     <!-- 弹窗：选择未发布作品 D E -->
     <el-dialog
       v-model="resourceDialogVisible"
-      :title="$t('common.pxm_publish_picker_footnote')"
       width="70%"
       @close="resetDialogSelect"
     >
+
+     <template #header>
+    <div class="dialog-header-wrap">
+      <!-- 弹窗主标题 -->
+      <span class="dialog-title">{{ $t('common.pxm_publish_resources') }}</span>
+      <!-- 右侧说明内容 -->
+      <div class="header-desc">{{    $t('common.pxm_publish_files')}}</div>
+    </div>
+  </template>
+
       <el-input
         v-model="searchDraftKey"
         :placeholder="$t('common.pxm_publish_search_placeholder')"
@@ -186,9 +205,21 @@
           </div>
         </el-card>
       </div>
+
       <template #footer>
-        <el-button @click="resourceDialogVisible = false">{{ $t("common.pxm_common_cancel") }}</el-button>
-        <el-button type="primary" pxm_publish_apply @click="submitBatchPublish">{{ $t("common.pxm_publish_apply") }}</el-button>
+        <div class="dialog-footer-wrap">
+          <!-- 左侧说明文字 -->
+          <div class="footer-left-text">{{ $t('common.pxm_publish_picker_footnote') }}</div>
+          <!-- 右侧按钮组 -->
+          <div class="footer-btn-group">
+            <el-button @click="resourceDialogVisible = false">
+              {{ $t('common.pxm_common_cancel') }}
+            </el-button>
+            <el-button type="primary" pxm_publish_apply @click="submitBatchPublish">
+              {{ $t('common.pxm_publish_apply') }}
+            </el-button>
+          </div>
+        </div>
       </template>
     </el-dialog>
   </main>
@@ -307,11 +338,15 @@ const submitBatchPublish = () => {
 
 /** h. 单行直接发布（已驳回/已下架） */
 const singlePublish = (row) => {
-   ElMessageBox.confirm(t('common.pxm_publish_confirm_publish'),t("common.pxm_publish_confirm_title"), {
-          type: "warning",
-   confirmButtonText: t('common.pxm_common_confirm'),
-    cancelButtonText: t('common.pxm_common_cancel'),
-        })
+  ElMessageBox.confirm(
+    t('common.pxm_publish_confirm_publish'),
+    t('common.pxm_publish_confirm_title'),
+    {
+      type: 'warning',
+      confirmButtonText: t('common.pxm_common_confirm'),
+      cancelButtonText: t('common.pxm_common_cancel'),
+    }
+  )
     .then(() => {
       return submitWorkApi(row.id)
     })
@@ -324,12 +359,15 @@ const singlePublish = (row) => {
 
 /** f. 已上架 - 提交更新 */
 const handleUpdate = (row) => {
-
-   ElMessageBox.confirm(t('common.pxm_publish_confirm_update'),t("common.pxm_publish_confirm_title"), {
-          type: "warning",
-   confirmButtonText: t('common.pxm_common_confirm'),
-    cancelButtonText: t('common.pxm_common_cancel'),
-        })
+  ElMessageBox.confirm(
+    t('common.pxm_publish_confirm_update'),
+    t('common.pxm_publish_confirm_title'),
+    {
+      type: 'warning',
+      confirmButtonText: t('common.pxm_common_confirm'),
+      cancelButtonText: t('common.pxm_common_cancel'),
+    }
+  )
     .then(() => {
       return submitWorkUpdateApi(row.id)
     })
@@ -444,11 +482,15 @@ const getStatusTagType = (status) => {
 
 /** f. 已上架 - 下架 */
 const handleUnpublish = (row) => {
-   ElMessageBox.confirm(t('common.pxm_publish_confirm_unpublish'),t("common.pxm_publish_confirm_title"), {
-          type: "warning",
-   confirmButtonText: t('common.pxm_common_confirm'),
-    cancelButtonText: t('common.pxm_common_cancel'),
-        })
+  ElMessageBox.confirm(
+    t('common.pxm_publish_confirm_unpublish'),
+    t('common.pxm_publish_confirm_title'),
+    {
+      type: 'warning',
+      confirmButtonText: t('common.pxm_common_confirm'),
+      cancelButtonText: t('common.pxm_common_cancel'),
+    }
+  )
     .then(() => {
       return unpublishWorkApi(row.id)
     })
@@ -461,11 +503,15 @@ const handleUnpublish = (row) => {
 
 /** g. 审核中 - 撤回 */
 const handleWithdraw = (row) => {
-  ElMessageBox.confirm(t('common.pxm_publish_confirm_withdraw'),t("common.pxm_publish_confirm_title"), {
-          type: "warning",
-   confirmButtonText: t('common.pxm_common_confirm'),
-    cancelButtonText: t('common.pxm_common_cancel'),
-        })
+  ElMessageBox.confirm(
+    t('common.pxm_publish_confirm_withdraw'),
+    t('common.pxm_publish_confirm_title'),
+    {
+      type: 'warning',
+      confirmButtonText: t('common.pxm_common_confirm'),
+      cancelButtonText: t('common.pxm_common_cancel'),
+    }
+  )
     .then(() => {
       return withdrawWorkApi(row.id)
     })
@@ -478,11 +524,15 @@ const handleWithdraw = (row) => {
 
 /** i. 已下架 - 删除作品 */
 const handleDelete = (row) => {
-   ElMessageBox.confirm(t('common.pxm_publish_confirm_delete'),t("common.pxm_publish_confirm_title"), {
-          type: "error",
-   confirmButtonText: t('common.pxm_common_confirm'),
-    cancelButtonText: t('common.pxm_common_cancel'),
-        })
+  ElMessageBox.confirm(
+    t('common.pxm_publish_confirm_delete'),
+    t('common.pxm_publish_confirm_title'),
+    {
+      type: 'error',
+      confirmButtonText: t('common.pxm_common_confirm'),
+      cancelButtonText: t('common.pxm_common_cancel'),
+    }
+  )
     .then(() => {
       return removeFromReleasesApi(row.id)
     })
@@ -571,7 +621,7 @@ onMounted(() => {
   min-width: 150px;
 }
 .publish-name {
-  height:80px;
+  height: 80px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -614,7 +664,9 @@ onMounted(() => {
 }
 .publish-work-card {
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   border: 2px solid transparent;
 }
 .publish-work-card:hover {
@@ -655,5 +707,50 @@ onMounted(() => {
 :deep(.black-btn) {
   background-color: #000 !important;
   border-color: #000 !important;
+}
+
+.dialog-footer-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16px;
+}
+
+.footer-left-text {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+  flex-shrink: 1; /* 文字区域自适应压缩，不挤压按钮 */
+}
+
+.footer-btn-group {
+  display: flex;
+  gap: 12px; /* 按钮之间固定间距 */
+  flex-shrink: 0; /* 按钮区域不压缩 */
+}
+
+
+/* 头部布局：左右并排，垂直居中 */
+.dialog-header-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* 主标题加粗，保持原生弹窗标题样式 */
+.dialog-title {
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 右侧说明文本样式，可自行调整颜色大小 */
+.header-desc {
+  padding:2px 10px;
+  color: #909399;
+  background:#f3f3f3;
+  font-size: 13px;
 }
 </style>
