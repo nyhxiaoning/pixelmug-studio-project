@@ -213,15 +213,15 @@ const formatDate = (ts) => {
 }
 
 // ========== 接口数据适配 ==========
-/** 将 CreatorWorkVO 适配为表格行数据 */
+/** 将发布管理接口数据适配为表格行数据 */
 function toTableRow(api) {
   return {
     id: api.id,
     name: api.title,
-    version: '',
-    lastSubmit: formatDate(api.createTime),
+    version: api.workVersion || '',
+    lastSubmit: formatDate(api.submittedTime || api.createTime),
     lastUpdate: formatDate(api.updateTime),
-    status: api.publishStatus ? api.publishStatus.toLowerCase() : '',
+    status: api.status || api.publishStatus ? (api.status || api.publishStatus).toLowerCase() : '',
     rejectReason: api.rejectedReason || '',
     coverUrl: api.coverUrl || '',
   }
@@ -239,11 +239,12 @@ async function loadTableData() {
       pageSize: 100,
       status,
     })
-    tableData.value = ((res.result || {}).list || []).map(toTableRow)
+    const page = (res.result || {}).page || {}
+    tableData.value = (page.list || []).map(toTableRow)
     // 更新统计数值
-    statData.value.live = res.result?.totalLive || 0
-    statData.value.review = res.result?.totalPending || 0
-    statData.value.draft = res.result?.totalDraft || 0
+    statData.value.live = res.result?.publishedCount || 0
+    statData.value.review = res.result?.reviewingCount || 0
+    statData.value.draft = res.result?.applicableCount || 0
   } catch (e) {
     console.error('loadTableData error:', e)
     ElMessage.error(t('common.pxm_publish_action_failed'))

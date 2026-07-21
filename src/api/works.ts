@@ -76,6 +76,10 @@ export interface CreatorWorkVO {
   frameDelay?: number
   preview?: string
   publishStatus: "DRAFT" | "PENDING" | "LIVE" | "REJECTED" | "OFFLINE" | "UPDATE_PENDING"
+  status?: "DRAFT" | "PENDING" | "LIVE" | "REJECTED" | "OFFLINE" | "UPDATE_PENDING" | "REVIEWING"
+  workVersion?: string
+  hasUnpublishedChanges?: boolean
+  submittedTime?: number
   remark?: string
   rejectedReason?: string
   lastViewTime?: number
@@ -87,10 +91,15 @@ export interface CreatorWorkVO {
 
 /** 发布审核管理条目 */
 export interface CreatorReleaseManagementVO {
-  totalDraft: number
-  totalPending: number
-  totalLive: number
-  list: CreatorWorkVO[]
+  publishedCount: number
+  reviewingCount: number
+  applicableCount: number
+  page: {
+    total: number
+    list: CreatorWorkVO[]
+    pageNumber: number
+    nextPage: boolean
+  }
 }
 
 /** 发布审核分页查询参数 */
