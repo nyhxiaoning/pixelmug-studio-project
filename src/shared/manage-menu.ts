@@ -17,10 +17,10 @@ export interface AdminMenuGroup {
 export type AdminMenuEntry = AdminMenuItem | AdminMenuGroup
 
 export const ADMIN_MENUS: AdminMenuEntry[] = [
-  { title: "common.pxm_account_settings", path: "/settings", module: "setting", icon: Box },
-  { title: "common.pxm_nav_publish", path: "/publish", module: "publish", icon: Key },
+  // { title: "common.pxm_account_settings", path: "/settings", module: "setting", icon: Box },
   { title: "common.pxm_nav_works", path: "/works", module: "works", icon: Key },
-  { title: "Editortest", path: "/editortest", module: "editortest", icon: Key },
+  { title: "common.pxm_nav_publish", path: "/publish", module: "publish", icon: Key },
+  // { title: "Editortest", path: "/editortest", module: "editortest", icon: Key },
 ]
 
 export function isMenuGroup(entry: AdminMenuEntry): entry is AdminMenuGroup {

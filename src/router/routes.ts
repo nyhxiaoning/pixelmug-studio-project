@@ -18,30 +18,31 @@ export const routes: RouteRecordRaw[] = [
     component: AdminLayout,
     redirect: "/settings",
     children: [
-      {
-        path: 'settings',
-        name: 'Settings',
-        component: () => import('@/pages/settings/index.vue'),
-        meta: { title: '设置' }
-      },
-      {
-        path: "works",
-        name: "Works",
-        component: () => import("@/pages/works/index.vue"),
-        meta: { title: "作品" }
-      },
+      // {
+      //   path: 'settings',
+      //   name: 'Settings',
+      //   component: () => import('@/pages/settings/index.vue'),
+      //   meta: { title: '设置' }
+      // },
+
       {
         path: "publish",
         name: "Publish",
         component: () => import("@/pages/publish/index.vue"),
         meta: { title: "发布" }
       },
-      {
-        path: "editortest",
-        name: "EditorTest",
-        component: () => import("@/pages/editortest/index.vue"),
-        meta: { title: "编辑器测试" }
-      }
+            {
+        path: "works",
+        name: "Works",
+        component: () => import("@/pages/works/index.vue"),
+        meta: { title: "作品" }
+      },
+      // {
+      //   path: "editortest",
+      //   name: "EditorTest",
+      //   component: () => import("@/pages/editortest/index.vue"),
+      //   meta: { title: "编辑器测试" }
+      // }
     ]
   },
   {
