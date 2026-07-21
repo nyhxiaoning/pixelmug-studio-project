@@ -56,17 +56,11 @@
       <div class="sidebar-footer">
         <el-dropdown @command="handleUserCommand">
           <div class="user-info">
-            <el-avatar :src="userAvartar"  :size="32">
-            </el-avatar>
-            <span class="user-name"> {{ ' ' }}{{ userName || 'Admin' }}</span>
+            <el-avatar :src="userAvartar" :size="32" />
+            <span class="user-name">{{ userName || 'Admin' }}</span>
             <el-icon class="user-arrow">
               <ArrowDown />
             </el-icon>
-            <span class="el-dropdown-link">
-              <el-icon class="el-icon--right">
-                <arrow-down />
-              </el-icon>
-            </span>
           </div>
           <template #dropdown>
             <!-- 上部：用户信息区域 -->

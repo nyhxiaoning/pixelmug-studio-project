@@ -163,6 +163,38 @@
   text-overflow: ellipsis;
 }
 
+/* 用户信息行：水平对齐，整个区域可点击触发下拉 */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  width: 100%;
+  cursor: pointer;
+
+  :deep(.el-avatar) {
+    flex-shrink: 0;
+  }
+
+  .user-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-arrow {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
+    transition: transform 0.2s;
+  }
+}
+
 /* 操作触发器 */
 .user-action-trigger {
   display: flex;
