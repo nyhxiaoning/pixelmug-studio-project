@@ -470,12 +470,12 @@ export const checkFile = async (file: any, t: any) => {
       throw new Error(t('common.imgSizeError'));
     }
     const img = await getImageDimensions(file);
-    const ratio = img.width / img.height;
-    if (Math.abs(ratio - 4) > 0.01) {
-      ElMessage.error(t('common.imgSpecsError'))
+    // const ratio = img.width / img.height;
+    // if (Math.abs(ratio - 4) > 0.01) {
+    //   ElMessage.error(t('common.imgSpecsError'))
 
-      throw new Error(t('common.imgSpecsError'));
-    }
+    //   throw new Error(t('common.imgSpecsError'));
+    // }
     return Promise.resolve();
   } else if (fileType === 'image/gif') {
     if (checkFileSize(file, AllowedArtifactTypes.GIF, t)) {
