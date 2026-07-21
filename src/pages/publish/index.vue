@@ -92,21 +92,14 @@
           <el-table-column :label="$t('common.pxm_column_actions')" min-width="240">
             <template #default="{ row }">
               <div class="publish-actions">
-                <!-- 已上架：提交更新 / 下架 f -->
-                <template v-if="row.status === 'live'">
-                  <el-button size="small" pxm_publish_update @click="handleUpdate(row)">
-                    {{ $t('common.pxm_publish_update') }}
+                <!-- 无状态/默认：提交发布 -->
+                <template v-if="!row.status || row.status === 'draft'">
+                  <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
+                    {{ $t('common.pxm_publish_apply') }}
                   </el-button>
-                  <el-button
-                    size="small"
-                    type="warning"
-                    pxm_publish_unPublish
-                    @click="handleUnpublish(row)"
-                  >
-                  {{ $t('common.pxm_publish_unpublish') }}</el-button>
                 </template>
-                <!-- 审核中：撤回 g -->
-                <template v-if="row.status === 'pending'">
+                <!-- 审核中：撤回发布 -->
+                <template v-if="row.status === 'reviewing'">
                   <el-button
                     size="small"
                     type="danger"
@@ -116,13 +109,27 @@
                     {{ $t('common.pxm_publish_withdraw') }}
                   </el-button>
                 </template>
-                <!-- 已驳回：重新发布 h -->
+                <!-- 已发布：发布更新 + 下架 -->
+                <template v-if="row.status === 'published' || row.status === 'live'">
+                  <el-button size="small" pxm_publish_update @click="handleUpdate(row)">
+                    {{ $t('common.pxm_publish_update') }}
+                  </el-button>
+                  <el-button
+                    size="small"
+                    type="warning"
+                    pxm_publish_unPublish
+                    @click="handleUnpublish(row)"
+                  >
+                    {{ $t('common.pxm_publish_unpublish') }}
+                  </el-button>
+                </template>
+                <!-- 已驳回：重新发布 -->
                 <template v-if="row.status === 'rejected'">
                   <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
                     {{ $t('common.pxm_publish_apply') }}
                   </el-button>
                 </template>
-                <!-- 已下架：重新发布 + 删除 h i -->
+                <!-- 已下架：重新发布 + 删除 -->
                 <template v-if="row.status === 'offline'">
                   <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
                     {{ $t('common.pxm_publish_apply') }}
@@ -139,6 +146,7 @@
               </div>
             </template>
           </el-table-column>
+          <!-- </el-table-column> -->
         </el-table>
       </section>
     </section>
@@ -404,18 +412,22 @@ function toggleDraftSelect(item) {
 // ========== 状态映射工具函数 ==========
 const statusMap = {
   all: t('common.pxm_publish_all_statuses'),
-  pending: t('common.pxm_publish_status_pending'),
-  live: t('common.pxm_publish_status_live'),
+  reviewing: t('common.pxm_publish_status_pending'),
+  published: t('common.pxm_publish_status_live'),
   rejected: t('common.pxm_publish_status_rejected'),
   offline: t('common.pxm_publish_status_offline'),
+  draft: t('common.pxm_publish_status_pending'),
 }
 const getStatusLabel = (val) => statusMap[val] || val
 const getStatusTagType = (status) => {
   const map = {
-    pending: 'warning',
+    reviewing: 'warning',
+    published: 'success',
     live: 'success',
     rejected: 'danger',
     offline: 'info',
+    draft: 'info',
+    pending: 'warning',
   }
   return map[status] || ''
 }
