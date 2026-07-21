@@ -66,8 +66,9 @@
         </div>
 
         <!-- 发布管理表格 -->
-        <el-empty v-if="tableData.length === 0" description="No works yet" />
-        <el-table v-else :data="tableData" stripe style="width: 100%">
+        <el-empty v-if="tableData.length === 0 && !loadingInitial" description="No works yet" />
+        <div v-else class="publish-table-wrap" v-infinite-scroll="loadTableDataMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
+          <el-table :data="tableData" stripe style="width: 100%" v-loading="loadingMore" element-loading-text="Loading...">
           <el-table-column :label="$t('common.pxm_publish_files')" min-width="280">
             <template #default="{ row }">
               <div class="publish-name">
@@ -159,6 +160,11 @@
           </el-table-column>
           <!-- </el-table-column> -->
         </el-table>
+        <div v-if="loadingMore" class="infinite-loading-tip">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>Loading...</span>
+        </div>
+       </div>
       </section>
     </section>
 
@@ -229,6 +235,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Loading } from '@element-plus/icons-vue'
 
 import {
   unpublishWorkApi,
@@ -281,26 +288,70 @@ function toTableRow(api) {
 // 主表格列表
 const tableData = ref([])
 
-/** 加载发布管理列表 */
-async function loadTableData() {
+// 表格分页状态
+const tablePageNumber = ref(1)
+const tablePageSize = ref(6)
+const hasMore = ref(true)
+const loadingMore = ref(false)
+const loadingInitial = ref(false)
+const tableTotalCount = ref(0)
+
+/** 首屏加载发布管理列表（替换而非追加） */
+async function loadTableDataInitial() {
+  loadingInitial.value = true
+  hasMore.value = true
+  tablePageNumber.value = 1
   try {
-    // all默认传递空，其他的对应
     const status = queryParams.status === 'all' ? undefined : queryParams.status.toUpperCase()
     const res = await pageReleasesApi({
       pageNumber: 1,
-      pageSize: 100,
+      pageSize: tablePageSize.value,
       status,
     })
-    const page = (res.result || {}).page || {}
-    tableData.value = (page.list || []).map(toTableRow)
+    tableTotalCount.value = (res.result?.page?.total ?? 0)
+    tableData.value = (res.result?.page?.list ?? []).map(toTableRow)
     // 更新统计数值
     statData.value.live = res.result?.publishedCount || 0
     statData.value.review = res.result?.reviewingCount || 0
     statData.value.draft = res.result?.applicableCount || 0
+    hasMore.value = tableData.value.length < tableTotalCount.value
   } catch (e) {
     console.error('loadTableData error:', e)
     ElMessage.error(t('common.pxm_publish_action_failed'))
+  } finally {
+    loadingInitial.value = false
   }
+}
+
+/** 滚动加载更多（追加而非替换） */
+async function loadTableDataMore() {
+  if (loadingMore.value || !hasMore.value) return
+  try {
+    loadingMore.value = true
+    const nextPage = tablePageNumber.value + 1
+    const status = queryParams.status === 'all' ? undefined : queryParams.status.toUpperCase()
+    const res = await pageReleasesApi({
+      pageNumber: nextPage,
+      pageSize: tablePageSize.value,
+      status,
+    })
+    tableTotalCount.value = (res.result?.page?.total ?? tableTotalCount.value)
+    const newItems = (res.result?.page?.list ?? []).map(toTableRow)
+    tableData.value = [...tableData.value, ...newItems]
+    tablePageNumber.value = nextPage
+    hasMore.value = tableData.value.length < tableTotalCount.value
+  } catch (e) {
+    console.error('loadTableDataMore error:', e)
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+/**
+ * @deprecated Use loadTableDataInitial instead.
+ */
+async function loadTableData() {
+  await loadTableDataInitial()
 }
 
 // ===================== 事件逻辑 a~i =====================
@@ -786,6 +837,20 @@ onMounted(() => {
   padding: 2px 10px;
   color: #909399;
   background: #f3f3f3;
+  font-size: 13px;
+}
+
+/* ========== 发布管理表格无限滚动 ========== */
+.publish-table-wrap {
+  position: relative;
+}
+.infinite-loading-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  color: #909399;
   font-size: 13px;
 }
 </style>
