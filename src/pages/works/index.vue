@@ -229,7 +229,7 @@
     <!-- 作品列表区域 -->
     <template v-if="viewMode === 'grid'">
       <el-empty v-if="sortedWorkList.length === 0" description="No works yet" />
-      <section v-else class="works-grid">
+      <section v-else class="works-grid" v-infinite-scroll="loadMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
         <article
           v-for="work in sortedWorkList"
           :key="work.id"
@@ -312,13 +312,17 @@
             </div>
           </div>
         </article>
+        <div v-if="loadingMore" class="infinite-loading-tip">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>Loading...</span>
+        </div>
       </section>
     </template>
 
     <template v-else>
       <el-empty v-if="sortedWorkList.length === 0" description="No works yet" />
-      <section v-else class="works-list">
-        <el-table :data="sortedWorkList" stripe style="width: 100%" @row-click="handleRowClick">
+      <section v-else class="works-list" v-infinite-scroll="loadMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
+        <el-table :data="sortedWorkList" stripe style="width: 100%" @row-click="handleRowClick" v-loading="loadingMore" element-loading-text="Loading...">
           <el-table-column :label="$t('common.pxm_column_name')" min-width="240">
             <template #default="{ row }">
               <div class="row-name">
@@ -431,6 +435,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Loading } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const { t } = useAppI18n()
@@ -444,8 +449,7 @@ const searchQuery = ref('')
 
 // 监听搜索关键词变化，自动触发搜索
 watch(searchQuery, () => {
-  pageNumber.value = 1 // 重置到第一页
-  fetchWorks()
+  fetchWorksInitial()
 })
 
 // 加载状态
@@ -486,30 +490,70 @@ function toWorkItem(api: CreatorWorkVO): WorkItem {
 const pageNumber = ref(1)
 const pageSize = ref(6)
 
+// 无限滚动状态
+const hasMore = ref(true)
+const loadingMore = ref(false)
+const totalCount = ref(0)
+
 // ============ 作品列表（来自接口） ============
 const workList = ref<WorkItem[]>([])
 
-/** 拉取作品列表 */
-async function fetchWorks() {
+/** 首屏加载作品列表（替换而非追加） */
+async function fetchWorksInitial() {
   loading.value = true
+  hasMore.value = true
+  pageNumber.value = 1
   try {
     const params = buildSortParams()
-    console.log('params.sortBy', params.sortBy)
-
     const res = await pageWorksApi({
-      pageNumber: pageNumber.value,
+      pageNumber: 1,
       pageSize: pageSize.value,
       keyword: searchQuery.value.trim() || undefined,
       sortBy: params.sortBy,
       direction: params.sortOrder,
     })
+    totalCount.value = res.result?.total ?? 0
     workList.value = (res.result?.list ?? []).map(toWorkItem)
+    hasMore.value = workList.value.length < totalCount.value
   } catch (e) {
     console.error('fetchWorks error:', e)
     ElMessage.error(t('common.pxm_work_state_changed'))
   } finally {
     loading.value = false
   }
+}
+
+/** 滚动加载更多（追加而非替换） */
+async function loadMore() {
+  if (loadingMore.value || !hasMore.value) return
+  try {
+    loadingMore.value = true
+    const nextPage = pageNumber.value + 1
+    const params = buildSortParams()
+    const res = await pageWorksApi({
+      pageNumber: nextPage,
+      pageSize: pageSize.value,
+      keyword: searchQuery.value.trim() || undefined,
+      sortBy: params.sortBy,
+      direction: params.sortOrder,
+    })
+    totalCount.value = res.result?.total ?? totalCount.value
+    const newItems = (res.result?.list ?? []).map(toWorkItem)
+    workList.value = [...workList.value, ...newItems]
+    pageNumber.value = nextPage
+    hasMore.value = workList.value.length < totalCount.value
+  } catch (e) {
+    console.error('loadMore error:', e)
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+/**
+ * @deprecated Use fetchWorksInitial instead.
+ */
+async function fetchWorks() {
+  await fetchWorksInitial()
 }
 
 /** 将 UI 排序值映射为接口 sortBy */
@@ -549,7 +593,7 @@ const sortLabel = computed(() => {
 
 const applySort = () => {
   sortMenuOpen.value = false
-  fetchWorks()
+  fetchWorksInitial()
 }
 
 // ============ 预览设备列表（来自接口） ============
@@ -883,7 +927,7 @@ const handleDeleteWork = (work: WorkItem) => {
 
 // 初始化
 onMounted(() => {
-  fetchWorks()
+  fetchWorksInitial()
   fetchDevices()
 })
 </script>
@@ -1172,5 +1216,17 @@ onMounted(() => {
 }
 :deep(.is-active-list .el-radio-button__inner:hover) {
   background-color: #f9f9f9 !important;
+}
+
+/* ========== 无限滚动加载提示 ========== */
+.infinite-loading-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  color: #909399;
+  font-size: 13px;
+  grid-column: 1 / -1;
 }
 </style>
