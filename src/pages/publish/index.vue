@@ -290,7 +290,7 @@ const tableData = ref([])
 
 // 表格分页状态
 const tablePageNumber = ref(1)
-const tablePageSize = ref(6)
+const tablePageSize = ref(8)
 const hasMore = ref(true)
 const loadingMore = ref(false)
 const loadingInitial = ref(false)
