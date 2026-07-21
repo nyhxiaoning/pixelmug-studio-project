@@ -184,8 +184,8 @@
         </el-popover>
 
         <!-- 视图切换：el-radio-group 按钮组 -->
-        <el-radio-group v-model="viewMode" size="default">
-          <el-radio-button :class="{ 'is-active-grid': viewMode === 'grid' }" label="grid">
+        <el-radio-group v-model="viewMode" size="default" class="view-mode-group">
+          <el-radio-button :class="{ 'is-active': viewMode === 'grid' }" label="grid">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="18"
@@ -202,7 +202,7 @@
               <rect x="3" y="3" width="18" height="18" rx="2" />
             </svg>
           </el-radio-button>
-          <el-radio-button :class="{ 'is-active-list': viewMode === 'list' }" label="list">
+          <el-radio-button :class="{ 'is-active': viewMode === 'list' }" label="list">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="18"
@@ -1199,25 +1199,24 @@ onMounted(() => {
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
 }
 
-/* ===== grid 选中类 is-active-grid：白色背景、黑色图标 ===== */
-:deep(.is-active-grid .el-radio-button__inner) {
-  background-color: #ffffff !important;
-  border-color: #000000 !important;
-  color: #000000 !important;
-  box-shadow: none;
+/* ===== radio-button 整体组：未选=灰底，选=白底黑字 ===== */
+:deep(.view-mode-group .el-radio-button__inner) {
+  background-color: #f5f5f5 !important;
+  border-color: #dcdfe6 !important;
+  color: #909399 !important;
 }
-:deep(.is-active-grid .el-radio-button__inner:hover) {
-  background-color: #f9f9f9 !important;
+:deep(.view-mode-group .el-radio-button__inner:hover) {
+  background-color: #ececec !important;
 }
 
-/* ===== list 选中类 is-active-list：白色背景、黑色图标 ===== */
-:deep(.is-active-list .el-radio-button__inner) {
+/* ===== 选中态：白色背景、黑色边框/图标 ===== */
+:deep(.view-mode-group .is-active .el-radio-button__inner) {
   background-color: #ffffff !important;
   border-color: #000000 !important;
   color: #000000 !important;
   box-shadow: none;
 }
-:deep(.is-active-list .el-radio-button__inner:hover) {
+:deep(.view-mode-group .is-active .el-radio-button__inner:hover) {
   background-color: #f9f9f9 !important;
 }
 
