@@ -183,6 +183,7 @@
         v-model="searchDraftKey"
         :placeholder="$t('common.pxm_publish_search_placeholder')"
         clearable
+        @input="handleSearchDraft"
         style="margin-bottom: 16px"
       />
       <div
@@ -232,7 +233,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
@@ -444,6 +445,9 @@ const searchDraftKey = ref('')
 const draftWorkList = ref([])
 const selectedDraftIds = ref([])
 
+// 搜索防抖定时器
+let searchTimer = null
+
 // 滚动加载分页
 const draftPage = ref(1)
 const draftPageSize = ref(20)
@@ -603,8 +607,20 @@ const handleDelete = (row) => {
     .catch(() => {})
 }
 
+/** 搜索防抖：输入停止 300ms 后触发 */
+function handleSearchDraft() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    loadDraftWorkList()
+  }, 300)
+}
+
 onMounted(() => {
   loadTableData()
+})
+
+onBeforeUnmount(() => {
+  if (searchTimer) clearTimeout(searchTimer)
 })
 </script>
 
