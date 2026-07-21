@@ -1356,7 +1356,7 @@ async function handleSaveToOSS(): Promise<void> {
     }
 
     status.value = t('common.pxm_editor_saved')
-    ElMessage.success(t('common.pxm_editor_save_success'))
+    ElMessage.success(t('common.pxm_editor_saved'))
   } catch (error) {
     console.error('Save to OSS failed:', error)
     status.value = t('common.pxm_editor_save_failed')
@@ -2842,7 +2842,9 @@ onMounted(() => {
     })
   } else {
     // 没有编辑参数，进入库视图
-    view.value = 'library'
+    // view.value = 'library'
+    //   alert('初始化直接进入')
+    handleNewProject()
   }
 })
 
