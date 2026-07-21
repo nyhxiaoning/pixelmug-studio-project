@@ -2863,4 +2863,4 @@ defineExpose({
 
 <!-- <script lang="ts" src="./PixelEditor.ts"></script> -->
 
-<style lang="scss" src="@/modules/pixel-editor/styles/index.scss" />
+<style lang="css" src="./styles.css" />
