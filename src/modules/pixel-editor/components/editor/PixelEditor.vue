@@ -1318,9 +1318,12 @@ async function handleSaveToOSS(): Promise<void> {
     }
 
     // Step 3: Create or Update work via API
+    const isGif = (project.value.frames?.length || 0) > 1
     const workData: CreatorWorkSaveRequest = {
       title: project.value.name,
-      type: 'STATIC',
+      type: isGif ? 'GIF' : 'STATIC',
+      gifFileUrl: isGif ? coverUrl : undefined,
+      gifFileSize: isGif ? binFileSize : undefined,
       editableFileUrl: editableFileUrl,
       coverUrl: coverUrl,
       binFileUrl: binFileUrl,
@@ -1425,6 +1428,11 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       persistNow()
 
       console.log('Work loaded for editing:', newProject)
+
+      // DOM 更新后渲染编辑器画布
+      nextTick(() => {
+        renderAll()
+      })
     } else {
       ElMessage.warning(t('common.pxm_editor_no_editable_file'))
       // 如果没有 editableFileUrl，创建一个新项目
@@ -2721,9 +2729,10 @@ async function handleLoadGifImage(event: Event): Promise<void> {
         cropY: 0.5,
         zoom: 1,
         preserveColors: true,
-        outputWidth: CANVAS_WIDTH,
-        outputHeight: CANVAS_HEIGHT,
+        outputWidth: WIDTH,
+        outputHeight: HEIGHT,
         allowUpscale: false,
+        dither: 'none',
       })
       frame.layers[0].pixels = pixels
       frame.layers[0].canvasPixels = pixelsToCanvasPixels(pixels, CANVAS_WIDTH, CANVAS_HEIGHT)
@@ -2828,7 +2837,9 @@ onMounted(() => {
   const workId = route.query.workId as string
   if (workId) {
     console.log('Loading work for editing:', workId)
-    loadWorkForEdit(workId)
+    loadWorkForEdit(workId).then(() => {
+      nextTick(renderAll)
+    })
   } else {
     // 没有编辑参数，进入库视图
     view.value = 'library'

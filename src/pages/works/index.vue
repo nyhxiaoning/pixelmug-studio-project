@@ -425,7 +425,7 @@ import {
   renderImageToPixels,
 } from '@/modules/pixel-editor/core/image-import'
 
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@/modules/pixel-editor/core/index'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, WIDTH, HEIGHT } from '@/modules/pixel-editor/core/index'
 
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
@@ -651,8 +651,8 @@ const handleFileUpload = async (e: Event) => {
           cropY: 0.5,
           zoom: 1,
           preserveColors: true,
-          outputWidth: CANVAS_WIDTH,
-          outputHeight: CANVAS_HEIGHT,
+          outputWidth: WIDTH,
+          outputHeight: HEIGHT,
           allowUpscale: false,
           dither: 'none',
         })

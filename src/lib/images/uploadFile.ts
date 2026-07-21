@@ -13,7 +13,7 @@ import {
   convertImageToRGB565,
   convertRgb565BlobToPng,
 } from './rgb.ts';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@/modules/pixel-editor/core/index'
+import { WIDTH, HEIGHT } from '@/modules/pixel-editor/core/index'
 
 import { createOssClient } from './AliOSS.ts';
 import { useAppI18n } from '@@/composables/useI18n'
@@ -423,8 +423,8 @@ export const uploadGifWithFrames = async (
       const projectData = {
         version: 4,
         name: file.name,
-        width: CANVAS_WIDTH,
-        height: CANVAS_HEIGHT,
+        width: WIDTH,
+        height: HEIGHT,
         currentFrameIndex: 0,
         activeLayer: 0,
         frames: framesData.map((frame) => ({
