@@ -461,7 +461,7 @@ const handleWithdraw = (row) => {
 
 /** i. 已下架 - 删除作品 */
 const handleDelete = (row) => {
-  ElMessageBox.confirm(t('common.pxm_confirm_delete'), '!', {
+  ElMessageBox.confirm(t('common.pxm_publish_confirm_delete'), t('common.pxm_publish_confirm_title'), {
     type: 'error',
   })
     .then(() => {
