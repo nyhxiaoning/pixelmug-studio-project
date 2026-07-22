@@ -252,7 +252,7 @@
             </div>
             <div class="card-actions">
               <el-button size="small" pxm_action_edit @click.stop="openEditWork(work)">
-                Edit
+                {{$t('common.pxm_action_edit')}}
               </el-button>
               <div class="card-icon-actions">
                 <el-button
