@@ -948,6 +948,8 @@ onMounted(() => {
 })
 </script>
 
+<!-- <style lang="css" src="./index.css"> -->
+
 <style lang="css" scoped>
 .content {
   padding: 20px;
@@ -984,15 +986,46 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
+
+.works-search {
+  width: 200px;
+
+  :deep(.el-input__wrapper) {
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #d1d5db inset;
+
+    .el-input__prefix {
+      margin-right: 8px;
+      color: #9ca3af;
+    }
+
+    .el-input__inner {
+      font-size: 13px;
+      color: #374151;
+
+      &::placeholder {
+        color: #9ca3af;
+      }
+    }
+
+    &:hover {
+      box-shadow: 0 0 0 1px #9ca3af inset !important;
+    }
+
+    &.is-focus {
+      box-shadow: 0 0 0 1px #667eea inset !important;
+    }
+  }
+}
+
 /* 右侧工具组：搜索 + 排序 + 视图切换，整体右对齐 */
 .filterbar-right {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 12px;
-}
-.works-search {
-  width: 260px;
 }
 .preview-device-trigger {
   display: inline-flex;
