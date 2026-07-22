@@ -284,8 +284,9 @@
   font-size: 12px;
 }
 .card-actions {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 8px;
   align-items: center;
 }
 .card-primary-action {
@@ -299,6 +300,7 @@
 .card-icon-actions {
   display: flex;
   gap: 6px;
+  justify-content: flex-end;
 }
 .card-icon-action {
   width: 28px;

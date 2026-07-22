@@ -143,7 +143,7 @@
           v-model:visible="sortMenuOpen"
           placement="bottom-start"
           trigger="click"
-          width="240"
+          width="120"
         >
           <template #reference>
             <el-button @click.stop>
@@ -251,7 +251,7 @@
               <p>{{ work.createdAt }}</p>
             </div>
             <div class="card-actions">
-              <el-button size="small" pxm_action_edit @click.stop="openEditWork(work)">
+              <el-button class="pxm_action_edit_btn" size="small" pxm_action_edit @click.stop="openEditWork(work)">
                 {{$t('common.pxm_action_edit')}}
               </el-button>
               <div class="card-icon-actions">
@@ -572,16 +572,16 @@ function buildSortParams() {
 
 // ============ 排序配置 ============
 const sortBy = ref<'name' | 'createTime' | 'lastView'>('lastView')
-const sortByOptions = [
+const sortByOptions = computed(() => [
   { label: t('common.pxm_sort_alphabetical'), value: 'name' },
   { label: t('common.pxm_sort_date_created'), value: 'createTime' },
   { label: t('common.pxm_sort_last_viewed'), value: 'lastView' },
-]
+])
 const sortOrder = ref<'asc' | 'desc'>('desc')
-const sortOrderOptions = [
+const sortOrderOptions = computed(() => [
   { label: t('common.pxm_sort_oldest'), value: 'asc' },
   { label: t('common.pxm_sort_newest'), value: 'desc' },
-]
+])
 const sortLabel = computed(() => {
   const map = {
     name: t('common.pxm_sort_alphabetical'),
@@ -1116,13 +1116,18 @@ onMounted(() => {
   font-size: 12px;
 }
 .card-actions {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 8px;
   align-items: center;
 }
 .card-icon-actions {
   display: flex;
   gap: 6px;
+  justify-content: flex-end;
+}
+.pxm_action_edit_btn {
+  width: 100%;
 }
 
 /* ============== List View (el-table) Styles ============== */
