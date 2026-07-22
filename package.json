@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --mode development",
-    "build": "vue-tsc && vite build",
+    "dev": "vite --mode development --host",
+    "build:qa": "vite build --mode development",
+    "build:us": "vite build --mode us ",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
