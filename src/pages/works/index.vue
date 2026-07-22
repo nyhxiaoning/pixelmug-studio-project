@@ -109,7 +109,8 @@
         </div>
       </el-popover>
 
-      <div>
+      <!-- 右侧：搜索 + 排序 + 视图切换 -->
+      <div class="filterbar-right">
         <el-input
           v-model="searchQuery"
           :placeholder="$t('common.pxm_search_placeholder')"
@@ -133,10 +134,6 @@
             </svg>
           </template>
         </el-input>
-      </div>
-
-      <div class="toolbar">
-        <!-- 搜索框 -->
 
         <!-- 排序下拉 popover -->
         <el-popover
@@ -982,9 +979,20 @@ onMounted(() => {
 
 .filterbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
+}
+
+/* 右侧工具组：搜索 + 排序 + 视图切换，整体右对齐 */
+.filterbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.works-search {
+  width: 260px;
 }
 .preview-device-trigger {
   display: inline-flex;
