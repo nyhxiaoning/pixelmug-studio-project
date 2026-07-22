@@ -50,7 +50,7 @@ export interface CreatorPreviewResultVO {
  */
 export function pageDevicesApi(params: CreatorDevicePageRequest) {
   return request<PageResult<CreatorDeviceVO>>({
-    url: "/api/creator/devices",
+    url: "/creator/devices",
     method: "get",
     params,
   })
@@ -62,7 +62,7 @@ export function pageDevicesApi(params: CreatorDevicePageRequest) {
  */
 export function listDevicesApi() {
   return request<CreatorDeviceVO[]>({
-    url: "/api/creator/devices",
+    url: "/creator/devices",
     method: "get",
     // params: { pageNumber: 1, pageSize: 30 },
   })
@@ -74,7 +74,7 @@ export function listDevicesApi() {
  */
 export function previewToDeviceApi(data: CreatorPreviewRequest) {
   return request<CreatorPreviewResultVO[]>({
-    url: "/api/creator/preview",
+    url: "/creator/preview",
     method: "post",
     data,
   })
@@ -94,7 +94,7 @@ export function sendPreviewToDeviceApi(
   fileSize: number
 ) {
   return request<CreatorPreviewResultVO>({
-    url: "/api/creator/preview",
+    url: "/creator/preview",
     method: "post",
     data: {
       deviceIds: [deviceId],

@@ -151,7 +151,7 @@ export interface CreatorAuditRequest {
  */
 export function pageWorksApi(params: CreatorWorkPageRequest) {
   return request<PageResult<CreatorWorkVO>>({
-    url: "/api/creator/works",
+    url: "/creator/works",
     method: "get",
     params,
   })
@@ -174,7 +174,7 @@ export function getWorkDetailApi(id: string) {
  */
 export function createWorkApi(data: CreatorWorkSaveRequest) {
   return request<string>({
-    url: "/api/creator/works",
+    url: "/creator/works",
     method: "post",
     data,
   })
@@ -186,7 +186,7 @@ export function createWorkApi(data: CreatorWorkSaveRequest) {
  */
 export function updateWorkApi(id: string, data: CreatorWorkSaveRequest) {
   return request<void>({
-    url: `/api/creator/works/${id}`,
+    url: `/creator/works/${id}`,
     method: "put",
     data,
   })
@@ -198,7 +198,7 @@ export function updateWorkApi(id: string, data: CreatorWorkSaveRequest) {
  */
 export function deleteWorkApi(id: string) {
   return request<void>({
-    url: `/api/creator/works/${id}`,
+    url: `/creator/works/${id}`,
     method: "delete",
   })
 }
@@ -211,7 +211,7 @@ export function deleteWorkApi(id: string) {
  */
 export function getUploadTokenApi(typeRole: CreatorUploadTokenRequest) {
   return request<OSSTokenVO>({
-    url: "/api/creator/works/upload-token",
+    url: "/creator/works/upload-token",
     method: "post",
     data: { role: typeRole },
   })
@@ -225,7 +225,7 @@ export function getUploadTokenApi(typeRole: CreatorUploadTokenRequest) {
  */
 export function pageReleasesApi(params: CreatorReleasePageRequest) {
   return request<CreatorReleaseManagementVO>({
-    url: "/api/creator/works/releases",
+    url: "/creator/works/releases",
     method: "get",
     params,
   })
@@ -237,7 +237,7 @@ export function pageReleasesApi(params: CreatorReleasePageRequest) {
  */
 export function pageReleaseCandidatesApi(params: PageQuery & { keyword?: string }) {
   return request<PageResult<CreatorWorkVO>>({
-    url: "/api/creator/works/release-candidates",
+    url: "/creator/works/release-candidates",
     method: "get",
     params,
   })
@@ -275,7 +275,7 @@ export interface OSSTokenFullVO {
  */
 export function getWorkUploadTokenApi(role: FileRole, fileName?: string, fileSize?: number) {
   return request<OSSTokenFullVO>({
-    url: "/api/creator/works/upload-token",
+    url: "/creator/works/upload-token",
     method: "post",
     data: { role, fileName, fileSize },
   })

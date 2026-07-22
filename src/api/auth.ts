@@ -19,7 +19,7 @@ export interface LoginResult {
 
 export function loginApi(data: LoginRequest) {
   return request<LoginResult>({
-    url: "/api/user/login/admin",
+    url: "/user/login/admin",
     method: "post",
     data
   })
@@ -28,7 +28,7 @@ export function loginApi(data: LoginRequest) {
 export function sendLoginCodeApi(account: any) {
   const isEmail = account?.includes("@")
   return request<void>({
-    url: "/api/creator/auth/code",
+    url: "/creator/auth/code",
     method: "post",
     data: {
       email: isEmail ? account : undefined,
@@ -45,7 +45,7 @@ export function sendLoginCodeApi(account: any) {
 export function authLoginIn(account: any) {
   const isEmail = account?.username?.includes("@")
   return request<void>({
-    url: "/api/creator/auth/login",
+    url: "/creator/auth/login",
     method: "post",
     data: {
       accountType: isEmail ? 'EMAIL' : 'PHONE',
@@ -62,7 +62,7 @@ export function authLoginIn(account: any) {
 
 export function sendLoginOut(token: string) {
   return request<void>({
-    url: "/api/creator/auth/logout",
+    url: "/creator/auth/logout",
     method: "post",
     data: {
       token: token

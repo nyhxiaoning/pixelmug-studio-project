@@ -22,7 +22,7 @@ export interface WorkSubmitRequest {
  */
 export function submitWorkApi(id: string, data?: WorkSubmitRequest) {
   return request<void>({
-    url: `/api/creator/works/${id}/submit`,
+    url: `/creator/works/${id}/submit`,
     method: "post",
     data,
   })
@@ -34,7 +34,7 @@ export function submitWorkApi(id: string, data?: WorkSubmitRequest) {
  */
 export function submitWorkUpdateApi(id: string, data?: WorkSubmitRequest) {
   return request<void>({
-    url: `/api/creator/works/${id}/submit-update`,
+    url: `/creator/works/${id}/submit-update`,
     method: "post",
     data,
   })
@@ -46,7 +46,7 @@ export function submitWorkUpdateApi(id: string, data?: WorkSubmitRequest) {
  */
 export function withdrawWorkApi(id: string) {
   return request<void>({
-    url: `/api/creator/works/${id}/withdraw`,
+    url: `/creator/works/${id}/withdraw`,
     method: "post",
   })
 }
@@ -57,7 +57,7 @@ export function withdrawWorkApi(id: string) {
  */
 export function unpublishWorkApi(id: string) {
   return request<void>({
-    url: `/api/creator/works/${id}/unpublish`,
+    url: `/creator/works/${id}/unpublish`,
     method: "post",
   })
 }
@@ -68,7 +68,7 @@ export function unpublishWorkApi(id: string) {
  */
 export function removeFromReleasesApi(id: string) {
   return request<void>({
-    url: `/api/creator/works/releases/${id}`,
+    url: `/creator/works/releases/${id}`,
     method: "delete",
   })
 }

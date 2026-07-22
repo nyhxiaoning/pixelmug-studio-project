@@ -53,6 +53,7 @@ export default defineConfig(({ mode }) => {
       // 👇 多环境动态代理（统一格式）
       proxy: {
         '/api': {
+          // target: env.VITE_API_URL.replace(/\/api$/, ''),
           target: env.VITE_API_URL,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),

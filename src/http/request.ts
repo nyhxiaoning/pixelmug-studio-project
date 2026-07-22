@@ -16,7 +16,7 @@ instance.interceptors.request.use((config) => {
   if (userStore.token) {
     config.headers.token = userStore.token
   }
-  config.headers.platform = 2
+  // config.headers.platform = 2
   return config
 })
 
