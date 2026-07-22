@@ -75,6 +75,8 @@ export const useUserStore = defineStore("user", {
       localStorage.removeItem("bubble_admin_name")
       localStorage.removeItem(COMPANY_KEY)
       localStorage.removeItem(MENUS_KEY)
+      // 清除预览设备绑定选择
+      sessionStorage.removeItem("creator.preview.deviceIds")
     }
   }
 })

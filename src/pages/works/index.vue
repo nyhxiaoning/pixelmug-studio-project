@@ -368,7 +368,7 @@
                     <polyline points="17 8 12 3 7 8" />
                     <line x1="12" x2="12" y1="3" y2="15" />
                   </svg>
-                  Preview
+                  &nbsp;{{ $t('common.pxm_action_preview') }}
                 </el-button>
                 <el-button
                   size="small"
@@ -393,7 +393,8 @@
                     <line x1="10" x2="10" y1="11" y2="17" />
                     <line x1="14" x2="14" y1="11" y2="17" />
                   </svg>
-                  Delete
+                  &nbsp;{{ $t('common.pxm_action_delete') }}
+
                 </el-button>
               </div>
             </template>
@@ -597,7 +598,8 @@ const applySort = () => {
   fetchWorksInitial()
 }
 
-// ============ 预览设备列表（来自接口） ============
+// ===================== 预览设备列表（来自接口） =====================
+const DEVICE_SESSION_KEY = 'creator.preview.deviceIds'
 const deviceList = ref<CreatorDeviceVO[]>([])
 const selectedDeviceIds = ref<string[]>([])
 
@@ -605,12 +607,26 @@ async function fetchDevices() {
   try {
     const res = await listDevicesApi()
     deviceList.value = res.result ?? []
-    // 默认选中所有在线设备
-    // selectedDeviceIds.value = deviceList.value.filter((d) => d.online === 'ONLINE').map((d) => d.id)
+    // 从 sessionStorage 恢复之前选中的设备
+    const saved = sessionStorage.getItem(DEVICE_SESSION_KEY)
+    if (saved) {
+      try {
+        const ids: string[] = JSON.parse(saved)
+        // 只恢复仍然在设备列表中的 id（避免已解绑设备残留）
+        selectedDeviceIds.value = ids.filter((id) => deviceList.value.some((d) => d.id === id))
+      } catch {
+        // 解析失败则忽略
+      }
+    }
   } catch (e) {
     console.error('fetchDevices error:', e)
   }
 }
+
+// 设备选择变化时实时保存到 sessionStorage
+watch(selectedDeviceIds, (ids) => {
+  sessionStorage.setItem(DEVICE_SESSION_KEY, JSON.stringify(ids))
+}, { deep: true })
 
 const selectedDevices = computed(() => {
   return deviceList.value.filter((item) => selectedDeviceIds.value.includes(item.id))
