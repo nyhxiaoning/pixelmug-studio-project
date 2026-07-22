@@ -5,7 +5,7 @@ import { ElMessage } from "element-plus"
 import { useUserStore } from "@/pinia/modules/user"
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL ?? "",
+  baseURL: import.meta.env.VITE_API_URL ?? "",
   timeout: 50000,
   withCredentials: true
 })

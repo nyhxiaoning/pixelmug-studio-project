@@ -12,20 +12,12 @@ export default defineConfig(({ mode }) => {
   // 加载当前 mode 对应的环境变量
   const env = loadEnv(mode, process.cwd(), '')
 
-  console.log(env?.VITE_APP_ENV)
-  console.log(env?.VITE_APP_ENV)
-
-  function useInspector() {
-
-    if (env?.VITE_APP_ENV === 'development') {
-      return Inspector();
-    }
-
-  }
+  console.log('VITE_APP_ENV:', env?.VITE_APP_ENV)
 
   return {
+    base: './',
     plugins: [
-      useInspector(),
+      // useInspector(),
       vue(),
       AutoImport({
         resolvers: [ElementPlusResolver()],
