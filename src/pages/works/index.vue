@@ -855,13 +855,13 @@ const goCreateEditor = () => {
   return
 
   // TODO:这里和导入有点区别
-  createWorkApi({ title: 'Untitled' })
-    .then((res) => {
-      router.push({ path: '/editor', query: { workId: res.result } })
-    })
-    .catch(() => {
-      ElMessage.error(t('common.pxm_upload_failed'))
-    })
+  // createWorkApi({ title: 'Untitled' })
+  //   .then((res) => {
+  //     router.push({ path: '/editor', query: { workId: res.result } })
+  //   })
+  //   .catch(() => {
+  //     ElMessage.error(t('common.pxm_upload_failed'))
+  //   })
 }
 
 const openEditWork = (work: WorkItem) => {

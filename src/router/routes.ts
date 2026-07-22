@@ -8,11 +8,11 @@ export const routes: RouteRecordRaw[] = [
     component: () => import("@/pages/auth/LoginPage.vue"),
     meta: { public: true }
   },
-  {
-    path: "/no-permission",
-    component: () => import("@/pages/auth/NoPermissionPage.vue"),
-    meta: { title: "无权限" }
-  },
+  // {
+  //   path: "/no-permission",
+  //   component: () => import("@/pages/auth/NoPermissionPage.vue"),
+  //   meta: { title: "无权限" }
+  // },
   {
     path: "/",
     component: AdminLayout,
