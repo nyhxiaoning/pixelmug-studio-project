@@ -53,7 +53,12 @@ function setTheme(newTheme: 'light' | 'dark'): void {
 }
 
 function applyTheme(): void {
-  document.documentElement.dataset.theme = theme.value
+  const host = getThemeHost()
+  if (host) host.dataset.theme = theme.value
+}
+
+function getThemeHost(): HTMLElement | null {
+  return document.querySelector('.pe-theme-host') as HTMLElement | null
 }
 
 // Initialize theme on mount

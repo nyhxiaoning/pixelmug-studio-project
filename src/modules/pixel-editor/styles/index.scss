@@ -4,8 +4,8 @@
  * 从原始 pixelart_web_editor/css/styles.css 迁移
  */
 
-/* ==================== CSS Variables ==================== */
-:root {
+/* ==================== CSS Variables (scoped to .pe-theme-host) ==================== */
+.pe-theme-host {
   /* Dark theme (default) */
   --pe-bg: #111318;
   --pe-panel: #1b1f28;
@@ -31,7 +31,7 @@
   --pe-modal-backdrop: rgba(4, 6, 10, 0.72);
 }
 
-:root[data-theme="light"] {
+.pe-theme-host[data-theme="light"] {
   --pe-bg: #f4f6f8;
   --pe-panel: #ffffff;
   --pe-panel-2: #edf1f5;

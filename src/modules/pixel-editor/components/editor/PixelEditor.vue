@@ -47,7 +47,7 @@
     </section>
   </div> -->
 
-  <div  class="pe-workspace">
+  <div class="pe-workspace pe-theme-host">
     <aside class="pe-panel pe-tools-panel">
       <section>
         <h2>{{ t('common.pxm_editor_tools') }}</h2>
@@ -2928,4 +2928,4 @@ defineExpose({
 
 <!-- <script lang="ts" src="./PixelEditor.ts"></script> -->
 
-<style lang="css" src="./styles.css" />
+<style  lang="css" src="./styles.css" />

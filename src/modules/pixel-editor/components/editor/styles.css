@@ -1,4 +1,4 @@
-:root {
+.pe-theme-host {
   --bg: #111318;
   --panel: #1b1f28;
   --panel-2: #252b36;
@@ -24,7 +24,7 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-:root[data-theme="light"] {
+.pe-theme-host[data-theme="light"] {
   --bg: #f4f6f8;
   --panel: #ffffff;
   --panel-2: #edf1f5;

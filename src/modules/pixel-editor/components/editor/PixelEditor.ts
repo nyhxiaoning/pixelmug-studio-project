@@ -510,7 +510,8 @@ export default function setup() {
   }
 
   function applyTheme(): void {
-    document.documentElement.dataset.theme = theme.value
+    const host = document.querySelector('.pe-theme-host') as HTMLElement | null
+    if (host) host.dataset.theme = theme.value
   }
 
   // Template ref callbacks

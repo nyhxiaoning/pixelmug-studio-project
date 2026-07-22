@@ -1,5 +1,5 @@
 <template>
-  <div class="pe-shell">
+  <div class="pe-shell pe-theme-host">
     <EditorNav
       :title="title"
       :meta="meta"
