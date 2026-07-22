@@ -45,7 +45,12 @@
         </div>
       </div>
 
-      <section class="community-section" v-infinite-scroll="loadTableDataMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
+      <section
+        class="community-section"
+        v-infinite-scroll="loadTableDataMore"
+        :infinite-scroll-disabled="!hasMore"
+        :infinite-scroll-distance="100"
+      >
         <div class="community-section-head">
           <h2>{{ $t('common.pxm_publish_management') }}</h2>
           <div class="community-status-filter">
@@ -68,103 +73,109 @@
         <!-- 发布管理表格 -->
         <el-empty v-if="tableData.length === 0 && !loadingInitial" description="No works yet" />
         <div v-else class="publish-table-wrap">
-          <el-table :data="tableData" stripe style="width: 100%" v-loading="loadingMore" element-loading-text="Loading...">
-          <el-table-column :label="$t('common.pxm_publish_files')" min-width="280">
-            <template #default="{ row }">
-              <div class="publish-name">
-                <!-- <div class="publish-thumb" /> -->
-                <img :src="row?.coverUrl" width="128" height="64" alt="" />
-                <div>
-                  <h3>{{ row.name }}</h3>
-                  <em v-if="row.rejectReason" class="reject-tip"
-                    >{{ $t('common.pxm_publish_reason') }}{{ row.rejectReason }}</em
-                  >
+          <el-table
+            :data="tableData"
+            stripe
+            style="width: 100%"
+            v-loading="loadingMore"
+            element-loading-text="Loading..."
+          >
+            <el-table-column :label="$t('common.pxm_publish_files')" min-width="280">
+              <template #default="{ row }">
+                <div class="publish-name">
+                  <!-- <div class="publish-thumb" /> -->
+                  <img :src="row?.coverUrl" width="128" height="64" alt="" />
+                  <div>
+                    <h3>{{ row.name }}</h3>
+                    <em v-if="row.rejectReason" class="reject-tip"
+                      >{{ $t('common.pxm_publish_reason') }}{{ row.rejectReason }}</em
+                    >
+                  </div>
                 </div>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column :label="$t('common.pxm_publish_version')" prop="version" width="100" />
-          <el-table-column
-            :label="$t('common.pxm_publish_last_submit')"
-            prop="lastSubmit"
-            width="140"
-          />
-          <el-table-column
-            :label="$t('common.pxm_publish_latest_update')"
-            prop="lastUpdate"
-            width="140"
-          />
-          <el-table-column :label="$t('common.pxm_publish_status_filter')" width="150">
-            <template #default="{ row }">
-              <el-tag :type="getStatusTagType(row.status)">
-                {{ getStatusLabel(row.status) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column :label="$t('common.pxm_column_actions')" min-width="200">
-            <template #default="{ row }">
-              <div class="publish-actions">
-                <!-- 无状态/默认：提交发布 -->
-                <template v-if="!row.status || row.status === 'draft'">
-                  <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
-                    {{ $t('common.pxm_publish_apply') }}
-                  </el-button>
-                </template>
-                <!-- 审核中：撤回发布 -->
-                <template v-if="row.status === 'reviewing'">
-                  <el-button
-                    size="small"
-                    type="danger"
-                    pxm_publish_withdraw
-                    @click="handleWithdraw(row)"
-                  >
-                    {{ $t('common.pxm_publish_withdraw') }}
-                  </el-button>
-                </template>
-                <!-- 已发布：发布更新 + 下架 -->
-                <template v-if="row.status === 'published' || row.status === 'live'">
-                  <el-button size="small" pxm_publish_update @click="handleUpdate(row)">
-                    {{ $t('common.pxm_publish_update') }}
-                  </el-button>
-                  <el-button
-                    size="small"
-                    type="warning"
-                    pxm_publish_unPublish
-                    @click="handleUnpublish(row)"
-                  >
-                    {{ $t('common.pxm_publish_unpublish') }}
-                  </el-button>
-                </template>
-                <!-- 已驳回：重新发布 -->
-                <template v-if="row.status === 'rejected'">
-                  <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
-                    {{ $t('common.pxm_publish_apply') }}
-                  </el-button>
-                </template>
-                <!-- 已下架：重新发布 + 删除 -->
-                <template v-if="row.status === 'offline'">
-                  <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
-                    {{ $t('common.pxm_publish_apply') }}
-                  </el-button>
-                  <el-button
-                    size="small"
-                    type="danger"
-                    pxm_action_delete
-                    @click="handleDelete(row)"
-                  >
-                    {{ $t('common.pxm_action_delete') }}
-                  </el-button>
-                </template>
-              </div>
-            </template>
-          </el-table-column>
-          <!-- </el-table-column> -->
-        </el-table>
-        <div v-if="loadingMore" class="infinite-loading-tip">
-          <el-icon class="is-loading"><Loading /></el-icon>
-          <span>Loading...</span>
+              </template>
+            </el-table-column>
+            <el-table-column :label="$t('common.pxm_publish_version')" prop="version" width="100" />
+            <el-table-column
+              :label="$t('common.pxm_publish_last_submit')"
+              prop="lastSubmit"
+              width="140"
+            />
+            <el-table-column
+              :label="$t('common.pxm_publish_latest_update')"
+              prop="lastUpdate"
+              width="140"
+            />
+            <el-table-column :label="$t('common.pxm_publish_status_filter')" width="150">
+              <template #default="{ row }">
+                <el-tag :type="getStatusTagType(row.status)">
+                  {{ getStatusLabel(row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column :label="$t('common.pxm_column_actions')" min-width="200">
+              <template #default="{ row }">
+                <div class="publish-actions">
+                  <!-- 无状态/默认：提交发布 -->
+                  <template v-if="!row.status || row.status === 'draft'">
+                    <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
+                      {{ $t('common.pxm_publish_apply') }}
+                    </el-button>
+                  </template>
+                  <!-- 审核中：撤回发布 -->
+                  <template v-if="row.status === 'reviewing'">
+                    <el-button
+                      size="small"
+                      type="danger"
+                      pxm_publish_withdraw
+                      @click="handleWithdraw(row)"
+                    >
+                      {{ $t('common.pxm_publish_withdraw') }}
+                    </el-button>
+                  </template>
+                  <!-- 已发布：发布更新 + 下架 -->
+                  <template v-if="row.status === 'published' || row.status === 'live'">
+                    <el-button size="small" pxm_publish_update @click="handleUpdate(row)">
+                      {{ $t('common.pxm_publish_update') }}
+                    </el-button>
+                    <el-button
+                      size="small"
+                      type="warning"
+                      pxm_publish_unPublish
+                      @click="handleUnpublish(row)"
+                    >
+                      {{ $t('common.pxm_publish_unpublish') }}
+                    </el-button>
+                  </template>
+                  <!-- 已驳回：重新发布 -->
+                  <template v-if="row.status === 'rejected'">
+                    <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
+                      {{ $t('common.pxm_publish_apply') }}
+                    </el-button>
+                  </template>
+                  <!-- 已下架：重新发布 + 删除 -->
+                  <template v-if="row.status === 'offline'">
+                    <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
+                      {{ $t('common.pxm_publish_apply') }}
+                    </el-button>
+                    <el-button
+                      size="small"
+                      type="danger"
+                      pxm_action_delete
+                      @click="handleDelete(row)"
+                    >
+                      {{ $t('common.pxm_action_delete') }}
+                    </el-button>
+                  </template>
+                </div>
+              </template>
+            </el-table-column>
+            <!-- </el-table-column> -->
+          </el-table>
+          <div v-if="loadingMore" class="infinite-loading-tip">
+            <el-icon class="is-loading"><Loading /></el-icon>
+            <span>Loading...</span>
+          </div>
         </div>
-       </div>
       </section>
     </section>
 
@@ -203,7 +214,9 @@
           <div class="publish-card-image-wrap">
             <img :src="item.coverUrl" class="publish-card-image" />
             <div v-if="selectedDraftIds.includes(item.id)" class="publish-card-check">
-              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#fff"/></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#fff" />
+              </svg>
             </div>
           </div>
           <div class="publish-card-body">
@@ -327,7 +340,14 @@ async function loadTableDataInitial() {
       pageSize: tablePageSize.value,
       status,
     })
-    tableTotalCount.value = (res.result?.page?.total ?? tableTotalCount.value)
+
+    if (pageNum == 1) {
+      statData.value.live = res.result?.publishedCount || 0
+      statData.value.review = res.result?.reviewingCount || 0
+      statData.value.draft = res.result?.applicableCount || 0
+    }
+
+    tableTotalCount.value = res.result?.page?.total ?? tableTotalCount.value
     const newItems = (res.result?.page?.list ?? []).map(toTableRow)
     if (tableData.value.length === 0) {
       tableData.value = newItems
@@ -365,7 +385,7 @@ async function loadTableDataMore() {
       pageSize: tablePageSize.value,
       status,
     })
-    tableTotalCount.value = (res.result?.page?.total ?? tableTotalCount.value)
+    tableTotalCount.value = res.result?.page?.total ?? tableTotalCount.value
     const newItems = (res.result?.page?.list ?? []).map(toTableRow)
     tableData.value = [...tableData.value, ...newItems]
     tablePageNumber.value = pageNum + 1
@@ -518,7 +538,7 @@ async function loadMoreDrafts() {
       keyword: searchDraftKey.value.trim() || undefined,
     })
     const pageData = (res.result || {}).list || []
-    draftTotal.value = (res.result?.total ?? draftTotal.value)
+    draftTotal.value = res.result?.total ?? draftTotal.value
     const newItems = pageData.map((api) => ({
       id: api.id,
       name: api.title,
@@ -639,7 +659,7 @@ function handleSearchDraft() {
 }
 
 onMounted(() => {
-  loadStatsData()
+  // loadStatsData()
   loadTableDataInitial()
 })
 
