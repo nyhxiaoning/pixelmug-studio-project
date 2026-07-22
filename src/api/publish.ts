@@ -18,7 +18,7 @@ export interface WorkSubmitRequest {
 
 /**
  * 提交作品审核（发布）
- * POST /api/creator/works/{id}/submit
+ * POST /creator/works/{id}/submit
  */
 export function submitWorkApi(id: string, data?: WorkSubmitRequest) {
   return request<void>({

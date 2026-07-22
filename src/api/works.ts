@@ -163,7 +163,7 @@ export function pageWorksApi(params: CreatorWorkPageRequest) {
  */
 export function getWorkDetailApi(id: string) {
   return request<CreatorWorkVO>({
-    url: `/api/creator/works/${id}`,
+    url: `/creator/works/${id}`,
     method: "get",
   })
 }
