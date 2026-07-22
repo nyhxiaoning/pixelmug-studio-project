@@ -71,7 +71,7 @@
         </div>
 
         <!-- 发布管理表格 -->
-        <el-empty v-if="tableData.length === 0 && !loadingInitial" description="No works yet" />
+        <el-empty v-if="tableData.length === 0 && !loadingInitial" :description="$t('common.pxm_editor_library_empty')" />
         <div v-else class="publish-table-wrap">
           <el-table
             :data="tableData"

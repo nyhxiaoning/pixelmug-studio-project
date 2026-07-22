@@ -225,7 +225,7 @@
 
     <!-- 作品列表区域 -->
     <template v-if="viewMode === 'grid'">
-      <el-empty v-if="sortedWorkList.length === 0" description="No works yet" />
+      <el-empty v-if="sortedWorkList.length === 0" :description="$t('common.pxm_editor_library_empty')" />
       <section v-else class="works-grid" v-infinite-scroll="loadMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
         <article
           v-for="work in sortedWorkList"
@@ -317,7 +317,7 @@
     </template>
 
     <template v-else>
-      <el-empty v-if="sortedWorkList.length === 0" description="No works yet" />
+      <el-empty v-if="sortedWorkList.length === 0" :description="$t('common.pxm_editor_library_empty')"/>
       <section v-else class="works-list" v-infinite-scroll="loadMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
         <el-table :data="sortedWorkList" stripe style="width: 100%" @row-click="handleRowClick" v-loading="loadingMore" element-loading-text="Loading...">
           <el-table-column :label="$t('common.pxm_column_name')" min-width="240">
