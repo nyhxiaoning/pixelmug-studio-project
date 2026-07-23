@@ -94,13 +94,13 @@
                 v-for="dev in deviceList"
                 :key="dev.id"
                 class="device-item"
-                :class="{ offline: !dev.online }"
+                :class="{ offline: dev.online !== 'ONLINE' }"
               >
-                <el-checkbox :label="dev.id" :disabled="!dev.online">
-                  <span :class="['device-dot', dev.online ? 'online' : 'offline']" />
+                <el-checkbox :label="dev.id" >
+                  <span :class="['device-dot', dev.online === 'ONLINE' ? 'online' : 'offline']" />
                   <span class="device-name">{{ dev.name }}</span>
                   <em>{{
-                    dev.online ? $t('common.pxm_device_online') : $t('common.pxm_device_offline')
+                    dev.online === 'ONLINE' ? $t('common.pxm_device_online') : $t('common.pxm_device_offline')
                   }}</em>
                 </el-checkbox>
               </div>

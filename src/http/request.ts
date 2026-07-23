@@ -35,12 +35,12 @@ instance.interceptors.response.use(
       return Promise.reject(new Error("登录已过期"))
     }
     const message = extractErrorMessage(data)
-    showError(message)
+    console.log(message)
     return Promise.reject(new Error(message))
   },
   (error) => {
     const message = extractErrorMessage(error?.response?.data) || error?.message || "网络请求失败"
-    showError(message)
+    console.log(message)
     return Promise.reject(error)
   }
 )
