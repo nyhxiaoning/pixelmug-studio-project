@@ -202,6 +202,8 @@ export default {
   pxm_editor_board_size: 'キャンバス W 32、H 16',
   pxm_editor_saved: '保存済み',
   pxm_editor_auto_saved: '自動保存済み',
+  pxm_editor_last_saved: '最終保存',
+  pxm_editor_auto_save_failed: '自動保存に失敗しました。再試行します。',
   pxm_editor_imported: 'インポート済み',
   pxm_editor_import_failed: 'インポートできません。画像ファイルを選択してください。',
   pxm_editor_import_success: 'インポート完了',

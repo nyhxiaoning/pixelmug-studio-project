@@ -280,6 +280,8 @@ export default {
   pxm_editor_pasted: 'Area pasted',
   pxm_editor_transform_need_select: 'Select an area first',
   pxm_editor_auto_saved: 'Auto saved',
+  pxm_editor_last_saved: 'Last saved',
+  pxm_editor_auto_save_failed: 'Auto-save failed, will retry',
   pxm_editor_layer_settings_updated: 'Layer settings updated',
   pxm_editor_project_name_updated: 'Project name updated',
   pxm_editor_frame_interval_updated: 'Frame interval updated',

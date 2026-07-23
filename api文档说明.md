@@ -911,6 +911,112 @@ handleSaveToOSS()
    - `handleStaticImageUpload()`（works 页面上传）：走 `uploadStaticImageWithJson`
    - 两者最终都通过 `createWorkApi` / `updateWorkApi` 写入后端
 
+---
+
+## 十一、自动保存机制
+
+### 11.1 触发方式
+
+```
+用户进入编辑器
+    │
+    ▼
+onMounted → setInterval(doSilentSave, 30s)
+    │
+    ▼ 每 30 秒
+doSilentSave()
+    │
+    ├── [1] blankWorkChecked: false  → 首次检查 isValidWork()
+    │       ├── isValidWork() = false  → 返回 false（跳过，不提示）
+    │       └── isValidWork() = true   → blankWorkChecked = true，继续
+    │
+    ├── [2] blankWorkChecked: true  → 跳过空白检查
+    │
+    ├── [3] hasChangesSinceLastSave()
+    │       ├── updatedAt <= lastSaveTimestamp  → 返回 false（跳过）
+    │       └── updatedAt > lastSaveTimestamp   → 继续
+    │
+    ├── [4] saving.value === true  → 手动保存中，跳过
+    │
+    ├── [5] saveOSSOnly()
+    │       ├── 上传 JSON（EDITABLE_JSON）
+    │       ├── 上传像素（STATIC_BIN）
+    │       ├── 创建 / 更新作品（createWorkApi / updateWorkApi）
+    │       └── lastSaveTimestamp = Date.now()
+    │
+    └── [6] 更新状态栏
+            ├── autoSaveFirstDone = false  → "已自动保存"
+            └── autoSaveFirstDone = true   → "上次保存 14:32"
+```
+
+### 11.2 页面离开前保存
+
+```
+用户关闭 / 刷新 / 导航离开
+    │
+    ▼
+onBeforeUnmount
+    │
+    ├── doSilentSave()          ← 静默保存一次（异步，不阻塞）
+    │
+    ├── removeEventListener     ← 清理键盘事件
+    │
+    └── clearInterval           ← 清理定时器
+```
+
+### 11.3 有效作品判定（isValidWork）
+
+遍历所有帧的所有可见图层的 pixels 数组：
+- 只要 **任何一个像素** `p != null && p !== '' && p !== EMPTY` → 有效
+- 全部为 null/空 → 无效（跳过保存）
+
+### 11.4 变化检测（hasChangesSinceLastSave）
+
+```
+首次保存：lastSaveTimestamp = 0 → 返回 true（视为有变化）
+后续：project.updatedAt > lastSaveTimestamp → 有变化
+      project.updatedAt <= lastSaveTimestamp → 无变化，跳过
+```
+
+### 11.5 提示策略
+
+| 场景 | 处理 |
+|------|------|
+| 首次自动保存成功 | 状态栏弱提示"已自动保存"（`status.value`），不弹 toast |
+| 后续自动保存成功 | 状态栏"上次保存 HH:mm"（`status.value`），不弹 toast |
+| 自动保存失败 | 状态栏弱提示"自动保存失败，将重试"，不弹 toast，下次轮询自动重试 |
+| 手动保存成功 | 状态栏 + ElMessage.success toast |
+| 手动保存失败 | 状态栏 + ElMessage.error toast |
+| 空白作品 | 跳过，不提示 |
+| 无变化 | 跳过，不提示 |
+
+### 11.6 状态字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `autoSaveTimer` | `number \| null` | 定时器 ID，`setInterval` 返回 |
+| `AUTO_SAVE_INTERVAL` | `30 * 1000` | 保存间隔 30 秒 |
+| `lastSaveTimestamp` | `number` | 上次成功保存的时间戳 |
+| `autoSaveFirstDone` | `boolean` | 是否已完成首次自动保存 |
+| `blankWorkChecked` | `boolean` | 是否已检查过空白作品（首次之后跳过检查） |
+
+### 11.7 关键函数
+
+| 函数 | 职责 |
+|------|------|
+| `isValidWork()` | 遍历所有帧图层，检测是否有绘制内容 |
+| `hasChangesSinceLastSave()` | 对比 `updatedAt` 和 `lastSaveTimestamp` |
+| `doSilentSave()` | 自动保存入口：过滤条件 → `saveOSSOnly()` → 更新状态 |
+| `saveOSSOnly()` | 纯上传逻辑（无 UI 提示），供自动保存和手动保存共用 |
+| `handleSaveToOSS()` | 手动保存入口：`saving` 状态 + `saveOSSOnly()` + toast |
+
+### 11.8 注意事项
+
+1. **不重置倒计时**：编辑时不重置 30 秒倒计时，避免用户频繁操作导致一直不保存
+2. **手动保存时跳过自动保存**：`saving.value === true` 时自动保存直接跳过
+3. **创建 workId 后自动保存也能正确更新**：`saveOSSOnly` 内部走 `updateWorkApi`（`editingWorkId` 已通过手动保存的 `createWorkApi` 返回赋值）
+4. **离开页面不等待保存完成**：`onBeforeUnmount` 的 `doSilentSave()` 是 fire-and-forget，不阻塞页面跳转
+
 ## 图片的数据结构：存储帧内容
 ### 数据内容：
 ```

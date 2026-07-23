@@ -325,7 +325,7 @@
           :class="{ disabled: saving }"
           @click="handleSaveToOSS"
         >
-          {{ saving ? t('common.pxm_editor_saving') : t('common.pxm_editor_save') }}
+          {{  t('common.pxm_editor_save') }}
         </el-button>
         <el-button type="button" class="pe-save-btn" @click="backHome">
           {{ t('common.pxm_editor_back_home') }}
@@ -754,6 +754,13 @@ const router = useRouter()
 const editingWorkId = ref<string | null>(null)
 const editingWork = ref<CreatorWorkVO | null>(null)
 const loadingWork = ref(false)
+
+// Auto-save state
+const lastSaveTimestamp = ref<number>(0) // 上次成功保存的时间戳
+const autoSaveFirstDone = ref<boolean>(false) // 是否已经完成过首次自动保存
+const autoSaveTimer = ref<number | null>(null)
+const AUTO_SAVE_INTERVAL = 30 * 1000 // 30 秒
+const blankWorkChecked = ref<boolean>(false) // 是否已检查过空白作品
 
 // Tools
 const tools = ref<Tool[]>([
@@ -1310,6 +1317,184 @@ function handleSaveOverviewPng(): void {
   canvas.toBlob((blob) => blob && downloadBlob(blob, 'canvas256x256.png'), 'image/png')
 }
 
+// ==================== Auto-save helpers ====================
+
+/** 判断当前作品是否为有效作品（至少有一个像素被绘制，或导入了有效内容） */
+function isValidWork(): boolean {
+  const frames = project.value?.frames || []
+  if (frames.length === 0) return false
+
+  // 检查每一帧的每一层，只要有任何一个非空像素即视为有效
+  for (const frame of frames) {
+    const layers = frame?.layers || []
+    console.log(layers, 'layersssss')
+    for (const layer of layers) {
+      if (!layer.visible) continue
+      const pixels = layer?.pixels
+      console.log(pixels, 'pixelssss')
+      let resarrflag = pixels.some((p) => p != null && p !== '' && p !== (EMPTY as any))
+      console.log(resarrflag, 'resarrflag')
+      if (Array.isArray(pixels)) {
+        const hasPixel = pixels.some((p) => p != null && p !== '' && p !== (EMPTY as any))
+        if (hasPixel) return true
+      }
+    }
+  }
+  return false
+}
+
+/** 判断自上次保存后是否有内容变化 */
+function hasChangesSinceLastSave(): boolean {
+  if (lastSaveTimestamp.value === 0) return true // 从未保存过，视为有变化
+  return project.value.updatedAt > lastSaveTimestamp.value
+}
+
+/** 格式化时间 HH:mm */
+function formatAutoSaveTime(ts: number): string {
+  const d = new Date(ts)
+  const h = String(d.getHours()).padStart(2, '0')
+  const m = String(d.getMinutes()).padStart(2, '0')
+  return `${h}:${m}`
+}
+
+/** 执行静默自动保存，返回是否成功 */
+async function doSilentSave(): Promise<boolean> {
+  // 跳过空白作品（只在首次检查时判断）
+  if (!blankWorkChecked.value) {
+    blankWorkChecked.value = true
+    if (!isValidWork()) return false
+  }
+
+  // 无变化则跳过
+  if (!hasChangesSinceLastSave()) return false
+
+  if (saving.value) return false // 手动保存中，跳过
+
+  try {
+    // 复用 handleSaveToOSS 的上传逻辑，但不弹 toast
+    await saveOSSOnly()
+
+    if (!isValidWork()) {
+      console.log('false')
+      return false;
+    }
+
+    lastSaveTimestamp.value = Date.now()
+
+    if (!autoSaveFirstDone.value) {
+      autoSaveFirstDone.value = true
+      status.value = t('common.pxm_editor_auto_saved')
+    } else {
+      status.value = `${t('common.pxm_editor_last_saved')} ${formatAutoSaveTime(lastSaveTimestamp.value)}`
+    }
+    return true
+  } catch (err) {
+    console.warn('Auto-save failed, will retry:', err)
+    status.value = t('common.pxm_editor_auto_save_failed')
+    return false
+  }
+}
+
+/** 仅执行 OSS 上传 + 创建/更新，不弹提示（供自动保存和离开页面调用） */
+async function saveOSSOnly(): Promise<void> {
+  const projectData = {
+    id: project.value.id,
+    version: project.value.version,
+    name: project.value.name,
+    width: project.value.width,
+    height: project.value.height,
+    currentFrameIndex: project.value.currentFrameIndex,
+    activeLayer: project.value.activeLayer,
+    frames: (project.value.frames || []).map((frame) => ({
+      ...frame,
+      layers: (frame.layers || []).map((layer) => ({
+        ...layer,
+        canvasPixels: undefined,
+      })),
+    })),
+    createdAt: project.value.createdAt,
+    updatedAt: Date.now(),
+  }
+
+  if (!isValidWork()) {
+    console.log('false')
+    return
+  }
+
+  const jsonUploadResult = await uploadPixelJSON(projectData)
+  const editableFileUrl = jsonUploadResult.fileUrl
+
+  let coverUrl: string | undefined
+  let binFileUrl: string | undefined
+  let binFileSize: number | undefined
+
+  // Step 2a
+  if (project.value.frames && project.value.frames.length > 0) {
+    const firstFrame = project.value.frames[0]
+    if (firstFrame.layers && firstFrame.layers.length > 0) {
+      const firstLayerPixels = firstFrame.layers[0].pixels
+      const doodleUploadResult = await uploadDoodle(firstLayerPixels)
+      coverUrl = doodleUploadResult.cover
+      binFileUrl = doodleUploadResult.binFileUrl
+      binFileSize = doodleUploadResult.binSize
+    }
+  }
+
+  // Step 2b: 静态图
+  if (project.value.frames && project.value.frames.length === 1) {
+    const pixels = compositeFrame(currentFrame.value)
+    const staticDoodleResult = await uploadDoodle(pixels)
+    binFileUrl = staticDoodleResult.binFileUrl
+    binFileSize = staticDoodleResult.binSize
+    coverUrl = coverUrl || staticDoodleResult.cover
+  }
+
+  // Step 2c: 动图
+  let gifFileSize: number | undefined
+  if (project.value.frames && project.value.frames.length > 1) {
+    const gifSourceFrames = project.value.frames.map((frame) => ({
+      delay: frame.delay,
+      pixels: compositeFrame(frame),
+    }))
+    const gifBlob = encodeGif({
+      width: project.value.width,
+      height: project.value.height,
+      scale: 1,
+      frames: gifSourceFrames,
+    })
+    const gifUploadResult = await uploadGif(gifBlob)
+    coverUrl = gifUploadResult.cover
+    gifFileSize = gifUploadResult.fileSize
+  }
+
+  const isGif = (project.value.frames?.length || 0) > 1
+  const workData: CreatorWorkSaveRequest = {
+    title: project.value.name,
+    type: isGif ? 'GIF' : 'STATIC',
+    gifFileUrl: isGif ? coverUrl : undefined,
+    gifFileSize: isGif ? gifFileSize : undefined,
+    editableFileUrl: editableFileUrl,
+    coverUrl: coverUrl,
+    binFileUrl: isGif ? undefined : binFileUrl,
+    binFileSize: isGif ? undefined : 1024,
+    width: project.value.width,
+    height: project.value.height,
+    frameCount: project.value.frames.length,
+    frameDelay: project.value.frames[0]?.delay || 120,
+  }
+
+  if (editingWorkId.value) {
+    await updateWorkApi(editingWorkId.value, workData)
+  } else {
+    const createResponse = await createWorkApi(workData)
+    const newId =
+      typeof createResponse === 'object' && createResponse?.result
+        ? String(createResponse.result)
+        : String(createResponse)
+    if (newId) editingWorkId.value = newId
+  }
+}
+
 // OSS Save & Create/Update Work
 async function handleSaveToOSS(): Promise<void> {
   if (saving.value) return
@@ -1318,114 +1503,10 @@ async function handleSaveToOSS(): Promise<void> {
     saving.value = true
     status.value = t('common.pxm_editor_saving')
 
-    // Step 1: Upload editable JSON data
-    const projectData = {
-      id: project.value.id,
-      version: project.value.version,
-      name: project.value.name,
-      width: project.value.width,
-      height: project.value.height,
-      currentFrameIndex: project.value.currentFrameIndex,
-      activeLayer: project.value.activeLayer,
-      frames: (project.value.frames || []).map((frame) => ({
-        ...frame,
-        layers: (frame.layers || []).map((layer) => ({
-          ...layer,
-          canvasPixels: undefined,
-        })),
-      })),
-      createdAt: project.value.createdAt,
-      updatedAt: Date.now(),
-    }
-
-    const jsonUploadResult = await uploadPixelJSON(projectData)
-    const editableFileUrl = jsonUploadResult.fileUrl
-
-    // Step 2: Upload doodle/pixels data from first frame (existing logic, unchanged)
-    let coverUrl: string | undefined
-    let binFileUrl: string | undefined
-    let binFileSize: number | undefined
-
-    if (project.value.frames && project.value.frames.length > 0) {
-      const firstFrame = project.value.frames[0]
-      if (firstFrame.layers && firstFrame.layers.length > 0) {
-        const firstLayerPixels = firstFrame.layers[0].pixels
-
-        // Upload pixels using uploadDoodle
-        const doodleUploadResult = await uploadDoodle(firstLayerPixels)
-        coverUrl = doodleUploadResult.cover
-        binFileUrl = doodleUploadResult.binFileUrl
-        binFileSize = doodleUploadResult.binSize // uploadDoodle returns binSize
-      }
-    }
-
-    // Step 2b: Static image — upload current selected frame pixels as binFileUrl via STATIC_BIN
-    if (project.value.frames && project.value.frames.length === 1) {
-      const pixels = compositeFrame(currentFrame.value)
-      const staticDoodleResult = await uploadDoodle(pixels)
-      binFileUrl = staticDoodleResult.binFileUrl
-      binFileSize = staticDoodleResult.binSize
-      coverUrl = coverUrl || staticDoodleResult.cover
-    }
-
-    // Step 2c: Animated image — encode all frames to GIF and upload via GIF_FILE
-    let gifFileSize: number | undefined
-    if (project.value.frames && project.value.frames.length > 1) {
-      const gifSourceFrames = project.value.frames.map((frame) => ({
-        delay: frame.delay,
-        pixels: compositeFrame(frame),
-      }))
-      const gifBlob = encodeGif({
-        width: project.value.width,
-        height: project.value.height,
-        scale: 1,
-        frames: gifSourceFrames,
-      })
-      const gifUploadResult = await uploadGif(gifBlob)
-      coverUrl = gifUploadResult.cover
-      gifFileSize = gifUploadResult.fileSize
-    }
-
-    // Step 3: Create or Update work via API
-    const isGif = (project.value.frames?.length || 0) > 1
-    const workData: CreatorWorkSaveRequest = {
-      title: project.value.name,
-      type: isGif ? 'GIF' : 'STATIC',
-      gifFileUrl: isGif ? coverUrl : undefined,
-      gifFileSize: isGif ? gifFileSize : undefined,
-      editableFileUrl: editableFileUrl,
-      coverUrl: coverUrl,
-      binFileUrl: isGif ? undefined : binFileUrl,
-      binFileSize: isGif ? undefined : 1024,
-      width: project.value.width,
-      height: project.value.height,
-      frameCount: project.value.frames.length,
-      frameDelay: project.value.frames[0]?.delay || 120,
-    }
-
-    let workResult: string | void
-
-    // 判断是创建还是更新
-    if (editingWorkId.value) {
-      // 编辑模式：更新已有作品
-      console.log('Updating existing work:', editingWorkId.value)
-      await updateWorkApi(editingWorkId.value, workData)
-      workResult = editingWorkId.value
-      console.log('Work updated successfully:', workResult)
-    } else {
-      // 创建模式：新建作品
-      console.log('Creating new work')
-      const createResponse = await createWorkApi(workData)
-      // createWorkApi 返回 ApiResult<string>，取出 result 中的 workId
-      workResult = typeof createResponse === 'object' && createResponse?.result
-        ? String(createResponse.result)
-        : String(createResponse)
-      console.log('Work created successfully:', workResult)
-    }
-
-    // 如果是新创建的作品，记录 ID
-    if (workResult && !editingWorkId.value) {
-      editingWorkId.value = workResult
+    await saveOSSOnly()
+    if (!isValidWork()) {
+      console.log('false')
+      return
     }
 
     status.value = t('common.pxm_editor_saved')
@@ -1437,7 +1518,6 @@ async function handleSaveToOSS(): Promise<void> {
   } finally {
     saving.value = false
   }
-
 }
 
 async function backHome() {
@@ -2932,11 +3012,25 @@ onMounted(() => {
     //   alert('初始化直接进入')
     handleNewProject()
   }
+
+  // 启动自动保存：每 30 秒轮询一次
+  autoSaveTimer.value = window.setInterval(() => {
+    doSilentSave().catch((err) => {
+      console.warn('Auto-save tick error:', err)
+    })
+  }, AUTO_SAVE_INTERVAL)
 })
 
 onBeforeUnmount(() => {
+  // 离开页面前尝试一次静默保存
+  doSilentSave().catch(() => {})
   if (keydownHandler.value) {
     window.removeEventListener('keydown', keydownHandler.value)
+  }
+  // 清理定时器
+  if (autoSaveTimer.value) {
+    window.clearInterval(autoSaveTimer.value)
+    autoSaveTimer.value = null
   }
 })
 
