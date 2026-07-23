@@ -606,7 +606,7 @@ const { t, getCurrentLocale } = useAppI18n()
 const currentLocale = getCurrentLocale()
 
 // Upload functions
-import { uploadPixelJSON, uploadDoodle } from '@/lib/images/uploadFile'
+import { uploadPixelJSON, uploadDoodle, uploadGif } from '@/lib/images/uploadFile'
 
 // API
 import { createWorkApi, updateWorkApi, getWorkDetailApi } from '@/api/works'
@@ -1345,7 +1345,7 @@ async function handleSaveToOSS(): Promise<void> {
     const jsonUploadResult = await uploadPixelJSON(projectData)
     const editableFileUrl = jsonUploadResult.fileUrl
 
-    // Step 2: Upload doodle/pixels data from first frame
+    // Step 2: Upload doodle/pixels data from first frame (existing logic, unchanged)
     let coverUrl: string | undefined
     let binFileUrl: string | undefined
     let binFileSize: number | undefined
@@ -1361,6 +1361,31 @@ async function handleSaveToOSS(): Promise<void> {
         binFileUrl = doodleUploadResult.binFileUrl
         binFileSize = doodleUploadResult.binSize // uploadDoodle returns binSize
       }
+    }
+
+    // Step 2b: Static image — upload current selected frame pixels as binFileUrl via STATIC_BIN
+    if (project.value.frames && project.value.frames.length === 1) {
+      const pixels = compositeFrame(currentFrame.value)
+      const staticDoodleResult = await uploadDoodle(pixels)
+      binFileUrl = staticDoodleResult.binFileUrl
+      binFileSize = staticDoodleResult.binSize
+      coverUrl = coverUrl || staticDoodleResult.cover
+    }
+
+    // Step 2c: Animated image — encode all frames to GIF and upload via GIF_FILE
+    if (project.value.frames && project.value.frames.length > 1) {
+      const gifSourceFrames = project.value.frames.map((frame) => ({
+        delay: frame.delay,
+        pixels: compositeFrame(frame),
+      }))
+      const gifBlob = encodeGif({
+        width: project.value.width,
+        height: project.value.height,
+        scale: 1,
+        frames: gifSourceFrames,
+      })
+      const gifUploadResult = await uploadGif(gifBlob)
+      coverUrl = gifUploadResult.cover
     }
 
     // Step 3: Create or Update work via API

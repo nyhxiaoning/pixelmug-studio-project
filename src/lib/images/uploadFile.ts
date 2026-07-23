@@ -374,7 +374,7 @@ export const uploadDoodle = (colors: Array<string>): Promise<any> => {
   });
 };
 
-export const uploadGif = (file: File): Promise<AddArtifactParam> => {
+export const uploadGif = (file: Blob | File): Promise<AddArtifactParam> => {
   // const { t } = useAppI18n()
   return new Promise((resolve, reject) => {
     uploadFile(file, defaultGifName, UploadFileEnum.GIF)
