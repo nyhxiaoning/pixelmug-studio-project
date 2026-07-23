@@ -1437,6 +1437,8 @@ async function handleSaveToOSS(): Promise<void> {
   } finally {
     saving.value = false
   }
+
+  router.push('/works')
 }
 
 async function backHome() {
