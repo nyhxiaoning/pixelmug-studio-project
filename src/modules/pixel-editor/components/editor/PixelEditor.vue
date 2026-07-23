@@ -1415,12 +1415,16 @@ async function handleSaveToOSS(): Promise<void> {
     } else {
       // 创建模式：新建作品
       console.log('Creating new work')
-      workResult = await createWorkApi(workData)
+      const createResponse = await createWorkApi(workData)
+      // createWorkApi 返回 ApiResult<string>，取出 result 中的 workId
+      workResult = typeof createResponse === 'object' && createResponse?.result
+        ? String(createResponse.result)
+        : String(createResponse)
       console.log('Work created successfully:', workResult)
     }
 
     // 如果是新创建的作品，记录 ID
-    if (workResult && typeof workResult === 'string' && !editingWorkId.value) {
+    if (workResult && !editingWorkId.value) {
       editingWorkId.value = workResult
     }
 
