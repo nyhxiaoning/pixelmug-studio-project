@@ -913,6 +913,7 @@ const sendWorkToDevice = async (work: WorkItem) => {
     })
     const failed = (res.result ?? []).filter((r) => !r.success)
     if (failed.length === 0) {
+      ElMessage.success(t('common.pxm_editor_push_selected_success'))
       // ElMessage.success(
       //   `【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`
       // )
@@ -921,7 +922,7 @@ const sendWorkToDevice = async (work: WorkItem) => {
     }
   } catch (e) {
     console.error('preview error:', e)
-    ElMessage.error(t('common.pxm_device_preview_push_error'))
+    ElMessage.error(t('common.pxm_editor_push_failed'))
   }
 }
 
