@@ -106,9 +106,17 @@ function preserveImageDataColors(data: Uint8ClampedArray): (string | null)[] {
 export async function imageFromFile(file: File): Promise<HTMLImageElement> {
   const url = URL.createObjectURL(file);
   const image = new Image();
+  // 兼容性：decode() 失败时回退到 onload
+  const loaded = new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error('图片加载失败，请确认文件格式正确'));
+  });
   image.src = url;
-  await image.decode();
+  await Promise.race([image.decode().then(() => undefined).catch(() => undefined), loaded]);
   URL.revokeObjectURL(url);
+  if (!image.width || !image.height) {
+    throw new Error('图片尺寸无效');
+  }
   return image;
 }
 

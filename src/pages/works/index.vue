@@ -789,7 +789,7 @@ const handleFileUpload = async (e: Event) => {
  * 处理静态图上传
  */
 const handleStaticImageUpload = async (file: File) => {
-  // Step 1: 解析图片为像素数据
+  // Step 1: 解析图片为像素数据（输出 32×16 = 512 像素点）
   const imageFile = await imageFromFile(file)
   const pixels = renderImageToPixels(imageFile, {
     fit: 'contain',
@@ -797,13 +797,26 @@ const handleStaticImageUpload = async (file: File) => {
     cropY: 0.5,
     zoom: 1,
     preserveColors: true,
-    outputWidth: CANVAS_WIDTH,
-    outputHeight: CANVAS_HEIGHT,
+    outputWidth: WIDTH,
+    outputHeight: HEIGHT,
     allowUpscale: false,
     dither: 'none',
   })
 
   console.log('Image parsed to pixels:', pixels.length, 'pixels')
+
+  // Step 1.5: 校验像素数据
+  const validPixels = pixels.filter(p => p != null)
+  console.log('Pixel data validation:', {
+    total: pixels.length,
+    valid: validPixels.length,
+    nullCount: pixels.length - validPixels.length,
+    sample: pixels.slice(0, 8),
+  })
+  if (validPixels.length === 0) {
+    ElMessage.error('图片解析失败，未能提取到有效像素数据，请确认图片格式正确')
+    return
+  }
 
   // Step 2: 创建项目数据
   const projectId = `project_${Date.now()}`
@@ -811,8 +824,8 @@ const handleStaticImageUpload = async (file: File) => {
     id: projectId,
     version: 4,
     name: file.name.split('.')[0],
-    width: CANVAS_WIDTH,
-    height: CANVAS_HEIGHT,
+    width: WIDTH,
+    height: HEIGHT,
     currentFrameIndex: 0,
     activeLayer: 0,
     frames: [

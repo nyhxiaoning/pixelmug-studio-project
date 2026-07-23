@@ -330,7 +330,24 @@ export const uploadStaticImageWithJson = async (
       const pngBlob = await convertRgb565BlobToPng(rgb565Blob, defaultImageSize.width, defaultImageSize.height)
       const pngUploadRes = await uploadFile(pngBlob, sanitizeFileName(file.name), 'STATIC_BIN')
 
-      // Step 4: 上传项目 JSON 数据
+      // Step 4: 校验项目数据中的像素数据
+      const frames = (projectData as any)?.frames || []
+      if (frames.length > 0) {
+        const firstLayerPixels = frames[0]?.layers?.[0]?.pixels
+        if (Array.isArray(firstLayerPixels)) {
+          const nullCount = firstLayerPixels.filter(p => p == null).length
+          console.log('[uploadStaticImageWithJson] 像素数据校验:', {
+            total: firstLayerPixels.length,
+            nullCount,
+            colorCount: firstLayerPixels.length - nullCount,
+            sample: firstLayerPixels.slice(0, 5),
+          })
+        } else {
+          console.warn('[uploadStaticImageWithJson] 警告: 未检测到像素数据，frames[0].layers[0].pixels 不存在或不是数组')
+        }
+      }
+
+      // Step 5: 上传项目 JSON 数据
       const jsonUploadRes = await uploadPixelJSON(projectData)
 
       resolve({
@@ -340,23 +357,26 @@ export const uploadStaticImageWithJson = async (
         editableFileUrl: jsonUploadRes.fileUrl,
       });
     } catch (error) {
+      console.error('[uploadStaticImageWithJson] 上传失败:', error)
       reject(error);
     }
   });
 };
 
-export const uploadDoodle = (colors: Array<string>): Promise<any> => {
+export const uploadDoodle = (colors: Array<string | null>): Promise<any> => {
   // alert('uploadDoodle');
   // const { t } = useAppI18n()
   console.log('上传涂鸦colors is', colors[0]);
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     try {
-      const jsonBlob = colorsToJsonBlob(colors);
+      // 将 null 像素替换为默认颜色，避免下游转换出错
+      const filledColors = colors.map((c) => c || '#CACACA')
+      const jsonBlob = colorsToJsonBlob(filledColors);
       const jsonFileUpload = await uploadFile(jsonBlob, doodleJsonFileName, 'STATIC_BIN');
-      const doodleImgBlob = await convertHexArrayToPng(colors, defaultImageSize.width, defaultImageSize.height);
+      const doodleImgBlob = await convertHexArrayToPng(filledColors, defaultImageSize.width, defaultImageSize.height);
       const pngFileUpload = await uploadFile(doodleImgBlob, doodleImgFileName, 'STATIC_BIN');
-      const colorBlob = colorsToBlob(colors);
+      const colorBlob = colorsToBlob(filledColors);
       const binFileUpload = await uploadFile(colorBlob, binFileName, 'STATIC_BIN');
 
       resolve({

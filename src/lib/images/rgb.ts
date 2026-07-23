@@ -43,10 +43,10 @@ export const convertImageToRGB565 = (imageFile: any, type: UploadFileEnum) => {
     img.src = type === UploadFileEnum.BASE64IMG ? imageFile : URL.createObjectURL(imageFile);
   });
 };
-export const colorsToJsonBlob = (colors: Array<string>): Blob => {
+export const colorsToJsonBlob = (colors: Array<string | null>): Blob => {
   return new Blob([JSON.stringify(colors)], { type: 'application/json' });
 };
-export const colorsToBlob = (colors: Array<string>) => {
+export const colorsToBlob = (colors: Array<string | null>) => {
   if (!colors || colors.length === 0) {
     throw new Error('Colors array is empty or undefined.');
   }
@@ -55,7 +55,7 @@ export const colorsToBlob = (colors: Array<string>) => {
     if (color) {
       return convertToRGB565(color);
     }
-    return '';
+    return 0; // null / 空值 → 黑色 (0,0,0)
   });
 
   const byteArray = new Uint8Array(colorsRGB565.length * 2);
@@ -140,7 +140,7 @@ export const convertRgb565BlobToPng = (blob, targetWidth, targetHeight) => {
   });
 };
 
-export const convertHexArrayToPng = (colors, width, height) => {
+export const convertHexArrayToPng = (colors: Array<string | null>, width, height) => {
   const newArray = Array.from({ length: 512 }, (_, index) => colors[index]);
   return new Promise((resolve, reject) => {
     try {
