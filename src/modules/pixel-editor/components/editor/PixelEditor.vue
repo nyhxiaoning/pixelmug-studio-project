@@ -789,7 +789,7 @@ const exportScale = ref<number>(1)
 const frameDelayInput = ref<string>(
   String(firstProject.value.frames[firstProject.value.currentFrameIndex || 0]?.delay || 120)
 )
-const status = ref<string>('准备就绪')
+const status = ref<string>(t('common.pxm_editor_ready'))
 
 // Drawing interaction state
 const drawing = ref<boolean>(false)

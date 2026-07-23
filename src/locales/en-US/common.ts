@@ -133,6 +133,8 @@ export default {
   pxm_publish_incomplete: 'This work cannot be submitted yet. Complete the information and try again.',
 
   // ====================== 像素编辑器模块 ======================
+  pxm_editor_theme_light:'Light color',
+  pxm_editor_theme_dark:'Dark color',
   pxm_editor_title_label: 'Work title',
   pxm_editor_save: 'Save',
   pxm_editor_isornot_tile:"Save current work?",

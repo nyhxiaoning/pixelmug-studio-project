@@ -11,7 +11,7 @@
       <svg class="pe-theme-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
       </svg>
-      <span class="pe-theme-label">深色</span>
+      <span class="pe-theme-label">{{$t('common.pxm_editor_theme_dark')}}</span>
     </button>
     <button
       type="button"
@@ -28,7 +28,7 @@
           clip-rule="evenodd"
         />
       </svg>
-      <span class="pe-theme-label">浅色</span>
+      <span class="pe-theme-label">{{$t('common.pxm_editor_theme_light')}}</span>
     </button>
   </div>
 </template>

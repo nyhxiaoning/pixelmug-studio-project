@@ -133,6 +133,8 @@ export default {
   pxm_publish_incomplete: '作品暂不可提交，请完善信息后重试',
 
   // ====================== 像素编辑器模块 ======================
+  pxm_editor_theme_light:'浅色',
+  pxm_editor_theme_dark:'深色',
   pxm_editor_title_label: '作品标题',
   pxm_editor_save: '保存',
   pxm_editor_isornot_tile:"是否保存当前的作品？",
