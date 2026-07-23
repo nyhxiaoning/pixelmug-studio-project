@@ -325,7 +325,7 @@
           :class="{ disabled: saving }"
           @click="handleSaveToOSS"
         >
-          {{  t('common.pxm_editor_save') }}
+          {{ t('common.pxm_editor_save') }}
         </el-button>
         <el-button type="button" class="pe-save-btn" @click="backHome">
           {{ t('common.pxm_editor_back_home') }}
@@ -1376,7 +1376,7 @@ async function doSilentSave(): Promise<boolean> {
 
     if (!isValidWork()) {
       console.log('false')
-      return false;
+      return false
     }
 
     lastSaveTimestamp.value = Date.now()
@@ -1416,10 +1416,6 @@ async function saveOSSOnly(): Promise<void> {
     updatedAt: Date.now(),
   }
 
-  if (!isValidWork()) {
-    console.log('false')
-    return
-  }
 
   const jsonUploadResult = await uploadPixelJSON(projectData)
   const editableFileUrl = jsonUploadResult.fileUrl
@@ -1500,14 +1496,15 @@ async function handleSaveToOSS(): Promise<void> {
   if (saving.value) return
 
   try {
-    saving.value = true
-    status.value = t('common.pxm_editor_saving')
-
-    await saveOSSOnly()
     if (!isValidWork()) {
       console.log('false')
       return
     }
+
+    saving.value = true
+    status.value = t('common.pxm_editor_saving')
+
+    await saveOSSOnly()
 
     status.value = t('common.pxm_editor_saved')
     ElMessage.success(t('common.pxm_editor_saved'))
