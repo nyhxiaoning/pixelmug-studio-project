@@ -341,12 +341,6 @@ async function loadTableDataInitial() {
       status,
     })
 
-    if (pageNum == 1) {
-      statData.value.live = res.result?.publishedCount || 0
-      statData.value.review = res.result?.reviewingCount || 0
-      statData.value.draft = res.result?.applicableCount || 0
-    }
-
     tableTotalCount.value = res.result?.page?.total ?? tableTotalCount.value
     const newItems = (res.result?.page?.list ?? []).map(toTableRow)
     if (tableData.value.length === 0) {
@@ -374,7 +368,7 @@ async function resetTableData() {
 
 /** 滚动加载更多（追加而非替换） */
 async function loadTableDataMore() {
-  if (loadingMore.value || !hasMore.value) return
+  if (loadingMore.value || loadingInitial.value || !hasMore.value) return
   try {
     loadingMore.value = true
     // 使用当前页码（不 +1，避免和 loadTableDataInitial 的递进逻辑冲突）
