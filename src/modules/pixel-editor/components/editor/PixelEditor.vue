@@ -327,12 +327,8 @@
         >
           {{ saving ? t('common.pxm_editor_saving') : t('common.pxm_editor_save') }}
         </el-button>
-        <el-button
-          type="button"
-          class="pe-save-btn"
-          @click="backHome"
-        >
-          {{  t('common.pxm_editor_back_home') }}
+        <el-button type="button" class="pe-save-btn" @click="backHome">
+          {{ t('common.pxm_editor_back_home') }}
         </el-button>
       </div>
 
@@ -1438,20 +1434,12 @@ async function handleSaveToOSS(): Promise<void> {
     saving.value = false
   }
 
-  router.push('/works')
 }
 
 async function backHome() {
-  ElMessageBox.confirm(t('common.pxm_editor_isornot_tile'), t('common.pxm_publish_confirm_title'), {
-    type: 'warning',
-    confirmButtonText: t('common.pxm_common_confirm'),
-    cancelButtonText: t('common.pxm_common_cancel'),
-  }).then(async (res) => {
-    await handleSaveToOSS()
-    router.push('/works')
-  }).catch(error=>{
-      router.push('/works')
-  })
+  // 点击保存的时候，首先拿到之前这个作品有没有
+  await handleSaveToOSS()
+  router.push('/works')
 }
 
 // Project management
@@ -2957,4 +2945,4 @@ defineExpose({
 
 <!-- <script lang="ts" src="./PixelEditor.ts"></script> -->
 
-<style  lang="css" src="./styles.css" />
+<style lang="css" src="./styles.css" />
