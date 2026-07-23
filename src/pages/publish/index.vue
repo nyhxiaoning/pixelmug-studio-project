@@ -71,7 +71,10 @@
         </div>
 
         <!-- 发布管理表格 -->
-        <el-empty v-if="tableData.length === 0 && !loadingInitial" :description="$t('common.pxm_editor_library_empty')" />
+        <el-empty
+          v-if="tableData.length === 0 && !loadingInitial"
+          :description="$t('common.pxm_editor_library_empty')"
+        />
         <div v-else class="publish-table-wrap">
           <el-table
             :data="tableData"
@@ -340,6 +343,12 @@ async function loadTableDataInitial() {
       pageSize: tablePageSize.value,
       status,
     })
+
+    if (pageNum == 1) {
+      statData.value.live = res.result?.publishedCount || 0
+      statData.value.review = res.result?.reviewingCount || 0
+      statData.value.draft = res.result?.applicableCount || 0
+    }
 
     tableTotalCount.value = res.result?.page?.total ?? tableTotalCount.value
     const newItems = (res.result?.page?.list ?? []).map(toTableRow)
