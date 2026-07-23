@@ -483,12 +483,13 @@ export const checkFile = async (file: any, t: any) => {
       throw new Error(t('common.gifSizeError'));
 
     }
-    return isGifSizeValid(file).then((resut) => {
-      if (resut) {
-        ElMessage.error(t('common.gifSpecsError'))
-        throw new Error(t('common.gifSpecsError'));
-      }
-    });
+    return true;
+    // return isGifSizeValid(file).then((resut) => {
+    //   if (resut) {
+    //     ElMessage.error(t('common.gifSpecsError'))
+    //     throw new Error(t('common.gifSpecsError'));
+    //   }
+    // });
   } else {
     ElMessage.error(t('common.fileTypeError'))
     throw new Error(t('common.fileTypeError'));
