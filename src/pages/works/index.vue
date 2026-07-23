@@ -435,6 +435,7 @@ import { useAppI18n } from '@/common/composables/useI18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
+import { type } from '../../../auto-imports';
 
 const router = useRouter()
 const { t } = useAppI18n()
@@ -457,6 +458,7 @@ const loading = ref(false)
 // ===================== 接口数据适配 =====================
 /** 作品列表条目 */
 interface WorkItem {
+  type:string,
   id: string
   title: string
   createdAt: string
@@ -466,12 +468,14 @@ interface WorkItem {
   gifFileUrl: string
   gifFileSize: number
   editableFileUrl: string
+  binFileUrl:string
   binFileSize: number
 }
 
 /** 将接口 CreatorWorkVO 适配为 UI 内部 workItem */
 function toWorkItem(api: CreatorWorkVO): WorkItem {
   return {
+    type:api?.type?api?.type:'',
     id: api.id,
     title: api.title,
     createdAt: formatDate(api.createTime),
@@ -482,6 +486,7 @@ function toWorkItem(api: CreatorWorkVO): WorkItem {
     gifFileSize: api.gifFileSize ?? 0,
     editableFileUrl: api.editableFileUrl ?? '',
     binFileSize: api.binFileSize ?? 0,
+    binFileUrl:api.binFileUrl??''
   }
 }
 
@@ -898,10 +903,12 @@ const sendWorkToDevice = async (work: WorkItem) => {
       ElMessage.warning('作品暂无可用文件，无法预览')
       return
     }
+
+    // 增加一下这里的work
     const res = await previewToDeviceApi({
       deviceIds: selectedDevices.value.map((d) => d.id),
-      type: work.gifFileUrl ? 'GIF' : 'STATIC',
-      fileUrl,
+      type: work.type as any,
+      fileUrl:work.type==='GIF'?work.gifFileUrl:work.binFileUrl,
       fileSize: work.gifFileUrl ? work?.gifFileSize : work.binFileSize,
     })
     const failed = (res.result ?? []).filter((r) => !r.success)

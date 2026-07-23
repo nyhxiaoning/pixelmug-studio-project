@@ -1373,6 +1373,7 @@ async function handleSaveToOSS(): Promise<void> {
     }
 
     // Step 2c: Animated image — encode all frames to GIF and upload via GIF_FILE
+    let gifFileSize: number | undefined
     if (project.value.frames && project.value.frames.length > 1) {
       const gifSourceFrames = project.value.frames.map((frame) => ({
         delay: frame.delay,
@@ -1386,6 +1387,7 @@ async function handleSaveToOSS(): Promise<void> {
       })
       const gifUploadResult = await uploadGif(gifBlob)
       coverUrl = gifUploadResult.cover
+      gifFileSize = gifUploadResult.fileSize
     }
 
     // Step 3: Create or Update work via API
@@ -1394,11 +1396,11 @@ async function handleSaveToOSS(): Promise<void> {
       title: project.value.name,
       type: isGif ? 'GIF' : 'STATIC',
       gifFileUrl: isGif ? coverUrl : undefined,
-      gifFileSize: isGif ? binFileSize : undefined,
+      gifFileSize: isGif ? gifFileSize : undefined,
       editableFileUrl: editableFileUrl,
       coverUrl: coverUrl,
-      binFileUrl: binFileUrl,
-      binFileSize: binFileSize,
+      binFileUrl: isGif ? undefined : binFileUrl,
+      binFileSize: isGif ? undefined : 1024,
       width: project.value.width,
       height: project.value.height,
       frameCount: project.value.frames.length,
