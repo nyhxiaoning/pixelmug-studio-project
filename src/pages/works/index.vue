@@ -913,7 +913,7 @@ const sendWorkToDevice = async (work: WorkItem) => {
     console.log('sendWorkToDevice-work', work)
     const fileUrl = work.coverUrl || work.gifFileUrl || work.editableFileUrl || ''
     if (!fileUrl) {
-      ElMessage.warning('作品暂无可用文件，无法预览')
+      ElMessage.warning(t('common.pxm_preview_unavailable'))
       return
     }
 
@@ -931,6 +931,9 @@ const sendWorkToDevice = async (work: WorkItem) => {
       //   `【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`
       // )
     } else {
+
+      alert(JSON.stringify(failed))
+
       ElMessage.warning(`部分设备推送失败：${failed.map((f) => f.message).join('；')}`)
     }
   } catch (e) {

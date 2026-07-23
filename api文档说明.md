@@ -665,8 +665,251 @@ interface BinaryHeader {
 
 **核心原则**：编辑和播放走两条路。编辑走分层 JSON（可回写、可 diff），播放走预渲染位图（GIF/PNG，浏览器原生播放）。两者在同一后端记录下共存，互不干扰。
 
+---
 
+## 十、上传与保存逻辑流程
 
+### 10.1 总体架构
+
+```
+用户点击保存
+    │
+    ▼
+handleSaveToOSS()  ── PixelEditor.vue
+    │
+    ├── Step 1: 上传可编辑 JSON（uploadPixelJSON）
+    │       │
+    │       ▼
+    │   uploadeditorJson() → OSS（EDITABLE_JSON 类型）
+    │       │
+    │       └── 返回 editableFileUrl
+    │
+    ├── Step 2a: 从第一帧第一层上传像素数据（uploadDoodle）— 原有逻辑，保留兼容
+    │       │
+    │       ▼
+    │   uploadDoodle(firstFrame.layers[0].pixels)
+    │       │
+    │       ├── colorsToJsonBlob()  →  OSS（STATIC_BIN / doodle.json）
+    │       ├── convertHexArrayToPng() →  OSS（STATIC_BIN / doodle.png）
+    │       └── colorsToBlob()       →  OSS（STATIC_BIN / img.bin）
+    │           │
+    │           └── 返回 binFileUrl / cover / binSize
+    │
+    ├── Step 2b: 静态图（1帧）— 用当前选中帧的合并像素覆盖 binFileUrl
+    │       │
+    │       ▼（仅在 frames.length === 1 时执行）
+    │   compositeFrame(currentFrame) → 合并所有图层 → 512 像素数组
+    │       │
+    │       ▼
+    │   uploadDoodle(compositedPixels)  →  同上，走 STATIC_BIN
+    │       │
+    │       └── 覆盖 binFileUrl / binSize（RGB565 二进制，固定 1024 字节）
+    │
+    ├── Step 2c: 动图（>1帧）— 编码 GIF 并上传
+    │       │
+    │       ▼（仅在 frames.length > 1 时执行）
+    │   project.frames.map(frame → compositeFrame(frame))
+    │       │   每帧 layers 实时 alpha 混合 → 512 像素数组
+    │       ▼
+    │   encodeGif({ width, height, scale:1, frames })
+    │       │   输出 Blob（image/gif）
+    │       ▼
+    │   uploadGif(gifBlob)  →  OSS（GIF_FILE 类型 / jeejio.gif）
+    │       │
+    │       └── 返回 gifFileUrl / gifFileSize（实际 GIF 文件大小）
+    │
+    ├── Step 3: 组装 CreatorWorkSaveRequest 并创建/更新作品
+    │       │
+    │       ├── isGif = frames.length > 1
+    │       ├── 静态图：type=STATIC，binFileUrl=远程URL，binFileSize=1024
+    │       └── 动图：type=GIF，gifFileUrl=远程URL，gifFileSize=实际大小
+    │       │
+    │       ▼
+    │   editingWorkId ? updateWorkApi() : createWorkApi()
+    │
+    └── Step 4: 跳转作品列表页
+```
+
+### 10.2 关键文件与函数
+
+| 文件 | 函数 | 职责 |
+|------|------|------|
+| `PixelEditor.vue` | `handleSaveToOSS()` | 保存总入口，编排 Step 1~3 |
+| `uploadFile.ts` | `uploadPixelJSON(data)` | 将 projectData 序列化为 JSON 上传 |
+| `uploadFile.ts` | `uploadDoodle(colors)` | 将 512 像素数组转 RGB565 + PNG + JSON 三元上传 |
+| `uploadFile.ts` | `uploadGif(blob)` | 将 GIF Blob 上传到 OSS |
+| `rgb.ts` | `colorsToBlob(colors)` | 512 颜色数组 → RGB565 Uint8Array → Blob（1024 字节） |
+| `rgb.ts` | `colorsToJsonBlob(colors)` | 512 颜色数组 → JSON Blob |
+| `rgb.ts` | `convertHexArrayToPng(colors)` | 512 颜色数组 → 64×16 PNG Blob |
+| `rgb.ts` | `convertToRGB565(hex)` | 单个 hex 颜色 → RGB565 整数 |
+| `gif-encoder.ts` | `encodeGif(options)` | 多帧像素数据 → GIF89a Blob |
+| `core/index.ts` | `compositeFrame(frame)` | 将 frame 的所有 layers alpha 混合 → 512 像素密集数组 |
+| `image-import.ts` | `renderImageToPixels(image, opts)` | 图片 → 像素数组（支持 dithering / preserveColors） |
+| `AliOSS.ts` | `createOssClient(type)` | 根据类型获取 OSS STS 凭证和客户端 |
+
+### 10.3 静态图 vs 动图 上传差异
+
+| 维度 | 静态图（1帧） | 动图（>1帧） |
+|------|------------|------------|
+| **像素数据** | `compositeFrame(currentFrame)` 512px | 每帧 `compositeFrame(frame)` → 512px × N |
+| **GIF 编码** | ❌ 不编码 | ✅ `encodeGif()` 合成 GIF Blob |
+| **GIF 上传** | ❌ | ✅ `uploadGif(gifBlob)` → `GIF_FILE` |
+| **binFileUrl** | `uploadDoodle` → `STATIC_BIN` / `img.bin` | 不传（用 gifFileUrl 代替） |
+| **binFileSize** | `1024`（固定，512×2 字节） | `undefined` |
+| **gifFileSize** | `undefined` | GIF Blob 实际大小 |
+| **works 接口 type** | `STATIC` | `GIF` |
+| **上传 OSS 类型** | `STATIC_BIN` | `GIF_FILE` |
+
+### 10.4 OSS 上传类型说明
+
+| 类型常量 | OSS role | 文件命名 | 用途 |
+|---------|---------|---------|------|
+| `COVER_IMAGE` | `COVER_IMAGE` | 原始文件名 | 封面图（原始图片） |
+| `STATIC_BIN` | `STATIC_BIN` | `img.bin` / `doodle.png` / `doodle.json` | RGB565 二进制 + 预览 PNG + 像素 JSON |
+| `EDITABLE_JSON` | `EDITABLE_JSON` | `{项目名}.json` | 完整可编辑项目数据 |
+| `GIF_FILE` | `GIF_FILE` | `jeejio.gif` | GIF 动图文件 |
+
+### 10.5 RGB565 二进制格式
+
+```
+像素数组（512 个 hex 颜色）
+    │
+    ▼ colorsToBlob()
+    │
+Uint8Array[1024]  ←  512 × 2 字节
+    │
+    ├── [0]  = 第 1 像素高字节  (rgb565 >>> 8) & 0xff
+    ├── [1]  = 第 1 像素低字节  rgb565 & 0xff
+    ├── [2]  = 第 2 像素高字节
+    ├── [3]  = 第 2 像素低字节
+    │   ...
+    └── [1023] = 第 512 像素低字节
+
+RGB565 编码公式：
+  r5 = R(8bit) >> 3   → 5 bits
+  g6 = G(8bit) >> 2   → 6 bits
+  b5 = B(8bit) >> 3   → 5 bits
+  rgb565 = (r5 << 11) | (g6 << 5) | b5
+```
+
+### 10.6 像素数据约束
+
+| 项目 | 值 |
+|------|-----|
+| 像素网格尺寸 | `WIDTH × HEIGHT = 32 × 16` |
+| 像素总数 | `PIXELS = 512` |
+| 画布显示尺寸 | `CANVAS_WIDTH × CANVAS_HEIGHT = 256 × 256` |
+| 调色板 | 24 色 PICO-8 风格 |
+| 空像素值 | `null`（JSON） / `#CACACA`（二进制兜底） |
+| JSON 像素数组长度 | **必须为 512**（若为 65536 则错误地用了 CANVAS 尺寸） |
+
+### 10.7 前端图片上传流程（works/index.vue）
+
+#### 静态图上传（handleStaticImageUpload）
+
+```
+用户选择图片文件
+    │
+    ▼
+imageFromFile(file)          ← 解码图片 → HTMLImageElement
+    │
+    ▼
+renderImageToPixels(image, {   ← outputWidth: WIDTH(32), outputHeight: HEIGHT(16)
+    preserveColors: true       → 输出 512 像素数组
+})
+    │
+    ▼
+构造 projectData（1 帧 1 层，pixels: 512 元素数组）
+    │
+    ▼
+uploadStaticImageWithJson(file, projectData)
+    │
+    ├── uploadFile(file, 'COVER_IMAGE')           → 原始图片上传
+    ├── convertImageToRGB565(file)                → RGB565 Blob
+    │       └── uploadFile(rgb565Blob, 'img.bin') → STATIC_BIN
+    ├── convertRgb565BlobToPng(rgb565Blob)        → 64×16 PNG Blob
+    │       └── uploadFile(pngBlob, name, 'STATIC_BIN')
+    └── uploadPixelJSON(projectData)              → EDITABLE_JSON
+    │
+    ▼
+createWorkApi(workData)  →  type=STATIC, binFileUrl, binFileSize=1024
+    │
+    ▼
+fetchWorks() 刷新列表
+```
+
+#### GIF 上传（handleFileUpload → GIF 分支）
+
+```
+用户选择 GIF 文件
+    │
+    ▼
+decodeGifFrames(file)         ← 解码 GIF → [{ image, delay }]
+    │
+    ▼
+framesData = gifFrames.map(frame → ({
+    delay, pixels: renderImageToPixels(image)   // 每帧 512 像素
+}))
+    │
+    ▼
+uploadGifWithFrames(file, framesData)
+    │
+    ├── uploadPixelJSON(projectData)   → EDITABLE_JSON（含所有帧 layers）
+    └── uploadGif(file)               → GIF_FILE
+    │
+    ▼
+createWorkApi(workData)  →  type=GIF, gifFileUrl, gifFileSize=实际大小
+    │
+    ▼
+fetchWorks() 刷新列表
+```
+
+### 10.8 编辑器内保存流程（PixelEditor.vue → handleSaveToOSS）
+
+```
+编辑器内点击保存
+    │
+    ▼
+handleSaveToOSS()
+    │
+    ├── Step 1: uploadPixelJSON(projectData)
+    │       └── 上传完整项目 JSON → EDITABLE_JSON
+    │
+    ├── Step 2a: uploadDoodle(firstFrame.layers[0].pixels)  ← 原有逻辑
+    │       └── 第一帧第一层像素 → STATIC_BIN（img.bin + doodle.png + doodle.json）
+    │
+    ├── Step 2b: 静态图（frames.length === 1）
+    │       ├── compositeFrame(currentFrame)  → 当前帧所有图层混合 → 512px
+    │       └── uploadDoodle(compositedPixels) → 覆盖 binFileUrl / binSize
+    │
+    ├── Step 2c: 动图（frames.length > 1）
+    │       ├── 所有帧 compositeFrame → 512px 数组
+    │       ├── encodeGif() → GIF Blob
+    │       └── uploadGif(gifBlob) → GIF_FILE → 覆盖 coverUrl / gifFileSize
+    │
+    └── createWorkApi / updateWorkApi
+            ├── STATIC: type=STATIC, binFileUrl=远程URL, binFileSize=1024
+            └── GIF:    type=GIF,    gifFileUrl=远程URL, gifFileSize=实际大小
+```
+
+### 10.9 注意事项
+
+1. **像素数组长度必须为 512**：`renderImageToPixels` 的 `outputWidth/outputHeight` 必须传 `WIDTH/HEIGHT`（32×16），不能传 `CANVAS_WIDTH/CANVAS_HEIGHT`（256×256 = 65536）
+
+2. **null 像素处理**：
+   - JSON 中保留 `null`（表示透明/空像素）
+   - 转 RGB565 二进制时，`null` → `#CACACA`（默认灰色），避免位运算出错
+
+3. **静态图 binFileSize 固定 1024**：因为 RGB565 是 512 像素 × 2 字节/像素 = 1024 字节
+
+4. **GIF 的 gifFileSize 取实际值**：来自 `uploadGif` 返回的 Blob 大小，不混用 binFileSize
+
+5. **Oss 凭证按类型隔离**：`COVER_IMAGE` / `STATIC_BIN` / `EDITABLE_JSON` / `GIF_FILE` 四种类型走不同的 OSS 路径和 STS 凭证
+
+6. **编辑保存 vs 首次上传**：
+   - `handleSaveToOSS()`（编辑器内保存）：走 `uploadDoodle` + `encodeGif` + `uploadGif`
+   - `handleStaticImageUpload()`（works 页面上传）：走 `uploadStaticImageWithJson`
+   - 两者最终都通过 `createWorkApi` / `updateWorkApi` 写入后端
 
 ## 图片的数据结构：存储帧内容
 ### 数据内容：
