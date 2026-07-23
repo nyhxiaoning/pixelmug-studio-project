@@ -96,11 +96,13 @@
                 class="device-item"
                 :class="{ offline: dev.online !== 'ONLINE' }"
               >
-                <el-checkbox :label="dev.id" >
+                <el-checkbox :label="dev.id">
                   <span :class="['device-dot', dev.online === 'ONLINE' ? 'online' : 'offline']" />
                   <span class="device-name">{{ dev.name }}</span>
                   <em>{{
-                    dev.online === 'ONLINE' ? $t('common.pxm_device_online') : $t('common.pxm_device_offline')
+                    dev.online === 'ONLINE'
+                      ? $t('common.pxm_device_online')
+                      : $t('common.pxm_device_offline')
                   }}</em>
                 </el-checkbox>
               </div>
@@ -225,8 +227,17 @@
 
     <!-- 作品列表区域 -->
     <template v-if="viewMode === 'grid'">
-      <el-empty v-if="sortedWorkList.length === 0" :description="$t('common.pxm_editor_library_empty')" />
-      <section v-else class="works-grid" v-infinite-scroll="loadMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
+      <el-empty
+        v-if="sortedWorkList.length === 0"
+        :description="$t('common.pxm_editor_library_empty')"
+      />
+      <section
+        v-else
+        class="works-grid"
+        v-infinite-scroll="loadMore"
+        :infinite-scroll-disabled="!hasMore"
+        :infinite-scroll-distance="100"
+      >
         <article
           v-for="work in sortedWorkList"
           :key="work.id"
@@ -248,8 +259,13 @@
               <p>{{ work.createdAt }}</p>
             </div>
             <div class="card-actions">
-              <el-button class="pxm_action_edit_btn" size="small" pxm_action_edit @click.stop="openEditWork(work)">
-                {{$t('common.pxm_action_edit')}}
+              <el-button
+                class="pxm_action_edit_btn"
+                size="small"
+                pxm_action_edit
+                @click.stop="openEditWork(work)"
+              >
+                {{ $t('common.pxm_action_edit') }}
               </el-button>
               <div class="card-icon-actions">
                 <el-button
@@ -317,9 +333,25 @@
     </template>
 
     <template v-else>
-      <el-empty v-if="sortedWorkList.length === 0" :description="$t('common.pxm_editor_library_empty')"/>
-      <section v-else class="works-list" v-infinite-scroll="loadMore" :infinite-scroll-disabled="!hasMore" :infinite-scroll-distance="100">
-        <el-table :data="sortedWorkList" stripe style="width: 100%" @row-click="handleRowClick" v-loading="loadingMore" element-loading-text="Loading...">
+      <el-empty
+        v-if="sortedWorkList.length === 0"
+        :description="$t('common.pxm_editor_library_empty')"
+      />
+      <section
+        v-else
+        class="works-list"
+        v-infinite-scroll="loadMore"
+        :infinite-scroll-disabled="!hasMore"
+        :infinite-scroll-distance="100"
+      >
+        <el-table
+          :data="sortedWorkList"
+          stripe
+          style="width: 100%"
+          @row-click="handleRowClick"
+          v-loading="loadingMore"
+          element-loading-text="Loading..."
+        >
           <el-table-column :label="$t('common.pxm_column_name')" min-width="240">
             <template #default="{ row }">
               <div class="row-name">
@@ -391,7 +423,6 @@
                     <line x1="14" x2="14" y1="11" y2="17" />
                   </svg>
                   &nbsp;{{ $t('common.pxm_action_delete') }}
-
                 </el-button>
               </div>
             </template>
@@ -435,7 +466,7 @@ import { useAppI18n } from '@/common/composables/useI18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
-import { type } from '../../../auto-imports';
+import { type } from '../../../auto-imports'
 
 const router = useRouter()
 const { t } = useAppI18n()
@@ -458,7 +489,7 @@ const loading = ref(false)
 // ===================== 接口数据适配 =====================
 /** 作品列表条目 */
 interface WorkItem {
-  type:string,
+  type: string
   id: string
   title: string
   createdAt: string
@@ -468,14 +499,14 @@ interface WorkItem {
   gifFileUrl: string
   gifFileSize: number
   editableFileUrl: string
-  binFileUrl:string
+  binFileUrl: string
   binFileSize: number
 }
 
 /** 将接口 CreatorWorkVO 适配为 UI 内部 workItem */
 function toWorkItem(api: CreatorWorkVO): WorkItem {
   return {
-    type:api?.type?api?.type:'',
+    type: api?.type ? api?.type : '',
     id: api.id,
     title: api.title,
     createdAt: formatDate(api.createTime),
@@ -486,7 +517,7 @@ function toWorkItem(api: CreatorWorkVO): WorkItem {
     gifFileSize: api.gifFileSize ?? 0,
     editableFileUrl: api.editableFileUrl ?? '',
     binFileSize: api.binFileSize ?? 0,
-    binFileUrl:api.binFileUrl??''
+    binFileUrl: api.binFileUrl ?? '',
   }
 }
 
@@ -626,9 +657,13 @@ async function fetchDevices() {
 }
 
 // 设备选择变化时实时保存到 sessionStorage
-watch(selectedDeviceIds, (ids) => {
-  sessionStorage.setItem(DEVICE_SESSION_KEY, JSON.stringify(ids))
-}, { deep: true })
+watch(
+  selectedDeviceIds,
+  (ids) => {
+    sessionStorage.setItem(DEVICE_SESSION_KEY, JSON.stringify(ids))
+  },
+  { deep: true }
+)
 
 const selectedDevices = computed(() => {
   return deviceList.value.filter((item) => selectedDeviceIds.value.includes(item.id))
@@ -701,7 +736,7 @@ const handleFileUpload = async (e: Event) => {
 
   const fileType = file.type
 
-  await checkFile(file,t)
+  await checkFile(file, t)
 
   try {
     if (fileType === 'image/gif') {
@@ -806,7 +841,7 @@ const handleStaticImageUpload = async (file: File) => {
   console.log('Image parsed to pixels:', pixels.length, 'pixels')
 
   // Step 1.5: 校验像素数据
-  const validPixels = pixels.filter(p => p != null)
+  const validPixels = pixels.filter((p) => p != null)
   console.log('Pixel data validation:', {
     total: pixels.length,
     valid: validPixels.length,
@@ -918,10 +953,11 @@ const sendWorkToDevice = async (work: WorkItem) => {
     }
 
     // 增加一下这里的work
+    let deviceLength = selectedDevices.value.map((d) => d.id).length
     const res = await previewToDeviceApi({
       deviceIds: selectedDevices.value.map((d) => d.id),
       type: work.type as any,
-      fileUrl:work.type==='GIF'?work.gifFileUrl:work.binFileUrl,
+      fileUrl: work.type === 'GIF' ? work.gifFileUrl : work.binFileUrl,
       fileSize: work.gifFileUrl ? work?.gifFileSize : work.binFileSize,
     })
     const failed = (res.result ?? []).filter((r) => !r.success)
@@ -931,10 +967,14 @@ const sendWorkToDevice = async (work: WorkItem) => {
       //   `【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`
       // )
     } else {
+      if (deviceLength == failed.length) {
+        // 长度相等
+        ElMessage.error(t('common.pxm_editor_push_no_device'))
+      } else {
+        ElMessage.error(t('common.pxm_device_partial_failed'))
+      }
 
-      alert(JSON.stringify(failed))
-
-      ElMessage.warning(`部分设备推送失败：${failed.map((f) => f.message).join('；')}`)
+      // ElMessage.warning(`部分设备推送失败：${failed.map((f) => f.message).join('；')}`)
     }
   } catch (e) {
     console.error('preview error:', e)
@@ -1009,7 +1049,6 @@ onMounted(() => {
   gap: 12px;
   margin-bottom: 20px;
 }
-
 
 .works-search {
   width: 200px;
