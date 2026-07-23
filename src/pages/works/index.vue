@@ -330,7 +330,7 @@
                     :alt="row.title"
                     class="preview-image"
                   />
-                  <span class="kind-icon bubble">&#9670;</span>
+                  <!-- <span class="kind-icon bubble">&#9670;</span> -->
                 </div>
                 <span>{{ row.title }}</span>
               </div>
