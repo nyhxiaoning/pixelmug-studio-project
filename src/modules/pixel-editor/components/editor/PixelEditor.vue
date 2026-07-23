@@ -1519,7 +1519,7 @@ async function handleSaveToOSS(): Promise<void> {
 
 async function backHome() {
   // 点击保存的时候，首先拿到之前这个作品有没有
-  await handleSaveToOSS()
+  // await handleSaveToOSS()
   router.push('/works')
 }
 
