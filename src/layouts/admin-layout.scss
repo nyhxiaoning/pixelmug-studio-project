@@ -6,12 +6,15 @@
 
 .admin-sidebar {
   width: var(--app-sidebar-width);
-  min-height: 100vh;
+  height: 100vh;
   padding: 18px 12px;
   background: #fff;
   border-right: 1px solid #e7e7e7;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
 }
 
 .admin-brand {
@@ -24,6 +27,7 @@
   font-weight: 700;
   color: var(--app-heading);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .brand-logo {
@@ -36,6 +40,7 @@
 .sidebar-menu {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .sidebar-group {
@@ -120,6 +125,7 @@
   padding-top: 12px;
   border-top: 1px solid var(--app-border);
   margin-top: auto;
+  flex-shrink: 0;
 }
 
 /* 用户信息卡片 */
