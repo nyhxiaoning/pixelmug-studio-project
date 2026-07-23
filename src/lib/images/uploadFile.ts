@@ -345,7 +345,7 @@ export const uploadStaticImageWithJson = async (
   });
 };
 
-export const uploadDoodle = (colors: Array<string>): Promise<AddArtifactParam> => {
+export const uploadDoodle = (colors: Array<string>): Promise<any> => {
   // alert('uploadDoodle');
   // const { t } = useAppI18n()
   console.log('上传涂鸦colors is', colors[0]);
