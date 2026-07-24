@@ -327,6 +327,31 @@
         >
           {{ t('common.pxm_editor_save') }}
         </el-button>
+        <el-button
+          circle
+          size="small"
+          pxm_action_preview
+          :title="$t('common.pxm_action_preview')"
+          @click.stop="sendWorkToDevice"
+        >
+          <template #icon>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" x2="12" y1="3" y2="15" />
+            </svg>
+          </template>
+        </el-button>
         <el-button type="button" class="pe-save-btn" @click="backHome">
           {{ t('common.pxm_editor_back_home') }}
         </el-button>
@@ -607,6 +632,7 @@ import { uploadPixelJSON, uploadDoodle, uploadGif } from '@/lib/images/uploadFil
 // API
 import { createWorkApi, updateWorkApi, getWorkDetailApi } from '@/api/works'
 import type { CreatorWorkSaveRequest, CreatorWorkVO } from '@/api/works'
+import { listDevicesApi, previewToDeviceApi } from '@/api/device'
 
 // Theme switcher
 import ThemeSwitcher from '../common/ThemeSwitcher.vue'
@@ -1416,7 +1442,6 @@ async function saveOSSOnly(): Promise<void> {
     updatedAt: Date.now(),
   }
 
-
   const jsonUploadResult = await uploadPixelJSON(projectData)
   const editableFileUrl = jsonUploadResult.fileUrl
 
@@ -1489,6 +1514,17 @@ async function saveOSSOnly(): Promise<void> {
         : String(createResponse)
     if (newId) editingWorkId.value = newId
   }
+
+  // 同步更新 editingWork.value.result，保证保存后 URL 字段实时可用
+  // 注意：editingWork 实际存储的是 ApiResult（含 code / message / result）
+  // sendWorkToDevice 通过 editingWork.value.result 取数据，必须更新这里
+  if (editingWork.value?.result) {
+    editingWork.value.result = {
+      ...editingWork.value.result,
+      ...workData,
+      id: editingWork.value.result.id || editingWorkId.value || undefined,
+    }
+  }
 }
 
 // OSS Save & Create/Update Work
@@ -1521,6 +1557,61 @@ async function backHome() {
   // 点击保存的时候，首先拿到之前这个作品有没有
   // await handleSaveToOSS()
   router.push('/works')
+}
+
+
+const sendWorkToDevice = async () => {
+
+  console.log(project.value,'project.value')
+  console.log(projects.value,'projects.value')
+
+  const work = editingWork.value?.result as any;
+  console.log(editingWork.value,'editingWork.value')
+  const DEVICE_SESSION_KEY = 'creator.preview.deviceIds'
+  const selectedDevicesJSON = sessionStorage.getItem(DEVICE_SESSION_KEY)
+  const selectedDevices = JSON.parse(selectedDevicesJSON) as any;
+
+  if (selectedDevices.length === 0) {
+    ElMessage.warning(t('common.pxm_device_preview_before_bind'))
+    return
+  }
+  try {
+    console.log('sendWorkToDevice-work', work)
+    const fileUrl = work.binFileUrl || work.gifFileUrl || work.editableFileUrl || ''
+    if (!fileUrl) {
+      ElMessage.warning(t('common.pxm_preview_unavailable'))
+      return
+    }
+
+    // 增加一下这里的work
+    let deviceLength = selectedDevices.length
+    const res = await previewToDeviceApi({
+      deviceIds: selectedDevices,
+      type: work.type as any,
+      fileUrl: work.type === 'GIF' ? work.gifFileUrl : work.binFileUrl,
+      fileSize: work.gifFileUrl ? work?.gifFileSize : work.binFileSize,
+    })
+    const failed = (res.result ?? []).filter((r) => !r.success)
+    if (failed.length === 0) {
+      ElMessage.success(t('common.pxm_editor_push_selected_success'))
+      // ElMessage.success(
+      //   `【预览推送】作品《${work.title}》下发至：${selectedDevices.value.map((d) => d.name).join('、')}`
+      // )
+    } else {
+      if (deviceLength == failed.length) {
+        // 长度相等
+        ElMessage.error(t('common.pxm_editor_push_no_device'))
+      } else {
+        ElMessage.error(t('common.pxm_device_partial_failed'))
+      }
+
+      // ElMessage.warning(`部分设备推送失败：${failed.map((f) => f.message).join('；')}`)
+    }
+  } catch (e) {
+    console.error('preview error:', e)
+    ElMessage.error(t('common.pxm_editor_push_failed'))
+  }
+
 }
 
 // Project management

@@ -1026,3 +1026,386 @@ onBeforeUnmount
 
 
 ```
+
+---
+
+## 十二、实际 API 接口文档（后端实现）
+
+> 以下为代码库中实际实现的 API 接口，对应文件：`src/api/works.ts`、`src/api/device.ts`、`src/lib/images/uploadFile.ts`
+
+---
+
+### 12.1 作品管理 API
+
+#### 接口清单
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/creator/works` | 分页查询我的作品 |
+| `GET` | `/creator/works/{id}` | 查询作品详情 |
+| `POST` | `/creator/works` | 创建作品 |
+| `PUT` | `/creator/works/{id}` | 更新作品 |
+| `DELETE` | `/creator/works/{id}` | 删除作品 |
+| `POST` | `/creator/works/upload-token` | 获取 OSS 上传凭证 |
+| `GET` | `/creator/works/releases` | 分页查询发布管理列表（含统计） |
+| `GET` | `/creator/works/release-candidates` | 分页查询可发布作品列表 |
+
+---
+
+#### `GET /creator/works` — 分页查询我的作品
+
+```typescript
+// src/api/works.ts:152
+function pageWorksApi(params: CreatorWorkPageRequest)
+```
+
+**请求参数**
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `pageNumber` | `number` | 是 | 页码 |
+| `pageSize` | `number` | 是 | 每页数量 |
+| `keyword` | `string` | 否 | 关键词搜索 |
+| `sortBy` | `"CREATED_AT" \| "LAST_VIEW_TIME" \| "TITLE"` | 否 | 排序字段 |
+| `direction` | `"ASC" \| "DESC"` | 否 | 排序方向 |
+
+**响应**：`PageResult<CreatorWorkVO>`
+
+---
+
+#### `GET /creator/works/{id}` — 查询作品详情
+
+```typescript
+// src/api/works.ts:164
+function getWorkDetailApi(id: string)
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `id` | `string` | 是 | 作品 ID |
+
+**响应**：`CreatorWorkVO`
+
+**关键用途**：
+- 进入编辑器时通过此接口获取 `editableFileUrl`，用于加载可编辑的 JSON 像素数据
+- 获取 `binFileUrl` / `gifFileUrl`，用于设备预览推送
+- 完整作品数据包含所有帧、图层、像素信息
+
+---
+
+#### `POST /creator/works` — 创建作品
+
+```typescript
+// src/api/works.ts:175
+function createWorkApi(data: CreatorWorkSaveRequest)
+```
+
+**请求体**：`CreatorWorkSaveRequest`
+
+**响应**：`string`（新作品 ID）
+
+---
+
+#### `PUT /creator/works/{id}` — 更新作品
+
+```typescript
+// src/api/works.ts:187
+function updateWorkApi(id: string, data: CreatorWorkSaveRequest)
+```
+
+**响应**：`void`
+
+---
+
+#### `DELETE /creator/works/{id}` — 删除作品
+
+```typescript
+// src/api/works.ts:199
+function deleteWorkApi(id: string)
+```
+
+**响应**：`void`
+
+---
+
+#### `POST /creator/works/upload-token` — 获取 OSS 上传凭证
+
+```typescript
+// src/api/works.ts:276
+function getWorkUploadTokenApi(role: FileRole, fileName?: string, fileSize?: number)
+```
+
+**`FileRole` 枚举**
+
+| 枚举值 | OSS Role | 文件命名 | 用途 |
+|--------|---------|---------|------|
+| `"COVER_IMAGE"` | `COVER_IMAGE` | 原始文件名 | 封面图（原始图片） |
+| `"GIF_FILE"` | `GIF_FILE` | `jeejio.gif` | GIF 动图文件 |
+| `"EDITABLE_JSON"` | `EDITABLE_JSON` | `{项目名}.json` | 可编辑 JSON 配置 |
+| `"STATIC_BIN"` | `STATIC_BIN` | `img.bin` / `doodle.png` / `doodle.json` | RGB565 二进制 + 预览 + 像素数据 |
+
+**响应**：`OSSTokenFullVO`
+
+```typescript
+interface OSSTokenFullVO {
+  endpoint: string;       // OSS 端点
+  region: string;         // 区域
+  bucketName: string;     // Bucket 名称
+  accessKeyId: string;    // 访问密钥 ID
+  accessKeySecret: string;// 访问密钥
+  expiration: string;     // 过期时间
+  token: string;          // STS Token
+  requestId?: string;     // 请求 ID
+  path?: string;          // OSS 上传路径前缀
+  fullPath?: string;      // 完整路径前缀
+}
+```
+
+---
+
+### 12.2 设备管理 API
+
+#### 接口清单
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/creator/devices` | 分页查询我的设备列表 |
+| `GET` | `/creator/devices?pageNumber=1&pageSize=999` | 查询所有设备（不分页） |
+| `POST` | `/creator/preview` | 预览推送资源到设备 |
+
+---
+
+#### `GET /creator/devices` — 查询设备列表
+
+```typescript
+// src/api/device.ts:63
+function listDevicesApi()
+```
+
+**响应**：`CreatorDeviceVO[]`
+
+```typescript
+interface CreatorDeviceVO {
+  id: string;
+  name: string;
+  sn?: string;
+  online: "ONLINE" | "OFFLINE";
+  productId?: string;
+  productName?: string;
+  lastOnlineTime?: number;
+  lastBindTime?: number;
+  firmwareVersion?: string;
+}
+```
+
+---
+
+#### `POST /creator/preview` — 预览推送资源到设备
+
+```typescript
+// src/api/device.ts:75
+function previewToDeviceApi(data: CreatorPreviewRequest)
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `deviceIds` | `string[]` | 是 | 目标设备 ID 列表 |
+| `type` | `"STATIC" \| "GIF"` | 是 | 文件类型 |
+| `fileUrl` | `string` | 是 | 文件 OSS 地址（见下方规则） |
+| `fileSize` | `number` | 是 | 文件大小（字节） |
+
+**`fileUrl` 选择规则**：
+
+```
+type === "STATIC"  → 使用 work.binFileUrl
+type === "GIF"     → 使用 work.gifFileUrl
+```
+
+**响应**：`CreatorPreviewResultVO[]`
+
+```typescript
+interface CreatorPreviewResultVO {
+  success: boolean;
+  deviceId: string;
+  deviceName: string;
+  message?: string;   // 失败时返回错误原因
+}
+```
+
+---
+
+### 12.3 文件上传模块
+
+#### `uploadPixelJSON(data)` — 上传像素编辑器 JSON 配置
+
+```typescript
+// src/lib/images/uploadFile.ts:144
+function uploadPixelJSON(data: any): Promise<{
+  originData: any;
+  fileUrl: string;   // OSS 地址 → 赋值给 CreatorWorkSaveRequest.editableFileUrl
+  fileSize: number;
+}>
+```
+
+- 将项目数据序列化为 JSON
+- OSS Role：`EDITABLE_JSON`
+- 文件名：`{项目名}.json`
+
+---
+
+#### `uploadDoodle(colors)` — 上传静态涂鸦像素数据
+
+```typescript
+// src/lib/images/uploadFile.ts:366
+function uploadDoodle(colors: Array<string | null>): Promise<{
+  fileUrl: string;   // JSON 格式像素地址
+  fileSize: number;
+  binFileUrl: string; // RGB565 二进制地址 → 赋值给 CreatorWorkSaveRequest.binFileUrl
+  binSize: number;
+  cover: string;     // PNG 预览地址 → 赋值给 CreatorWorkSaveRequest.coverUrl
+}>
+```
+
+**上传内容（一次调用产生 3 个文件）**：
+
+| 产物 | OSS Role | 文件名 | 赋值给 |
+|------|---------|--------|--------|
+| JSON Blob | `STATIC_BIN` | `doodle.json` | `fileUrl` |
+| PNG 预览 | `STATIC_BIN` | `doodle.png` | `cover` |
+| RGB565 二进制 | `STATIC_BIN` | `img.bin` | `binFileUrl` |
+
+---
+
+#### `uploadGif(blob)` — 上传 GIF 动图文件
+
+```typescript
+// src/lib/images/uploadFile.ts:397
+function uploadGif(file: Blob | File): Promise<{
+  fileUrl: string;   // GIF 地址 → 赋值给 CreatorWorkSaveRequest.gifFileUrl
+  fileSize: number;
+  cover: string;     // GIF 文件本身即封面 → 赋值给 CreatorWorkSaveRequest.coverUrl
+}>
+```
+
+- OSS Role：`GIF_FILE`
+- 文件名：`jeejio.gif`
+
+---
+
+#### `uploadStaticImageWithJson(file, projectData)` — 静态图 + JSON 一键上传
+
+```typescript
+// src/lib/images/uploadFile.ts:310
+function uploadStaticImageWithJson(
+  file: File,
+  projectData: object
+): Promise<{
+  coverUrl: string;       // PNG 预览地址
+  binFileUrl: string;     // RGB565 二进制地址
+  binFileSize: number;
+  editableFileUrl: string; // JSON 配置地址
+}>
+```
+
+**上传内容**：
+
+| 步骤 | 产物 | OSS Role | 返回字段 |
+|------|------|---------|---------|
+| 1 | 原始图片 | `COVER_IMAGE` | — |
+| 2 | RGB565 二进制 | `STATIC_BIN` | `binFileUrl` |
+| 3 | PNG 预览（64×16） | `STATIC_BIN` | `coverUrl` |
+| 4 | JSON 配置 | `EDITABLE_JSON` | `editableFileUrl` |
+
+---
+
+#### `uploadGifWithFrames(file, framesData)` — GIF + 帧数据一键上传
+
+```typescript
+// src/lib/images/uploadFile.ts:422
+function uploadGifWithFrames(
+  file: File,
+  framesData: Array<FrameData>
+): Promise<AddArtifactParam>
+```
+
+**上传内容**：
+
+| 步骤 | 产物 | OSS Role | 返回字段 |
+|------|------|---------|---------|
+| 1 | GIF 文件 | `GIF_FILE` | `fileUrl` / `cover` |
+| 2 | JSON 配置（含所有帧像素） | `EDITABLE_JSON` | `binFileUrl`（复用此字段指向 JSON） |
+
+---
+
+### 12.4 数据流转与 URL 获取全景
+
+#### 保存时 URL 生成
+
+```
+handleSaveToOSS()                        ← PixelEditor.vue:1520
+  │
+  ├── uploadPixelJSON(projectData)       → editableFileUrl
+  │     └── OSS Role: EDITABLE_JSON
+  │
+  ├── uploadDoodle(pixels)               → binFileUrl + coverUrl
+  │     └── OSS Role: STATIC_BIN
+  │     └── [仅静态图/第一帧兼容逻辑使用]
+  │
+  ├── [静态图] compositeFrame() + uploadDoodle() → 覆盖 binFileUrl
+  │     └── frames.length === 1 时执行
+  │
+  ├── [动图] encodeGif() + uploadGif()   → gifFileUrl + coverUrl
+  │     └── frames.length > 1 时执行
+  │
+  └── createWorkApi / updateWorkApi
+        ├── STATIC: type=STATIC, binFileUrl=URL, binFileSize=1024
+        └── GIF:    type=GIF,    gifFileUrl=URL, gifFileSize=实际大小
+```
+
+#### 进入编辑器时 URL 获取
+
+```
+loadWorkForEdit(workId)                  ← PixelEditor.vue:1605
+  │
+  ├── getWorkDetailApi(workId)           → CreatorWorkVO
+  │     ├── editingWork.value.editableFileUrl  → fetchJsonFromUrl() 加载像素数据
+  │     ├── editingWork.value.binFileUrl        → 静态图二进制地址
+  │     └── editingWork.value.gifFileUrl        → 动图地址
+  │
+  └── 构建 project → 渲染编辑器
+```
+
+#### 预览推送时 URL 使用
+
+```
+sendWorkToDevice()                       ← PixelEditor.vue:1552
+  │
+  ├── listDevicesApi()                   → 获取设备列表
+  │
+  ├── 读取用户选中的设备（sessionStorage）
+  │
+  └── previewToDeviceApi({
+        type:   work.type,               // "STATIC" 或 "GIF"
+        fileUrl: work.binFileUrl          // STATIC 类型用
+               | work.gifFileUrl,         // GIF 类型用
+        fileSize: work.binFileSize        // STATIC 类型用（=1024）
+               | work.gifFileSize,        // GIF 类型用
+      })
+```
+
+---
+
+### 12.5 `CreatorWorkSaveRequest` 各 URL 字段说明
+
+| 字段 | 类型 | 写入场景 | 读取场景 |
+|------|------|---------|---------|
+| `editableFileUrl` | `string` | `uploadPixelJSON()` 返回 | `loadWorkForEdit()` 加载编辑数据 |
+| `coverUrl` | `string` | `uploadDoodle()` / `uploadGif()` 返回 | 作品列表封面展示 |
+| `binFileUrl` | `string` | 静态图：`uploadDoodle()` 返回 | 静态图预览推送 (`previewToDeviceApi`) |
+| `binFileSize` | `number` | 静态图：固定 `1024`（512像素 × 2字节） | 静态图推送时传 fileSize |
+| `gifFileUrl` | `string` | 动图：`uploadGif()` 返回 | 动图预览推送 (`previewToDeviceApi`) |
+| `gifFileSize` | `number` | 动图：GIF Blob 实际大小 | 动图推送时传 fileSize |
+
+> **互斥规则**：`binFileUrl` 与 `gifFileUrl` **不会同时有值**。
+> - 单帧作品（`type === "STATIC"`）：`binFileUrl` 有值，`gifFileUrl = undefined`
+> - 多帧作品（`type === "GIF"`）：`gifFileUrl` 有值，`binFileUrl = undefined`
