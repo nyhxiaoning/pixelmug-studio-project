@@ -138,19 +138,23 @@ export default defineComponent({
         const account = form.username.trim()
         console.log('account', account, loginType.value, form.password.trim(), 'form---')
         userStore.loginUserName = account;
-        const { result } = await authLoginIn({
+        const res = await authLoginIn({
           username: account,
           loginType: loginType.value,
           password: loginType.value === "PASSWORD" ? form.password.trim() : undefined,
           code: loginType.value === "CODE" ? form.code.trim() : undefined
         })
-        userStore.setLogin(result)
-        userStore.avatar = result?.avatar
-        console.log(result?.avatar, 'avatarrrrrr')
+
+        // 判断一下：这里如果
+        userStore.setLogin(res?.result)
+        userStore.avatar = res?.result?.avatar
+        console.log(res?.result?.avatar, 'avatarrrrrr')
         ElMessage.success(t("common.pxm_login_success"))
         const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/works"
         router.replace(redirect)
-      } finally {
+      } catch (error) {
+        console.log(error, 'errorrrr')
+        ElMessage.error(t("common.pxm_login_failed"))
         submitting.value = false
       }
     }
