@@ -595,7 +595,7 @@ const checkFileSize = (file: File, type: AllowedArtifactTypes, t: any) => {
   switch (type) {
     // unfold特殊处理：50KB，宽高比：4:1
     case AllowedArtifactTypes.IMAGE:
-      return file.size > 50 * 1024;
+      return file.size > 50 * 1024 * 1024;
     case AllowedArtifactTypes.GIF:
       return file.size > 50 * 1024;
     default:

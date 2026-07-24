@@ -1,9 +1,9 @@
 export default {
   // uploadService
   uploadError: 'Upload failed',
-  imgSizeError: 'Image size cannot exceed 5M',
+  imgSizeError: 'Exceeds 5MB. Reselect.',
   imgSpecsError: 'Image must have 4:1 aspect ratio',
-  gifSizeError: 'GIF size cannot exceed 50kb',
+  gifSizeError: 'Too big. Reduce frames or compress.',
   gifSpecsError: 'GIF size must be 32px * 16px',
   fileTypeError: 'Only supports jpeg, png, or gif',
   // ====================== 登录认证模块 ======================

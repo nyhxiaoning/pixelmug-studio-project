@@ -1,9 +1,9 @@
 export default {
   // uploadService
   uploadError: '上传失败',
-  imgSizeError: '图片大小不能超过5M',
+  imgSizeError: '文件过大，请选择小于 5MB 的图片',
   imgSpecsError: '图片宽高比必须为4:1',
-  gifSizeError: '图片大小不能超过50kb',
+  gifSizeError: '当前作品过大，请尝试减少动画帧数。',
   gifSpecsError: 'gif图必须是32*16的尺寸',
   fileTypeError: '只支持jpeg或者png或者gif',
   // ====================== 登录认证模块 ======================

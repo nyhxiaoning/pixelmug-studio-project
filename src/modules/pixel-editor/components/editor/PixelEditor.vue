@@ -1489,6 +1489,14 @@ async function saveOSSOnly(): Promise<void> {
 
   if (editingWorkId.value) {
     await updateWorkApi(editingWorkId.value, workData)
+    // 更新已有作品：同步 result
+    if (editingWork.value?.result) {
+      editingWork.value.result = {
+        ...editingWork.value.result,
+        ...workData,
+        id: editingWork.value.result.id || editingWorkId.value || undefined,
+      }
+    }
   } else {
     const createResponse = await createWorkApi(workData)
     const newId =
@@ -1496,16 +1504,10 @@ async function saveOSSOnly(): Promise<void> {
         ? String(createResponse.result)
         : String(createResponse)
     if (newId) editingWorkId.value = newId
-  }
-
-  // 同步更新 editingWork.value.result，保证保存后 URL 字段实时可用
-  // 注意：editingWork 实际存储的是 ApiResult（含 code / message / result）
-  // sendWorkToDevice 通过 editingWork.value.result 取数据，必须更新这里
-  if (editingWork.value?.result) {
-    editingWork.value.result = {
-      ...editingWork.value.result,
-      ...workData,
-      id: editingWork.value.result.id || editingWorkId.value || undefined,
+    // 新建作品：拉取详情后赋值，保证 sendWorkToDevice 能拿到完整数据
+    if (newId) {
+      const detail = await getWorkDetailApi(newId)
+      editingWork.value = detail
     }
   }
 }
