@@ -1560,7 +1560,7 @@ const sendWorkToDevice = async () => {
   }
   try {
     console.log('sendWorkToDevice-work', work)
-    const fileUrl = work.binFileUrl || work.gifFileUrl || work.editableFileUrl || ''
+    const fileUrl = work?.binFileUrl || work?.gifFileUrl || work?.editableFileUrl || ''
     if (!fileUrl) {
       ElMessage.warning(t('common.pxm_preview_unavailable'))
       return
@@ -1571,8 +1571,8 @@ const sendWorkToDevice = async () => {
     const res = await previewToDeviceApi({
       deviceIds: selectedDevices,
       type: work.type as any,
-      fileUrl: work.type === 'GIF' ? work.gifFileUrl : work.binFileUrl,
-      fileSize: work.gifFileUrl ? work?.gifFileSize : work.binFileSize,
+      fileUrl: work.type === 'GIF' ? work?.gifFileUrl : work?.binFileUrl,
+      fileSize:  work.type === 'GIF' ? work?.gifFileSize : work?.binFileSize,
     })
     const failed = (res.result ?? []).filter((r) => !r.success)
     if (failed.length === 0) {
