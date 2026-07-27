@@ -6,7 +6,7 @@ import { getUploadTokenApi } from '@/api/works';
 export const createOssClient = async (type: string) => {
   try {
     const response = await getUploadTokenApi(type);
-    console.log('获取oss配置成功', response);
+    // console.log('获取oss配置成功', response);
     return {
       client: new OSS({
         region: response.result.region,

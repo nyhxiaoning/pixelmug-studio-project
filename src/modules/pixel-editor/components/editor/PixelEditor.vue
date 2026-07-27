@@ -1336,13 +1336,13 @@ function isValidWork(): boolean {
   // 检查每一帧的每一层，只要有任何一个非空像素即视为有效
   for (const frame of frames) {
     const layers = frame?.layers || []
-    console.log(layers, 'layersssss')
+    // console.log(layers, 'layersssss')
     for (const layer of layers) {
       if (!layer.visible) continue
       const pixels = layer?.pixels
-      console.log(pixels, 'pixelssss')
+      // console.log(pixels, 'pixelssss')
       let resarrflag = pixels.some((p) => p != null && p !== '' && p !== (EMPTY as any))
-      console.log(resarrflag, 'resarrflag')
+      // console.log(resarrflag, 'resarrflag')
       if (Array.isArray(pixels)) {
         const hasPixel = pixels.some((p) => p != null && p !== '' && p !== (EMPTY as any))
         if (hasPixel) return true
