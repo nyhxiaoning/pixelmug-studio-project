@@ -792,8 +792,8 @@ const handleFileUpload = async (e: Event) => {
         editableFileUrl: uploadResult.binFileUrl,
         binFileUrl: uploadResult.binFileUrl,
         binFileSize: uploadResult.binSize,
-        width: CANVAS_WIDTH,
-        height: CANVAS_HEIGHT,
+        width: WIDTH,
+        height: HEIGHT,
         frameCount: framesData.length,
         frameDelay: framesData[0]?.delay || 120,
       }
@@ -898,8 +898,8 @@ const handleStaticImageUpload = async (file: File) => {
     editableFileUrl: uploadResult.editableFileUrl,
     binFileUrl: uploadResult.binFileUrl,
     binFileSize: uploadResult.binFileSize,
-    width: CANVAS_WIDTH,
-    height: CANVAS_HEIGHT,
+    width: WIDTH,
+    height: HEIGHT,
     frameCount: 1,
     frameDelay: 120,
   }

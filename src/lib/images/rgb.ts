@@ -8,7 +8,7 @@ enum UploadFileEnum {
 }
 
 export const convertImageToRGB565 = (imageFile: any, type: UploadFileEnum) => {
-  const targetWidth = 64,
+  const targetWidth = 32,
     targetHeight = 16; //TODO 硬编码
   return new Promise((resolve, reject) => {
     const img = new Image();
