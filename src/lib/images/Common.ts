@@ -24,7 +24,7 @@ export const colors = [
 ];
 
 export const defaultImageSize = {
-    width: 64,
+    width: 32,
     height: 16,
 };
 
