@@ -1679,65 +1679,87 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       })
     } else if (workDetail?.result?.type === 'STATIC' && workDetail?.result?.coverUrl) {
       // Step 2b: STATIC 类型，从 coverUrl 解析静态图
-      console.log('No editableFileUrl, parsing STATIC image from coverUrl:', workDetail.result.coverUrl)
-      const image = await loadImageFromUrl(workDetail.result.coverUrl)
-      const pixels = renderImageToPixels(image, {
-        fit: 'contain',
-        cropX: 0.5,
-        cropY: 0.5,
-        zoom: 1,
-        preserveColors: true,
-        outputWidth: WIDTH,
-        outputHeight: HEIGHT,
-        allowUpscale: false,
-        dither: 'none',
-      })
+      console.log('[PixelEditor] STATIC: parsing coverUrl:', workDetail.result.coverUrl)
 
-      const newProject = sanitizeProject({
-        id: id('project'),
-        version: 4,
-        name: workDetail.result?.title || t('common.pxm_editor_library_new'),
-        width: WIDTH,
-        height: HEIGHT,
-        currentFrameIndex: 0,
-        activeLayer: 0,
-        frames: [
-          {
-            id: id('frame'),
-            delay: 120,
-            viewportX: DEFAULT_VIEWPORT_X,
-            viewportY: DEFAULT_VIEWPORT_Y,
-            layers: [
-              {
-                id: id('layer'),
-                name: t('common.pxm_editor_layer_one'),
-                visible: true,
-                opacity: 1,
-                pixels,
-                canvasPixels: pixelsToCanvasPixels(pixels, WIDTH, HEIGHT),
-              },
-              makeLayer(1),
-            ],
-          },
-        ],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      })
+      try {
+        const image = await loadImageFromUrl(workDetail.result.coverUrl)
+        console.log('[PixelEditor] STATIC: image loaded:', image.width, 'x', image.height)
 
-      projects.value.push(newProject)
-      project.value = newProject
-      view.value = 'editor'
-      currentId.value = newProject.id
-      localStorage.setItem(CURRENT_KEY, newProject.id)
+        const pixels = renderImageToPixels(image, {
+          fit: 'contain',
+          cropX: 0.5,
+          cropY: 0.5,
+          zoom: 1,
+          preserveColors: true,
+          outputWidth: WIDTH,
+          outputHeight: HEIGHT,
+          allowUpscale: false,
+          dither: 'none',
+        })
 
-      clearSelectionState()
-      syncFrameDelayInput()
-      persistNow()
+        // 验证像素数据
+        const nonEmptyCount = pixels.filter(p => p !== null && p !== '').length
+        console.log('[PixelEditor] STATIC: pixels extracted:', nonEmptyCount, '/', pixels.length, 'non-empty')
 
-      console.log('STATIC image parsed and loaded:', newProject)
-      nextTick(() => {
-        renderAll()
-      })
+        if (nonEmptyCount === 0) {
+          console.warn('[PixelEditor] STATIC: all pixels are empty! Image may have failed to load.')
+        }
+
+        // 打印前10个像素用于调试
+        console.log('[PixelEditor] STATIC: first 10 pixels:', pixels.slice(0, 10))
+
+        const newProject = sanitizeProject({
+          id: id('project'),
+          version: 4,
+          name: workDetail.result?.title || t('common.pxm_editor_library_new'),
+          width: WIDTH,
+          height: HEIGHT,
+          currentFrameIndex: 0,
+          activeLayer: 0,
+          frames: [
+            {
+              id: id('frame'),
+              delay: 120,
+              viewportX: DEFAULT_VIEWPORT_X,
+              viewportY: DEFAULT_VIEWPORT_Y,
+              layers: [
+                {
+                  id: id('layer'),
+                  name: t('common.pxm_editor_layer_one'),
+                  visible: true,
+                  opacity: 1,
+                  pixels,
+                  canvasPixels: pixelsToCanvasPixels(pixels, WIDTH, HEIGHT),
+                },
+                makeLayer(1),
+              ],
+            },
+          ],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })
+
+        projects.value.push(newProject)
+        project.value = newProject
+        view.value = 'editor'
+        currentId.value = newProject.id
+        localStorage.setItem(CURRENT_KEY, newProject.id)
+
+        clearSelectionState()
+        syncFrameDelayInput()
+        persistNow()
+
+        console.log('[PixelEditor] STATIC: project created with', newProject.frames.length, 'frame(s)')
+        console.log('[PixelEditor] STATIC: frame[0].layers[0].pixels length:', newProject.frames[0].layers[0].pixels.length)
+        console.log('[PixelEditor] STATIC: frame[0].layers[0].canvasPixels keys:', Object.keys(newProject.frames[0].layers[0].canvasPixels).length)
+
+        nextTick(() => {
+          renderAll()
+        })
+      } catch (error) {
+        console.error('[PixelEditor] STATIC: failed to parse image:', error)
+        throw error
+      }
     } else if (workDetail?.result?.type === 'GIF' && (workDetail?.result?.gifFileUrl || workDetail?.result?.coverUrl)) {
       // Step 2c: GIF 类型，从 gifFileUrl 或 coverUrl 解析动态图
       const gifUrl = workDetail.result.gifFileUrl || workDetail.result.coverUrl
@@ -1753,9 +1775,9 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       const gifFile = new File([gifBlob], 'import.gif', { type: 'image/gif' })
 
       // 解码 GIF 帧
-      console.log('[PixelEditor] Decoding GIF frames...')
+      console.log('[PixelEditor] GIF: decoding frames...')
       const gifFrames = await decodeGifFrames(gifFile)
-      console.log('[PixelEditor] GIF decoded:', gifFrames.length, 'frames')
+      console.log('[PixelEditor] GIF: decoded', gifFrames.length, 'frames')
 
       const frames = gifFrames.map(({ image, delay }) => {
         const frame = makeFrame()
@@ -1771,6 +1793,10 @@ async function loadWorkForEdit(workId: string): Promise<void> {
           allowUpscale: false,
           dither: 'none',
         })
+
+        // 验证像素数据
+        const nonEmpty = pixels.filter(p => p !== null && p !== '').length
+        console.log(`[PixelEditor] GIF: frame pixels ${nonEmpty}/${pixels.length} non-empty`)
 
         frame.layers[0].pixels = pixels
         frame.layers[0].canvasPixels = pixelsToCanvasPixels(pixels, WIDTH, HEIGHT)
