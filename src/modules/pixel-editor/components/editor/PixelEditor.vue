@@ -326,14 +326,14 @@
           @click="handleSaveToOSS"
         >
           {{ t('common.pxm_editor_save') }}
-      </button>
+        </button>
         <button
           type="button"
           class="pe-save-btn"
           :title="$t('common.pxm_action_preview')"
           @click.stop="sendWorkToDevice"
         >
-         {{$t('common.pxm_action_preview')}}
+          {{ $t('common.pxm_action_preview') }}
         </button>
         <button type="button" class="pe-save-btn" @click="backHome">
           {{ t('common.pxm_editor_back_home') }}
@@ -1555,19 +1555,22 @@ async function backHome() {
   router.push('/works')
 }
 
-
 const sendWorkToDevice = async () => {
+  console.log(project.value, 'project.value')
+  console.log(projects.value, 'projects.value')
 
-  console.log(project.value,'project.value')
-  console.log(projects.value,'projects.value')
-
-  const work = editingWork.value?.result as any;
-  console.log(editingWork.value,'editingWork.value')
+  const work = editingWork.value?.result as any
+  console.log(editingWork.value, 'editingWork.value')
   const DEVICE_SESSION_KEY = 'creator.preview.deviceIds'
   const selectedDevicesJSON = sessionStorage.getItem(DEVICE_SESSION_KEY)
-  const selectedDevices = JSON.parse(selectedDevicesJSON) as any;
+  const selectedDevices = JSON.parse(selectedDevicesJSON) as any
 
-  if (selectedDevices.length === 0) {
+  if (!selectedDevices) {
+    ElMessage.warning(t('common.pxm_device_preview_before_bind'))
+    return
+  }
+
+  if (selectedDevices && selectedDevices.length === 0) {
     ElMessage.warning(t('common.pxm_device_preview_before_bind'))
     return
   }
@@ -1585,7 +1588,7 @@ const sendWorkToDevice = async () => {
       deviceIds: selectedDevices,
       type: work.type as any,
       fileUrl: work.type === 'GIF' ? work?.gifFileUrl : work?.binFileUrl,
-      fileSize:  work.type === 'GIF' ? work?.gifFileSize : work?.binFileSize,
+      fileSize: work.type === 'GIF' ? work?.gifFileSize : work?.binFileSize,
     })
     const failed = (res.result ?? []).filter((r) => !r.success)
     if (failed.length === 0) {
@@ -1607,7 +1610,6 @@ const sendWorkToDevice = async () => {
     console.error('preview error:', e)
     ElMessage.error(t('common.pxm_editor_push_failed'))
   }
-
 }
 
 // Project management
@@ -1698,8 +1700,14 @@ async function loadWorkForEdit(workId: string): Promise<void> {
         })
 
         // 验证像素数据
-        const nonEmptyCount = pixels.filter(p => p !== null && p !== '').length
-        console.log('[PixelEditor] STATIC: pixels extracted:', nonEmptyCount, '/', pixels.length, 'non-empty')
+        const nonEmptyCount = pixels.filter((p) => p !== null && p !== '').length
+        console.log(
+          '[PixelEditor] STATIC: pixels extracted:',
+          nonEmptyCount,
+          '/',
+          pixels.length,
+          'non-empty'
+        )
 
         if (nonEmptyCount === 0) {
           console.warn('[PixelEditor] STATIC: all pixels are empty! Image may have failed to load.')
@@ -1749,9 +1757,19 @@ async function loadWorkForEdit(workId: string): Promise<void> {
         syncFrameDelayInput()
         persistNow()
 
-        console.log('[PixelEditor] STATIC: project created with', newProject.frames.length, 'frame(s)')
-        console.log('[PixelEditor] STATIC: frame[0].layers[0].pixels length:', newProject.frames[0].layers[0].pixels.length)
-        console.log('[PixelEditor] STATIC: frame[0].layers[0].canvasPixels keys:', Object.keys(newProject.frames[0].layers[0].canvasPixels).length)
+        console.log(
+          '[PixelEditor] STATIC: project created with',
+          newProject.frames.length,
+          'frame(s)'
+        )
+        console.log(
+          '[PixelEditor] STATIC: frame[0].layers[0].pixels length:',
+          newProject.frames[0].layers[0].pixels.length
+        )
+        console.log(
+          '[PixelEditor] STATIC: frame[0].layers[0].canvasPixels keys:',
+          Object.keys(newProject.frames[0].layers[0].canvasPixels).length
+        )
 
         nextTick(() => {
           renderAll()
@@ -1760,7 +1778,10 @@ async function loadWorkForEdit(workId: string): Promise<void> {
         console.error('[PixelEditor] STATIC: failed to parse image:', error)
         throw error
       }
-    } else if (workDetail?.result?.type === 'GIF' && (workDetail?.result?.gifFileUrl || workDetail?.result?.coverUrl)) {
+    } else if (
+      workDetail?.result?.type === 'GIF' &&
+      (workDetail?.result?.gifFileUrl || workDetail?.result?.coverUrl)
+    ) {
       // Step 2c: GIF 类型，从 gifFileUrl 或 coverUrl 解析动态图
       const gifUrl = workDetail.result.gifFileUrl || workDetail.result.coverUrl
       console.log('[PixelEditor] No editableFileUrl, parsing GIF from url:', gifUrl)
@@ -1795,7 +1816,7 @@ async function loadWorkForEdit(workId: string): Promise<void> {
         })
 
         // 验证像素数据
-        const nonEmpty = pixels.filter(p => p !== null && p !== '').length
+        const nonEmpty = pixels.filter((p) => p !== null && p !== '').length
         console.log(`[PixelEditor] GIF: frame pixels ${nonEmpty}/${pixels.length} non-empty`)
 
         frame.layers[0].pixels = pixels
@@ -1806,11 +1827,11 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       console.log('[PixelEditor] All frames processed, total:', frames.length)
 
       // Validate: check if frames have actual pixel content
-      const firstFramePixels = frames[0]?.layers[0]?.pixels || [];
-      const nonNullCount = firstFramePixels.filter(p => p !== null && p !== '').length;
+      const firstFramePixels = frames[0]?.layers[0]?.pixels || []
+      const nonNullCount = firstFramePixels.filter((p) => p !== null && p !== '').length
 
       if (nonNullCount === 0) {
-        console.error('[PixelEditor] GIF parsing resulted in all null pixels!');
+        console.error('[PixelEditor] GIF parsing resulted in all null pixels!')
         ElMessageBox.confirm(
           t('common.pxm_editor_gif_parse_empty_hint'),
           t('common.pxm_editor_gif_parse_empty_title'),
@@ -1819,13 +1840,17 @@ async function loadWorkForEdit(workId: string): Promise<void> {
             cancelButtonText: t('common.pxm_common_cancel'),
             type: 'warning',
           }
-        ).then(() => {
-          handleNewProject()
-        }).catch(() => {
-          // User cancelled, load empty frames as-is
-        })
+        )
+          .then(() => {
+            handleNewProject()
+          })
+          .catch(() => {
+            // User cancelled, load empty frames as-is
+          })
       } else {
-        console.log(`[PixelEditor] First frame has ${nonNullCount}/${firstFramePixels.length} non-null pixels`);
+        console.log(
+          `[PixelEditor] First frame has ${nonNullCount}/${firstFramePixels.length} non-null pixels`
+        )
       }
 
       const newProject = sanitizeProject({
