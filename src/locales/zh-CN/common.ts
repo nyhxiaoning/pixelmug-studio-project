@@ -219,6 +219,8 @@ export default {
   pxm_editor_saving: '保存中...',
   pxm_editor_no_editable_file: '该作品暂无可用编辑数据',
   pxm_editor_load_failed: '加载作品失败，请重试',
+  pxm_editor_gif_parse_empty_title: 'GIF 解析失败',
+  pxm_editor_gif_parse_empty_hint: '该 GIF 解析后无有效像素内容，可能是格式不支持。是否创建空白作品重新编辑？',
   pxm_editor_editing_mode: '编辑中',
 
   // ====================== 像素编辑器 - 作品库 ======================

@@ -4,6 +4,8 @@
  */
 
 import { WIDTH, HEIGHT, EMPTY, hexToRgb, normalizeHex, palette, rgbToHex } from './index';
+import { parseGIF, decompressFrames } from 'gifuct-js';
+import type { ParsedFrameWithoutPatch } from 'gifuct-js';
 
 function nearestPaletteColorFn(r: number, g: number, b: number): string {
   let best = palette[0];
@@ -162,8 +164,18 @@ export function renderImageToPixels(image: HTMLImageElement | HTMLCanvasElement,
   const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
   ctx.imageSmoothingEnabled = false;
 
-  const iw = image.width || image.videoWidth || WIDTH;
-  const ih = image.height || image.videoHeight || HEIGHT;
+  // Get input dimensions - handle both Image and Canvas elements
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const iw = (image as any).width || (image as HTMLVideoElement).videoWidth || WIDTH;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ih = (image as any).height || (image as HTMLVideoElement).videoHeight || HEIGHT;
+
+  // Validate input image has actual dimensions
+  if (iw === 0 || ih === 0) {
+    console.warn('[renderImageToPixels] Image has zero dimensions, returning empty pixels');
+    return Array(width * height).fill(null);
+  }
+
   let sw = iw;
   let sh = ih;
   let sx = 0;
@@ -213,277 +225,184 @@ export function pixelsToCanvasPixels(pixels: (string | null)[], width: number, h
   return canvasPixels;
 }
 
+/**
+ * Convert local-layer pixels to canvas pixel coordinates, offset by viewport.
+ * Stores each non-empty pixel at (viewportX + x, viewportY + y) in canvas space.
+ * This ensures consistency with refreshLayerVisibleFromCanvas which reads back
+ * using the same viewport offset.
+ */
+export function localPixelsToCanvasPixels(
+  pixels: (string | null)[],
+  viewportX: number,
+  viewportY: number
+): Record<string, string> {
+  const W = WIDTH;
+  const H = HEIGHT;
+  const canvasPixels: Record<string, string> = {};
+  for (let y = 0; y < H; y += 1) {
+    for (let x = 0; x < W; x += 1) {
+      const color = pixels[y * W + x] as string | null;
+      if (!isEmptyPixel(color)) {
+        canvasPixels[`${viewportX + x},${viewportY + y}`] = color as string;
+      }
+    }
+  }
+  return canvasPixels;
+}
+
 function isEmptyPixel(value: string | null | undefined): boolean {
   return value === EMPTY || value === undefined || value === null;
 }
 
 // ==================== GIF Decoding ====================
 
-interface GifFrame {
-  image: HTMLCanvasElement;
-  delay: number;
+/**
+ * Build RGBA image data from color index canvas
+ */
+function buildRgbaFromIndices(
+  canvasPixels: Uint8Array,
+  colorTable: [number, number, number][],
+  width: number,
+  height: number
+): ImageData {
+  const imageData = new ImageData(width, height);
+  const data = imageData.data;
+  for (let j = 0; j < canvasPixels.length; j++) {
+    const colorIdx = canvasPixels[j];
+    const color = colorTable[colorIdx] || [0, 0, 0];
+    const pos = j * 4;
+    data[pos] = color[0];
+    data[pos + 1] = color[1];
+    data[pos + 2] = color[2];
+    data[pos + 3] = 255;
+  }
+  return imageData;
 }
 
-class GifReader {
-  bytes: Uint8Array;
-  pos: number = 0;
-
-  constructor(buffer: ArrayBuffer) {
-    this.bytes = new Uint8Array(buffer);
-  }
-
-  byte(): number {
-    if (this.pos >= this.bytes.length) throw new Error('GIF 数据不完整。');
-    return this.bytes[this.pos++];
-  }
-
-  word(): number {
-    const low = this.byte();
-    const high = this.byte();
-    return low | (high << 8);
-  }
-
-  text(length: number): string {
-    let out = '';
-    for (let i = 0; i < length; i += 1) out += String.fromCharCode(this.byte());
-    return out;
-  }
-
-  skip(length: number): void {
-    this.pos = Math.min(this.bytes.length, this.pos + length);
-  }
-
-  subBlocks(): Uint8Array {
-    const out: number[] = [];
-    while (true) {
-      const size = this.byte();
-      if (!size) return new Uint8Array(out);
-      for (let i = 0; i < size; i += 1) out.push(this.byte());
-    }
-  }
+/**
+ * Decode GIF frames using gifuct-js library
+ * Properly handles frame disposal methods (restore to background, restore to previous, etc.)
+ */
+export async function decodeGifFrames(file: File): Promise<GifFrame[]> {
+  const arrayBuffer = await file.arrayBuffer();
+  return decodeGifFramesFromBuffer(arrayBuffer);
 }
 
-function readGifPalette(reader: GifReader, size: number): [number, number, number][] {
-  const paletteData: [number, number, number][] = [];
-  for (let i = 0; i < size; i += 1) {
-    paletteData.push([reader.byte(), reader.byte(), reader.byte()]);
-  }
-  return paletteData;
-}
+/**
+ * Decode GIF frames from an ArrayBuffer
+ * Uses gifuct-js to parse and decompress GIF frames
+ */
+export function decodeGifFramesFromBuffer(buffer: ArrayBuffer): GifFrame[] {
+  console.log('[GIF] Parsing with gifuct-js...');
 
-function decodeGifLzw(minCodeSize: number, data: Uint8Array, expectedSize: number): number[] {
-  const clearCode = 1 << minCodeSize;
-  const endCode = clearCode + 1;
-  let codeSize = minCodeSize + 1;
-  let dict: number[][] = [];
-  for (let i = 0; i < clearCode; i += 1) dict[i] = [i];
-  let nextCode = endCode + 1;
-  let bitPos = 0;
-  let prev: number[] | null = null;
-  const out: number[] = [];
+  // Parse GIF structure
+  const gif = parseGIF(buffer);
+  console.log('[GIF] Parsed:', gif.header.signature, gif.header.version, 'Size:', gif.lsd.width, 'x', gif.lsd.height);
 
-  const readCode = (): number | null => {
-    let code = 0;
-    for (let bit = 0; bit < codeSize; bit += 1) {
-      const byteIndex = bitPos >> 3;
-      if (byteIndex >= data.length) return null;
-      code |= ((data[byteIndex] >> (bitPos & 7)) & 1) << bit;
-      bitPos += 1;
-    }
-    return code;
-  };
+  // Use decompressFrames with buildImagePatches=false to get indexed pixel data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parsedFrames: ParsedFrameWithoutPatch[] = decompressFrames(gif, false) as any;
 
-  while (out.length < expectedSize) {
-    const code = readCode();
-    if (code === null) break;
-    if (code === clearCode) {
-      dict = [];
-      for (let i = 0; i < clearCode; i += 1) dict[i] = [i];
-      codeSize = minCodeSize + 1;
-      nextCode = endCode + 1;
-      prev = null;
-      continue;
-    }
-    if (code === endCode) break;
+  console.log('[GIF] Decompressed', parsedFrames.length, 'frames');
 
-    let entry: number[];
-    if (dict[code]) {
-      entry = dict[code].slice();
-    } else if (code === nextCode && prev) {
-      entry = prev.concat(prev[0]);
-    } else {
-      break;
-    }
-
-    out.push(...entry);
-    if (prev) {
-      dict[nextCode] = prev.concat(entry[0]);
-      nextCode += 1;
-      if (nextCode === (1 << codeSize) && codeSize < 12) codeSize += 1;
-    }
-    prev = entry;
+  if (parsedFrames.length === 0) {
+    console.error('[GIF] No frames returned from decompressFrames!');
+    throw new Error('No valid GIF frames found');
   }
 
-  return out.slice(0, expectedSize);
-}
+  // Show raw frame info for debugging
+  for (let i = 0; i < parsedFrames.length; i++) {
+    const f = parsedFrames[i];
+    console.log(`[GIF] Frame ${i}: dims=${f.dims.width}x${f.dims.height}@(${f.dims.left},${f.dims.top}), delay=${f.delay}ms, disposal=${f.disposalType}, transparent=${f.transparentIndex}, pixels=${f.pixels.length}, colors=${f.colorTable.length}`);
+  }
 
-function deinterlaceGifIndices(indices: number[], width: number, height: number): number[] {
-  const out = new Array(indices.length);
-  const passes = [
-    { start: 0, step: 8 },
-    { start: 4, step: 8 },
-    { start: 2, step: 4 },
-    { start: 1, step: 2 },
-  ];
-  let sourceRow = 0;
-  passes.forEach(({ start, step }) => {
-    for (let y = start; y < height; y += step) {
-      for (let x = 0; x < width; x += 1) {
-        out[y * width + x] = indices[sourceRow * width + x];
-      }
-      sourceRow += 1;
-    }
-  });
-  return out;
-}
-
-function canvasFromGifRgba(width: number, height: number, rgba: Uint8ClampedArray): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d')!;
-  ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba), width, height), 0, 0);
-  return canvas;
-}
-
-function decodeGifFramesFallback(buffer: ArrayBuffer): GifFrame[] {
-  const reader = new GifReader(buffer);
-  const signature = reader.text(6);
-  if (signature !== 'GIF87a' && signature !== 'GIF89a') throw new Error('不是有效的 GIF 文件。');
-
-  const width = reader.word();
-  const height = reader.word();
-  const packed = reader.byte();
-  reader.byte();
-  reader.byte();
-
-  const hasGlobalPalette = (packed & 0x80) !== 0;
-  const globalPaletteSize = 1 << ((packed & 0x07) + 1);
-  const globalPalette = hasGlobalPalette ? readGifPalette(reader, globalPaletteSize) : [];
-  const canvasPixels = new Uint8ClampedArray(width * height * 4);
+  // Reconstruct frame canvases with proper disposal method handling
   const frames: GifFrame[] = [];
-  let gce = { disposal: 0, delay: 120, transparentIndex: null as number | null };
+  const virtualCanvas = new Uint8Array(gif.lsd.width * gif.lsd.height);
+  let savedCanvas: Uint8Array | null = null;
 
-  while (reader.pos < reader.bytes.length) {
-    const block = reader.byte();
-    if (block === 0x3b) break;
+  for (let i = 0; i < parsedFrames.length; i++) {
+    const pf = parsedFrames[i];
+    const { dims, delay, pixels: framePixels, colorTable, transparentIndex } = pf;
 
-    if (block === 0x21) {
-      const label = reader.byte();
-      if (label === 0xf9) {
-        reader.byte();
-        const packedGce = reader.byte();
-        const delayCs = reader.word();
-        const transparentIndex = reader.byte();
-        reader.byte();
-        gce = {
-          disposal: (packedGce >> 2) & 0x07,
-          delay: Math.max(20, delayCs ? delayCs * 10 : 120),
-          transparentIndex: (packedGce & 1) ? transparentIndex : null,
-        };
-      } else {
-        reader.subBlocks();
-      }
-      continue;
-    }
-
-    if (block !== 0x2c) throw new Error('GIF 图像块格式不受支持。');
-
-    const left = reader.word();
-    const top = reader.word();
-    const frameWidth = reader.word();
-    const frameHeight = reader.word();
-    const imagePacked = reader.byte();
-    const hasLocalPalette = (imagePacked & 0x80) !== 0;
-    const interlaced = (imagePacked & 0x40) !== 0;
-    const localPaletteSize = 1 << ((imagePacked & 0x07) + 1);
-    const paletteData = hasLocalPalette ? readGifPalette(reader, localPaletteSize) : globalPalette;
-    const minCodeSize = reader.byte();
-    const lzwData = reader.subBlocks();
-    const previousPixels = gce.disposal === 3 ? canvasPixels.slice() : null;
-
-    let indices = decodeGifLzw(minCodeSize, lzwData, frameWidth * frameHeight);
-    if (interlaced) indices = deinterlaceGifIndices(indices, frameWidth, frameHeight);
-
-    for (let y = 0; y < frameHeight; y += 1) {
-      const dy = top + y;
-      if (dy < 0 || dy >= height) continue;
-      for (let x = 0; x < frameWidth; x += 1) {
-        const dx = left + x;
-        if (dx < 0 || dx >= width) continue;
-        const colorIndex = indices[y * frameWidth + x];
-        if (colorIndex === gce.transparentIndex) continue;
-        const color = paletteData[colorIndex];
-        if (!color) continue;
-        const outIndex = (dy * width + dx) * 4;
-        canvasPixels[outIndex] = color[0];
-        canvasPixels[outIndex + 1] = color[1];
-        canvasPixels[outIndex + 2] = color[2];
-        canvasPixels[outIndex + 3] = 255;
-      }
-    }
-
-    frames.push({ image: canvasFromGifRgba(width, height, canvasPixels), delay: gce.delay });
-
-    if (gce.disposal === 2) {
-      for (let y = 0; y < frameHeight; y += 1) {
-        const dy = top + y;
-        if (dy < 0 || dy >= height) continue;
-        for (let x = 0; x < frameWidth; x += 1) {
-          const dx = left + x;
-          if (dx < 0 || dx >= width) continue;
-          canvasPixels.fill(0, (dy * width + dx) * 4, (dy * width + dx) * 4 + 4);
+    // Apply disposal method from PREVIOUS frame
+    if (i > 0) {
+      const prevDisposal = parsedFrames[i - 1].disposalType;
+      if (prevDisposal === 2) {
+        // Restore to background: clear to background color
+        const bgIdx = gif.lsd.backgroundColorIndex;
+        for (let y = 0; y < dims.height; y++) {
+          for (let x = 0; x < dims.width; x++) {
+            const dx = dims.left + x;
+            const dy = dims.top + y;
+            if (dx < gif.lsd.width && dy < gif.lsd.height) {
+              virtualCanvas[dy * gif.lsd.width + dx] = bgIdx;
+            }
+          }
+        }
+        console.log(`[GIF] Frame ${i}: prev disposal=2 (restore to bg)`);
+      } else if (prevDisposal === 3) {
+        // Restore to previous
+        if (savedCanvas) {
+          virtualCanvas.set(savedCanvas);
+          console.log(`[GIF] Frame ${i}: prev disposal=3 (restore to prev)`);
         }
       }
-    } else if (gce.disposal === 3 && previousPixels) {
-      canvasPixels.set(previousPixels);
+      // disposal=0 or 1: pixels accumulate naturally
     }
 
-    gce = { disposal: 0, delay: 120, transparentIndex: null };
+    // Save state before drawing (needed for disposal=3 of THIS frame)
+    savedCanvas = new Uint8Array(virtualCanvas);
+
+    // Draw current frame pixels onto virtual canvas
+    for (let y = 0; y < dims.height; y++) {
+      for (let x = 0; x < dims.width; x++) {
+        const dx = dims.left + x;
+        const dy = dims.top + y;
+        if (dx < gif.lsd.width && dy < gif.lsd.height) {
+          const srcIdx = y * dims.width + x;
+          const pIdx = framePixels[srcIdx];
+          if (pIdx !== transparentIndex) {
+            virtualCanvas[dy * gif.lsd.width + dx] = pIdx;
+          }
+        }
+      }
+    }
+
+    // Build RGBA canvas
+    const rgbaCanvas = document.createElement('canvas');
+    rgbaCanvas.width = gif.lsd.width;
+    rgbaCanvas.height = gif.lsd.height;
+    const ctx = rgbaCanvas.getContext('2d')!;
+    const imageData = buildRgbaFromIndices(virtualCanvas, colorTable, gif.lsd.width, gif.lsd.height);
+    ctx.putImageData(imageData, 0, 0);
+
+    // Validate
+    const sampleSz = Math.min(10, rgbaCanvas.width, rgbaCanvas.height);
+    const sampleData = ctx.getImageData(0, 0, sampleSz, sampleSz).data;
+    let opaqueCount = 0;
+    for (let j = 0; j < sampleData.length; j += 4) {
+      if (sampleData[j + 3] > 0) opaqueCount++;
+    }
+
+    const uniqueColors = new Set(virtualCanvas).size;
+    console.log(`[GIF] Frame ${i}: ${opaqueCount} opaque in ${sampleSz}x${sampleSz}, ${uniqueColors} colors`);
+
+    if (opaqueCount === 0) {
+      console.warn(`[GIF] Frame ${i}: WARNING - completely empty!`);
+    }
+
+    frames.push({
+      image: rgbaCanvas,
+      delay: Math.max(20, delay),
+    });
   }
 
-  if (!frames.length) throw new Error('没有解析到 GIF 帧。');
+  console.log(`[GIF] Total: ${frames.length} frames`);
   return frames;
 }
 
-export async function decodeGifFrames(file: File): Promise<GifFrame[]> {
-  const data = await file.arrayBuffer();
-
-  if (!('ImageDecoder' in window)) {
-    return decodeGifFramesFallback(data);
-  }
-
-  try {
-    const decoder = new ImageDecoder({ data, type: 'image/gif' });
-    await decoder.tracks.ready;
-    const count = decoder.tracks.selectedTrack.frameCount || 1;
-    const frames: GifFrame[] = [];
-
-    for (let i = 0; i < count; i += 1) {
-      const result = await decoder.decode({ frameIndex: i });
-      const bitmap = result.image;
-      const canvas = document.createElement('canvas');
-      canvas.width = bitmap.displayWidth;
-      canvas.height = bitmap.displayHeight;
-      canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
-      frames.push({
-        image: canvas,
-        delay: Math.max(20, Math.round((result.image.duration || 120000) / 1000)),
-      });
-      bitmap.close();
-    }
-    return frames;
-  } catch {
-    return decodeGifFramesFallback(data);
-  }
+interface GifFrame {
+  image: HTMLCanvasElement;
+  delay: number;
 }

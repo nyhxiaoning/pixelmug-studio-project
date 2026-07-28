@@ -662,6 +662,7 @@ import { encodeGif } from '@/modules/pixel-editor/core/gif-encoder'
 import {
   decodeGifFrames,
   imageFromFile,
+  localPixelsToCanvasPixels,
   renderImageToPixels,
 } from '@/modules/pixel-editor/core/image-import'
 
@@ -927,6 +928,16 @@ const overviewCanvasSize = computed<number>(() => {
 })
 
 // Utility functions
+async function loadImageFromUrl(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error(`Failed to load image from ${url}`))
+    image.src = url
+  })
+}
+
 function fusionFontWidthMode(value: string): 'monospaced' | 'proportional' {
   return value === 'proportional' ? 'proportional' : 'monospaced'
 }
@@ -1613,7 +1624,7 @@ async function loadWorkForEdit(workId: string): Promise<void> {
 
     console.log('Work detail loaded:', workDetail)
 
-    // Step 2: 从 editableFileUrl 加载 JSON 数据
+    // Step 2: 优先从 editableFileUrl 加载 JSON 数据
     if (workDetail?.result?.editableFileUrl) {
       const projectData = await fetchJsonFromUrl<ProjectData>(workDetail?.result?.editableFileUrl)
 
@@ -1666,9 +1677,161 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       nextTick(() => {
         renderAll()
       })
+    } else if (workDetail?.result?.type === 'STATIC' && workDetail?.result?.coverUrl) {
+      // Step 2b: STATIC 类型，从 coverUrl 解析静态图
+      console.log('No editableFileUrl, parsing STATIC image from coverUrl:', workDetail.result.coverUrl)
+      const image = await loadImageFromUrl(workDetail.result.coverUrl)
+      const pixels = renderImageToPixels(image, {
+        fit: 'contain',
+        cropX: 0.5,
+        cropY: 0.5,
+        zoom: 1,
+        preserveColors: true,
+        outputWidth: WIDTH,
+        outputHeight: HEIGHT,
+        allowUpscale: false,
+        dither: 'none',
+      })
+
+      const newProject = sanitizeProject({
+        id: id('project'),
+        version: 4,
+        name: workDetail.result?.title || t('common.pxm_editor_library_new'),
+        width: WIDTH,
+        height: HEIGHT,
+        currentFrameIndex: 0,
+        activeLayer: 0,
+        frames: [
+          {
+            id: id('frame'),
+            delay: 120,
+            viewportX: DEFAULT_VIEWPORT_X,
+            viewportY: DEFAULT_VIEWPORT_Y,
+            layers: [
+              {
+                id: id('layer'),
+                name: t('common.pxm_editor_layer_one'),
+                visible: true,
+                opacity: 1,
+                pixels,
+                canvasPixels: pixelsToCanvasPixels(pixels, WIDTH, HEIGHT),
+              },
+              makeLayer(1),
+            ],
+          },
+        ],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      })
+
+      projects.value.push(newProject)
+      project.value = newProject
+      view.value = 'editor'
+      currentId.value = newProject.id
+      localStorage.setItem(CURRENT_KEY, newProject.id)
+
+      clearSelectionState()
+      syncFrameDelayInput()
+      persistNow()
+
+      console.log('STATIC image parsed and loaded:', newProject)
+      nextTick(() => {
+        renderAll()
+      })
+    } else if (workDetail?.result?.type === 'GIF' && (workDetail?.result?.gifFileUrl || workDetail?.result?.coverUrl)) {
+      // Step 2c: GIF 类型，从 gifFileUrl 或 coverUrl 解析动态图
+      const gifUrl = workDetail.result.gifFileUrl || workDetail.result.coverUrl
+      console.log('[PixelEditor] No editableFileUrl, parsing GIF from url:', gifUrl)
+
+      // 先下载 GIF 文件
+      const response = await fetch(gifUrl)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch GIF: ${response.status} ${response.statusText}`)
+      }
+      const gifBlob = await response.blob()
+      console.log('[PixelEditor] GIF blob size:', gifBlob.size, 'type:', gifBlob.type)
+      const gifFile = new File([gifBlob], 'import.gif', { type: 'image/gif' })
+
+      // 解码 GIF 帧
+      console.log('[PixelEditor] Decoding GIF frames...')
+      const gifFrames = await decodeGifFrames(gifFile)
+      console.log('[PixelEditor] GIF decoded:', gifFrames.length, 'frames')
+
+      const frames = gifFrames.map(({ image, delay }) => {
+        const frame = makeFrame()
+        frame.delay = delay
+        const pixels = renderImageToPixels(image, {
+          fit: 'contain',
+          cropX: 0.5,
+          cropY: 0.5,
+          zoom: 1,
+          preserveColors: true,
+          outputWidth: WIDTH,
+          outputHeight: HEIGHT,
+          allowUpscale: false,
+          dither: 'none',
+        })
+
+        frame.layers[0].pixels = pixels
+        frame.layers[0].canvasPixels = pixelsToCanvasPixels(pixels, WIDTH, HEIGHT)
+        return frame
+      })
+
+      console.log('[PixelEditor] All frames processed, total:', frames.length)
+
+      // Validate: check if frames have actual pixel content
+      const firstFramePixels = frames[0]?.layers[0]?.pixels || [];
+      const nonNullCount = firstFramePixels.filter(p => p !== null && p !== '').length;
+
+      if (nonNullCount === 0) {
+        console.error('[PixelEditor] GIF parsing resulted in all null pixels!');
+        ElMessageBox.confirm(
+          t('common.pxm_editor_gif_parse_empty_hint'),
+          t('common.pxm_editor_gif_parse_empty_title'),
+          {
+            confirmButtonText: t('common.pxm_common_confirm'),
+            cancelButtonText: t('common.pxm_common_cancel'),
+            type: 'warning',
+          }
+        ).then(() => {
+          handleNewProject()
+        }).catch(() => {
+          // User cancelled, load empty frames as-is
+        })
+      } else {
+        console.log(`[PixelEditor] First frame has ${nonNullCount}/${firstFramePixels.length} non-null pixels`);
+      }
+
+      const newProject = sanitizeProject({
+        id: id('project'),
+        version: 4,
+        name: workDetail.result?.title || t('common.pxm_editor_library_new'),
+        width: WIDTH,
+        height: HEIGHT,
+        currentFrameIndex: 0,
+        activeLayer: 0,
+        frames,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      })
+
+      projects.value.push(newProject)
+      project.value = newProject
+      view.value = 'editor'
+      currentId.value = newProject.id
+      localStorage.setItem(CURRENT_KEY, newProject.id)
+
+      clearSelectionState()
+      syncFrameDelayInput()
+      persistNow()
+
+      console.log('GIF parsed and loaded:', newProject)
+      nextTick(() => {
+        renderAll()
+      })
     } else {
       ElMessage.warning(t('common.pxm_editor_no_editable_file'))
-      // 如果没有 editableFileUrl，创建一个新项目
+      // 如果没有 editableFileUrl 且无法解析图片，创建一个新项目
       handleNewProject()
     }
   } catch (error) {
@@ -2974,8 +3137,7 @@ async function handleLoadGifImage(event: Event): Promise<void> {
         dither: 'none',
       })
       frame.layers[0].pixels = pixels
-      frame.layers[0].canvasPixels = pixelsToCanvasPixels(pixels, CANVAS_WIDTH, CANVAS_HEIGHT)
-      refreshLayerVisibleFromCanvas(frame.layers[0], DEFAULT_VIEWPORT_X, DEFAULT_VIEWPORT_Y)
+      frame.layers[0].canvasPixels = pixelsToCanvasPixels(pixels, WIDTH, HEIGHT)
       return frame
     })
     project.value.frames.splice(currentFrameIndex.value + 1, 0, ...frames)

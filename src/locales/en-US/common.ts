@@ -219,6 +219,8 @@ export default {
   pxm_editor_saving: 'Saving...',
   pxm_editor_no_editable_file: 'This work has no editable data available.',
   pxm_editor_load_failed: 'Failed to load work. Please try again.',
+  pxm_editor_gif_parse_empty_title: 'GIF Parse Failed',
+  pxm_editor_gif_parse_empty_hint: 'This GIF has no valid pixel content after parsing. The format may not be supported. Create a blank project and re-edit?',
   pxm_editor_editing_mode: 'Editing',
 
   // ====================== 像素编辑器 - 作品库 ======================
