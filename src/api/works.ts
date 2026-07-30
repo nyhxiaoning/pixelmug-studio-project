@@ -157,6 +157,17 @@ export function pageWorksApi(params: CreatorWorkPageRequest) {
   })
 }
 
+
+/**
+ * 查询作品的发布标签
+ */
+export function pageTagWorksApi() {
+  return request({
+    url: "/creator/work-tags",
+    method: "get",
+  })
+}
+
 /**
  * 查询作品详情
  * GET /api/creator/works/{id}
