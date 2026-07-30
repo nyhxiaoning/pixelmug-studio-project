@@ -133,12 +133,12 @@ export default {
   pxm_publish_incomplete: '作品暂不可提交，请完善信息后重试',
 
   // ====================== 像素编辑器模块 ======================
-  pxm_editor_theme_light:'浅色',
-  pxm_editor_theme_dark:'深色',
+  pxm_editor_theme_light: '浅色',
+  pxm_editor_theme_dark: '深色',
   pxm_editor_title_label: '作品标题',
   pxm_editor_save: '保存',
-  pxm_editor_isornot_tile:"是否保存当前的作品？",
-  pxm_editor_back_home:"返回作品",
+  pxm_editor_isornot_tile: "是否保存当前的作品？",
+  pxm_editor_back_home: "返回作品",
   pxm_editor_ready: '准备就绪',
   pxm_editor_frame_unit: '帧',
   pxm_editor_layer_unit: '图层',
@@ -313,4 +313,46 @@ export default {
   pxm_editor_copy_suffix: '副本',
   pxm_editor_status_ready: '准备就绪',
   pxm_editor_overview_save: '保存',
+
+  // 弹窗通用文案
+  applyTitle: '申请发布作品',
+  cancel: '取消',
+
+  // 步骤条文案
+  selectWork: '选择作品',
+  selectCategory: '选择分类',
+  submitSuccessStep: '提交成功',
+
+  // 第一步：选择作品-可见文案
+  searchPlaceholder: '搜索要发布的作品',
+  statusDraft: '未发布',
+  pickerFootnote: '选择一个作品提交发布审核。通过审核后即可上架。',
+  noAvailableWorks: '暂无可发布作品',
+  noAvailableWorksHint: '已在发布列表中的作品不会重复展示。',
+
+  // 第一步：选择作品-按钮文案
+  nextStep: '下一步',
+
+  // 第二步：选择分类-分类区域文案
+  categoryPanelTitle: '所属分类',
+  categoryPanelHint: '分类没有默认值，请选择一个分类后提交。',
+  categoryFootnote: '选择分类后提交审核，通过后即可上架。',
+
+  // 第二步：选择分类-按钮文案
+  previousStep: '上一步',
+  submitReview: '提交审核',
+
+  // 第三步：提交成功-成功态文案
+  submitSuccessTitle: '提交审核成功',
+  submitSuccessMessage: '作品已进入官方审核流程，审核通过后会自动上架。',
+  successFootnote: '可在发布管理列表查看审核状态。',
+
+  // 第三步：提交成功-成功字段文案
+  successWorkName: '作品名称',
+  category: '分类',
+  successStatus: '状态',
+  statusPending: '审核中',
+
+  // 第三步：提交成功-按钮文案
+  done: '完成',
 }

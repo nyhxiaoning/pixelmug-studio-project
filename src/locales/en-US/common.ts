@@ -133,12 +133,12 @@ export default {
   pxm_publish_incomplete: 'This work cannot be submitted yet. Complete the information and try again.',
 
   // ====================== 像素编辑器模块 ======================
-  pxm_editor_theme_light:'Light color',
-  pxm_editor_theme_dark:'Dark color',
+  pxm_editor_theme_light: 'Light color',
+  pxm_editor_theme_dark: 'Dark color',
   pxm_editor_title_label: 'Work title',
   pxm_editor_save: 'Save',
-  pxm_editor_isornot_tile:"Save current work?",
-  pxm_editor_back_home:"Back to Works",
+  pxm_editor_isornot_tile: "Save current work?",
+  pxm_editor_back_home: "Back to Works",
   pxm_editor_ready: 'Ready',
   pxm_editor_frame_unit: 'frame',
   pxm_editor_layer_unit: 'layer',
@@ -326,4 +326,48 @@ export default {
   pxm_time_months_10: '10 months ago',
   pxm_time_months_11: '11 months ago',
   pxm_time_year_1: '1 year ago',
+
+
+
+  // 弹窗通用文案
+  applyTitle: 'Apply to publishing',
+  cancel: 'Cancel',
+
+  // 步骤条文案
+  selectWork: 'Select work',
+  selectCategory: 'Select category',
+  submitSuccessStep: 'Submitted',
+
+  // 第一步：选择作品-可见文案
+  searchPlaceholder: 'Search for a file to publishing',
+  statusDraft: 'Unpublished',
+  pickerFootnote: 'Choose a work to submit for publishing review. It will be listed after approval.',
+  noAvailableWorks: 'No works available',
+  noAvailableWorksHint: 'Works already in the publishing list are hidden.',
+
+  // 第一步：选择作品-按钮文案
+  nextStep: 'Next',
+
+  // 第二步：选择分类-分类区域文案
+  categoryPanelTitle: 'Category',
+  categoryPanelHint: 'There is no default category. Choose one before submitting.',
+  categoryFootnote: 'Choose a category and submit for review.',
+
+  // 第二步：选择分类-按钮文案
+  previousStep: 'Back',
+  submitReview: 'Submit review',
+
+  // 第三步：提交成功-成功态文案
+  submitSuccessTitle: 'Submitted for review',
+  submitSuccessMessage: 'The work is now in official review and will be listed after approval.',
+  successFootnote: 'Track the review status in Publishing Management.',
+
+  // 第三步：提交成功-成功字段文案
+  successWorkName: 'Work name',
+  category: 'Category',
+  successStatus: 'Status',
+  statusPending: 'In review',
+
+  // 第三步：提交成功-按钮文案
+  done: 'Done',
 }

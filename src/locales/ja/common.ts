@@ -237,4 +237,47 @@ export default {
   pxm_time_months_10: '10 か月前',
   pxm_time_months_11: '11 か月前',
   pxm_time_year_1: '1 年前',
+
+
+  // 弹窗通用文案
+  applyTitle: '作品の公開申請',
+  cancel: 'キャンセル',
+
+  // 步骤条文案
+  selectWork: '作品を選択',
+  selectCategory: 'カテゴリを選択',
+  submitSuccessStep: '申請完了',
+
+  // 第一步：选择作品-可见文案
+  searchPlaceholder: '公開する作品を検索',
+  statusDraft: '未公開',
+  pickerFootnote: '作品を選んで公開審査に提出します。承認後に公開されます。',
+  noAvailableWorks: '公開できる作品がありません',
+  noAvailableWorksHint: '公開リストにある作品は重複表示されません。',
+
+  // 第一步：选择作品-按钮文案
+  nextStep: '次へ',
+
+  // 第二步：选择分类-分类区域文案
+  categoryPanelTitle: '所属カテゴリ',
+  categoryPanelHint: 'デフォルトのカテゴリはありません。提出前にカテゴリを1つ選択してください。',
+  categoryFootnote: 'カテゴリを選択して審査に提出します。承認後に公開されます。',
+
+  // 第二步：选择分类-按钮文案
+  previousStep: '戻る',
+  submitReview: '審査に提出',
+
+  // 第三步：提交成功-成功态文案
+  submitSuccessTitle: '審査に提出しました',
+  submitSuccessMessage: '作品は公式審査に入りました。承認後に自動で公開されます。',
+  successFootnote: '公開管理リストで審査状況を確認できます。',
+
+  // 第三步：提交成功-成功字段文案
+  successWorkName: '作品名',
+  category: 'カテゴリ',
+  successStatus: 'ステータス',
+  statusPending: '審査中',
+
+  // 第三步：提交成功-按钮文案
+  done: '完了',
 }

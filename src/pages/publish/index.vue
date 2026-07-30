@@ -182,64 +182,180 @@
       </section>
     </section>
 
-    <!-- 弹窗：选择未发布作品 D E -->
+    <!-- 弹窗：三步发布流程 D E -->
     <el-dialog v-model="resourceDialogVisible" width="55%" @close="resetDialogSelect">
       <template #header>
         <div class="dialog-header-wrap">
-          <!-- 弹窗主标题 -->
           <span class="dialog-title">{{ $t('common.pxm_publish_resources') }}</span>
-          <!-- 右侧说明内容 -->
           <div class="header-desc">{{ $t('common.pxm_publish_files') }}</div>
         </div>
       </template>
 
-      <el-input
-        v-model="searchDraftKey"
-        :placeholder="$t('common.pxm_publish_search_placeholder')"
-        clearable
-        @input="handleSearchDraft"
-        style="margin-bottom: 16px"
-      />
-      <div
-        class="publish-card-list"
-        v-infinite-scroll="loadMoreDrafts"
-        :infinite-scroll-disabled="draftNoMore"
-        :infinite-scroll-distance="100"
-      >
-        <el-card
-          v-for="item in draftWorkList"
-          :key="item.id"
-          :body-style="{ padding: '0px' }"
-          class="publish-work-card"
-          :class="{ selected: selectedDraftIds.includes(item.id) }"
-          @click="toggleDraftSelect(item)"
+      <!-- 步骤条 -->
+      <div class="publish-steps">
+        <span :class="{ done: dialogStep > 0, active: dialogStep === 0 }">
+          <strong>{{ 1 }}</strong>{{ t('common.selectWork') }}
+        </span><i /><span :class="{ done: dialogStep > 1, active: dialogStep === 1 }">
+          <strong>{{ 2 }}</strong>{{ t('common.selectCategory') }}
+        </span><i /><span :class="{ done: dialogStep > 2, active: dialogStep === 2 }">
+          <strong>{{ 3 }}</strong>{{ t('common.submitSuccessStep') }}
+        </span>
+      </div>
+
+      <!-- 步骤 1：选择作品 -->
+      <div v-show="dialogStep === 0" class="dialog-step-content">
+        <el-input
+          v-model="searchDraftKey"
+          :placeholder="$t('common.pxm_publish_search_placeholder')"
+          clearable
+          @input="handleSearchDraft"
+          style="margin-bottom: 16px"
+        />
+        <div
+          class="publish-card-list"
+          v-infinite-scroll="loadMoreDrafts"
+          :infinite-scroll-disabled="draftNoMore"
+          :infinite-scroll-distance="100"
         >
-          <div class="publish-card-image-wrap">
-            <img :src="item.coverUrl" class="publish-card-image" />
-            <div v-if="selectedDraftIds.includes(item.id)" class="publish-card-check">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#fff" />
-              </svg>
+          <el-card
+            v-for="item in draftWorkList"
+            :key="item.id"
+            :body-style="{ padding: '0px' }"
+            class="publish-work-card"
+            :class="{ selected: selectedDraftIds.includes(item.id) }"
+            @click="toggleDraftSelect(item)"
+          >
+            <div class="publish-card-image-wrap">
+              <img :src="item.coverUrl" class="publish-card-image" />
+              <div v-if="selectedDraftIds.includes(item.id)" class="publish-card-check">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#fff" />
+                </svg>
+              </div>
+            </div>
+            <div class="publish-card-body">
+              <span class="publish-card-name">{{ item.name }}</span>
+              <time class="publish-card-time">{{ item.updatedAt }}</time>
+            </div>
+          </el-card>
+        </div>
+      </div>
+
+      <!-- 步骤 2：选择标签（左侧预览，右侧标签列表） -->
+      <div v-show="dialogStep === 1" class="dialog-step-content">
+        <div class="tag-step-layout">
+          <!-- 左侧：预览图 -->
+          <div class="tag-step-preview">
+            <div class="preview-image-wrap">
+              <img
+                :src="selectedWorkForTags?.coverUrl"
+                class="preview-image"
+                alt="preview"
+              />
+            </div>
+            <p class="preview-title">{{ selectedWorkForTags?.name }}</p>
+          </div>
+
+          <!-- 右侧：标签列表 -->
+          <div class="tag-step-list">
+            <h3 class="tag-step-heading">{{ $t('common.pxm_publish_tag_select') }}</h3>
+            <div v-if="tagLoading" class="tag-loading-wrap">
+              <el-icon class="is-loading"><Loading /></el-icon>
+              <span>{{ $t('common.pxm_common_loading') }}</span>
+            </div>
+            <div v-else-if="tagList.length === 0" class="tag-empty">
+              <el-empty :description="$t('common.pxm_publish_no_tags')" :image-size="80" />
+            </div>
+            <div v-else class="tag-chip-list">
+              <el-tag
+                v-for="tag in tagList"
+                :key="tag.id"
+                :type="selectedTagIds.includes(tag.id) ? '' : 'info'"
+                :effect="selectedTagIds.includes(tag.id) ? 'dark' : 'light'"
+                class="tag-chip"
+                @click="toggleTagSelect(tag)"
+              >
+                {{ tag.name }}
+              </el-tag>
             </div>
           </div>
-          <div class="publish-card-body">
-            <span class="publish-card-name">{{ item.name }}</span>
-            <time class="publish-card-time">{{ item.updatedAt }}</time>
+        </div>
+      </div>
+
+      <!-- 步骤 3：提交审核确认 -->
+      <div v-show="dialogStep === 2" class="dialog-step-content">
+        <div class="submit-step-card">
+          <div class="submit-step-header">
+            <el-icon :size="48" color="#67c23a"><CircleCheck /></el-icon>
+            <h2>{{ $t('common.pxm_publish_confirm_title') }}</h2>
           </div>
-        </el-card>
+
+          <el-descriptions :column="1" border class="submit-desc">
+            <el-descriptions-item :label="$t('common.pxm_publish_files')">
+              <div class="submit-work-name">
+                <img :src="selectedWorkForSubmit?.coverUrl" class="submit-work-thumb" alt="" />
+                <span>{{ selectedWorkForSubmit?.name }}</span>
+              </div>
+            </el-descriptions-item>
+            <el-descriptions-item :label="$t('common.pxm_publish_category')">
+              {{ selectedWorkForSubmit?.type || '--' }}
+            </el-descriptions-item>
+            <el-descriptions-item :label="$t('common.pxm_publish_status_filter')">
+              <el-tag :type="getStatusTagType(selectedWorkForSubmit?.status)">
+                {{ getStatusLabel(selectedWorkForSubmit?.status) }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item :label="$t('common.pxm_publish_tags')">
+              <el-tag
+                v-for="tagId in selectedTagIds"
+                :key="tagId"
+                type="success"
+                style="margin-right: 6px; margin-bottom: 4px"
+              >
+                {{ getTagNameById(tagId) }}
+              </el-tag>
+              <span v-if="selectedTagIds.length === 0" class="empty-text">--</span>
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <el-form
+            v-if="selectedWorkForSubmit?.status === 'rejected'"
+            :model="rejectRemark"
+            label-position="top"
+            style="margin-top: 16px"
+          >
+            <el-form-item :label="$t('common.pxm_publish_remark')">
+              <el-input
+                v-model="rejectRemark"
+                type="textarea"
+                :rows="3"
+                :placeholder="$t('common.pxm_publish_remark_placeholder')"
+              />
+            </el-form-item>
+          </el-form>
+        </div>
       </div>
 
       <template #footer>
         <div class="dialog-footer-wrap">
-          <!-- 左侧说明文字 -->
-          <div class="footer-left-text">{{ $t('common.pxm_publish_picker_footnote') }}</div>
-          <!-- 右侧按钮组 -->
+          <div v-if="dialogStep === 0" class="footer-left-text">
+            {{ $t('common.pxm_publish_picker_footnote') }}
+          </div>
+          <div v-else-if="dialogStep === 1" class="footer-left-text">
+            {{ $t('common.pxm_publish_tag_hint') }}
+          </div>
+          <div v-else class="footer-left-text">
+            {{ $t('common.pxm_publish_submit_hint') }}
+          </div>
           <div class="footer-btn-group">
-            <el-button @click="resourceDialogVisible = false">
-              {{ $t('common.pxm_common_cancel') }}
+            <el-button v-if="dialogStep > 0" @click="dialogStep--">
+              {{ $t('common.pxm_common_prev') }}
             </el-button>
-            <el-button type="primary" pxm_publish_apply @click="submitBatchPublish">
-              {{ $t('common.pxm_publish_apply') }}
+            <el-button v-if="dialogStep < 2" type="primary" @click="handleStepNext">
+              {{ $t('common.nextStep') }}
+            </el-button>
+            <el-button v-if="dialogStep === 2" type="primary" :loading="submitting" @click="handleStepSubmit">
+              {{ $t('common.pxm_publish_submit') }}
             </el-button>
           </div>
         </div>
@@ -252,7 +368,7 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
+import { Loading, CircleCheck } from '@element-plus/icons-vue'
 
 import {
   unpublishWorkApi,
@@ -261,7 +377,7 @@ import {
   submitWorkUpdateApi,
   submitWorkApi,
 } from '@/api/publish'
-import { pageReleasesApi, pageReleaseCandidatesApi } from '@/api/works'
+import { pageReleasesApi, pageReleaseCandidatesApi, pageTagWorksApi } from '@/api/works'
 
 const { t } = useAppI18n()
 
@@ -276,6 +392,90 @@ const statData = ref({
   review: 0,
   draft: 0,
 })
+
+// ===================== 三步发布流程 =====================
+const dialogStep = ref(0)
+const tagList = ref([])
+const tagLoading = ref(false)
+const selectedTagIds = ref([])
+const selectedWorkForTags = ref(null)
+const selectedWorkForSubmit = ref(null)
+const rejectRemark = ref('')
+const submitting = ref(false)
+
+/** 根据 tagId 获取 tag 名称 */
+function getTagNameById(tagId) {
+  const tag = tagList.value.find((t) => t.id === tagId)
+  return tag ? tag.name : ''
+}
+
+/** 加载标签列表 */
+async function loadTagList() {
+  tagLoading.value = true
+  try {
+    const res = await pageTagWorksApi()
+    // 适配响应结构，根据实际接口调整
+    tagList.value = (res.result || res.data || []).map((item) => ({
+      id: item.id,
+      name: item.name || item.tagName || item.label || String(item.id),
+    }))
+  } catch (e) {
+    console.error('loadTagList error:', e)
+    ElMessage.error(t('common.pxm_publish_load_tags_failed'))
+    tagList.value = []
+  } finally {
+    tagLoading.value = false
+  }
+}
+
+/** 切换标签选中 */
+function toggleTagSelect(tag) {
+  const idx = selectedTagIds.value.indexOf(tag.id)
+  if (idx === -1) {
+    selectedTagIds.value.push(tag.id)
+  } else {
+    selectedTagIds.value.splice(idx, 1)
+  }
+}
+
+/** 步骤间下一步 */
+function handleStepNext() {
+  if (dialogStep.value === 0) {
+    // 步骤1 → 步骤2：需选中一个作品
+    if (selectedDraftIds.value.length === 0) {
+      ElMessage.warning(t('common.pickerFootnote'))
+      return
+    }
+    const workId = selectedDraftIds.value[0]
+    const work = draftWorkList.value.find((w) => w.id === workId)
+    selectedWorkForTags.value = work || null
+    selectedWorkForSubmit.value = work || null
+    loadTagList()
+    dialogStep.value = 1
+  } else if (dialogStep.value === 1) {
+    // 步骤2 → 步骤3：标签可选，不强制
+    dialogStep.value = 2
+  }
+}
+
+/** 步骤3：提交审核 */
+async function handleStepSubmit() {
+  if (!selectedWorkForSubmit.value) return
+  submitting.value = true
+  try {
+    const workId = selectedWorkForSubmit.value.id
+    const remark = rejectRemark.value || undefined
+    await submitWorkApi(workId, remark ? { remark } : undefined)
+    ElMessage.success(t('common.pxm_publish_submit_success'))
+    resourceDialogVisible.value = false
+    resetTableData()
+  } catch (e) {
+    console.error('handleStepSubmit error:', e)
+    ElMessage.error(t('common.pxm_publish_submit_failed'))
+  } finally {
+    submitting.value = false
+  }
+}
 
 // ========== 工具函数 ==========
 const formatDate = (ts) => {
@@ -422,6 +622,13 @@ const resetDialogSelect = () => {
   draftWorkList.value = []
   draftPage.value = 1
   draftTotal.value = 0
+  dialogStep.value = 0
+  tagList.value = []
+  selectedTagIds.value = []
+  selectedWorkForTags.value = null
+  selectedWorkForSubmit.value = null
+  rejectRemark.value = ''
+  tagLoading.value = false
 }
 
 /** e. 批量提交发布 */
@@ -949,5 +1156,179 @@ img {
   image-rendering: pixelated;
   /* 兼容旧版 Safari */
   image-rendering: -webkit-optimize-contrast;
+}
+
+/* ========== 步骤内容区 ========== */
+.dialog-step-content {
+  min-height: 400px;
+}
+
+/* -------- 步骤2：标签选择（左预览 + 右标签） -------- */
+.tag-step-layout {
+  display: flex;
+  gap: 32px;
+  min-height: 440px;
+}
+
+.tag-step-preview {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.preview-image-wrap {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f0f2f5;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.preview-image {
+  width: 100%;
+  display: block;
+}
+
+.preview-title {
+  margin-top: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #303133;
+  text-align: center;
+}
+
+.tag-step-list {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tag-step-heading {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: #303133;
+}
+
+.tag-loading-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0;
+  color: #909399;
+  font-size: 14px;
+}
+
+.tag-empty {
+  padding: 40px 0;
+}
+
+.tag-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag-chip {
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+
+.tag-chip:hover {
+  transform: scale(1.05);
+}
+
+/* -------- 步骤3：提交确认 -------- */
+.submit-step-card {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 8px;
+}
+
+.submit-step-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.submit-step-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #303133;
+}
+
+.submit-desc {
+  margin-bottom: 16px;
+}
+
+.submit-work-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.submit-work-thumb {
+  width: 64px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.empty-text {
+  color: #c0c4cc;
+}
+
+/* ========== 步骤条 ========== */
+.publish-steps {
+  display: grid;
+  grid-template-columns: max-content 1fr max-content 1fr max-content;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 32px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.publish-steps span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #8b8f98;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.publish-steps strong {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #f0f2f5;
+  color: #8b8f98;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.publish-steps span.active,
+.publish-steps span.done {
+  color: #202124;
+}
+
+.publish-steps span.active strong,
+.publish-steps span.done strong {
+  background: #2d7ff9;
+  color: #fff;
+}
+
+.publish-steps i {
+  height: 1px;
+  background: #e3e5e8;
 }
 </style>
