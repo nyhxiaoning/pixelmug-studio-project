@@ -4,7 +4,7 @@ import axios from "axios"
 import { ElMessage } from "element-plus"
 import { useUserStore } from "@/pinia/modules/user"
 
-import { getLocale, getLocaleDisplayName, toggleLocale } from "@/locales"
+import { getLocale } from "@/locales"
 
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "",
@@ -28,7 +28,6 @@ instance.interceptors.request.use((config) => {
      config.headers["Accept-Language"] = currentLengthStr
   }
 
-  console.log(config.headers,'config.headers')
   // config.headers["Accept-Language"] = currentLengthStr
   // config.headers.platform = 2
   return config
