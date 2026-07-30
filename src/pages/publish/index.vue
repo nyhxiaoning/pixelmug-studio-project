@@ -186,8 +186,8 @@
     <el-dialog v-model="resourceDialogVisible" width="55%" @close="resetDialogSelect">
       <template #header>
         <div class="dialog-header-wrap">
-          <span class="dialog-title">{{ $t('common.pxm_publish_resources') }}</span>
-          <div class="header-desc">{{ $t('common.pxm_publish_files') }}</div>
+          <span class="dialog-title">{{ $t('common.applyTitle') }}</span>
+          <!-- <div class="header-desc">{{ $t('common.pxm_publish_files') }}</div> -->
         </div>
       </template>
 
@@ -222,16 +222,11 @@
             :key="item.id"
             :body-style="{ padding: '0px' }"
             class="publish-work-card"
-            :class="{ selected: selectedDraftIds.includes(item.id) }"
-            @click="toggleDraftSelect(item)"
+            :class="{ selected: selectedDraftId === item.id }"
+            @click="selectDraftWork(item)"
           >
             <div class="publish-card-image-wrap">
               <img :src="item.coverUrl" class="publish-card-image" />
-              <div v-if="selectedDraftIds.includes(item.id)" class="publish-card-check">
-                <svg viewBox="0 0 24 24" width="16" height="16">
-                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#fff" />
-                </svg>
-              </div>
             </div>
             <div class="publish-card-body">
               <span class="publish-card-name">{{ item.name }}</span>
@@ -241,44 +236,47 @@
         </div>
       </div>
 
-      <!-- 步骤 2：选择标签（左侧预览，右侧标签列表） -->
+      <!-- 步骤 2：选择分类 -->
       <div v-show="dialogStep === 1" class="dialog-step-content">
-        <div class="tag-step-layout">
-          <!-- 左侧：预览图 -->
-          <div class="tag-step-preview">
-            <div class="preview-image-wrap">
-              <img
-                :src="selectedWorkForTags?.coverUrl"
-                class="preview-image"
-                alt="preview"
-              />
+        <div class="category-layout">
+          <!-- 左侧：已选作品预览 -->
+          <aside class="selected-work-summary">
+            <div class="resource-preview preview-dark-flow">
+              <div class="dark-flow-art">
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+                <span class="mini-phone"><i></i><i></i><i></i></span>
+              </div>
             </div>
-            <p class="preview-title">{{ selectedWorkForTags?.name }}</p>
-          </div>
+            <h3>{{ selectedWorkForTags?.name }}</h3>
+            <p>{{ $t('common.pxm_publish_unpublished') }} · {{ formatDate(selectedWorkForTags?.updateTime) }}</p>
+          </aside>
 
-          <!-- 右侧：标签列表 -->
-          <div class="tag-step-list">
-            <h3 class="tag-step-heading">{{ $t('common.pxm_publish_tag_select') }}</h3>
-            <div v-if="tagLoading" class="tag-loading-wrap">
-              <el-icon class="is-loading"><Loading /></el-icon>
-              <span>{{ $t('common.pxm_common_loading') }}</span>
-            </div>
-            <div v-else-if="tagList.length === 0" class="tag-empty">
-              <el-empty :description="$t('common.pxm_publish_no_tags')" :image-size="80" />
-            </div>
-            <div v-else class="tag-chip-list">
-              <el-tag
-                v-for="tag in tagList"
-                :key="tag.id"
-                :type="selectedTagIds.includes(tag.id) ? '' : 'info'"
-                :effect="selectedTagIds.includes(tag.id) ? 'dark' : 'light'"
-                class="tag-chip"
-                @click="toggleTagSelect(tag)"
+          <!-- 右侧：分类选择 -->
+          <section class="category-panel">
+            <h3>{{ $t('common.pxm_publish_category_select') }}</h3>
+            <p>{{ $t('common.pxm_publish_category_hint') }}</p>
+            <div class="category-options">
+              <button
+                v-for="cat in categoryList"
+                :key="cat"
+                type="button"
+                :class="{ selected: selectedCategory === cat }"
+                @click="selectedCategory = cat"
               >
-                {{ tag.name }}
-              </el-tag>
+                {{ cat }}
+              </button>
             </div>
-          </div>
+          </section>
         </div>
       </div>
 
@@ -306,15 +304,8 @@
               </el-tag>
             </el-descriptions-item>
             <el-descriptions-item :label="$t('common.pxm_publish_tags')">
-              <el-tag
-                v-for="tagId in selectedTagIds"
-                :key="tagId"
-                type="success"
-                style="margin-right: 6px; margin-bottom: 4px"
-              >
-                {{ getTagNameById(tagId) }}
-              </el-tag>
-              <span v-if="selectedTagIds.length === 0" class="empty-text">--</span>
+              <span v-if="selectedCategory" class="selected-category-tag">{{ selectedCategory }}</span>
+              <span v-else class="empty-text">--</span>
             </el-descriptions-item>
           </el-descriptions>
 
@@ -395,66 +386,48 @@ const statData = ref({
 
 // ===================== 三步发布流程 =====================
 const dialogStep = ref(0)
-const tagList = ref([])
-const tagLoading = ref(false)
-const selectedTagIds = ref([])
+const categoryList = ref([])
+const selectedCategory = ref('')
 const selectedWorkForTags = ref(null)
 const selectedWorkForSubmit = ref(null)
 const rejectRemark = ref('')
 const submitting = ref(false)
 
-/** 根据 tagId 获取 tag 名称 */
-function getTagNameById(tagId) {
-  const tag = tagList.value.find((t) => t.id === tagId)
-  return tag ? tag.name : ''
-}
-
-/** 加载标签列表 */
-async function loadTagList() {
-  tagLoading.value = true
-  try {
-    const res = await pageTagWorksApi()
-    // 适配响应结构，根据实际接口调整
-    tagList.value = (res.result || res.data || []).map((item) => ({
-      id: item.id,
-      name: item.name || item.tagName || item.label || String(item.id),
-    }))
-  } catch (e) {
-    console.error('loadTagList error:', e)
-    ElMessage.error(t('common.pxm_publish_load_tags_failed'))
-    tagList.value = []
-  } finally {
-    tagLoading.value = false
-  }
-}
-
-/** 切换标签选中 */
-function toggleTagSelect(tag) {
-  const idx = selectedTagIds.value.indexOf(tag.id)
-  if (idx === -1) {
-    selectedTagIds.value.push(tag.id)
-  } else {
-    selectedTagIds.value.splice(idx, 1)
-  }
-}
-
 /** 步骤间下一步 */
 function handleStepNext() {
   if (dialogStep.value === 0) {
     // 步骤1 → 步骤2：需选中一个作品
-    if (selectedDraftIds.value.length === 0) {
+    if (!selectedDraftId.value) {
       ElMessage.warning(t('common.pickerFootnote'))
       return
     }
-    const workId = selectedDraftIds.value[0]
-    const work = draftWorkList.value.find((w) => w.id === workId)
+    const work = draftWorkList.value.find((w) => w.id === selectedDraftId.value)
     selectedWorkForTags.value = work || null
     selectedWorkForSubmit.value = work || null
-    loadTagList()
+    loadCategoryList()
     dialogStep.value = 1
   } else if (dialogStep.value === 1) {
-    // 步骤2 → 步骤3：标签可选，不强制
+    // 步骤2 → 步骤3：分类可选，不强制
     dialogStep.value = 2
+  }
+}
+
+/** 从接口加载分类列表 */
+async function loadCategoryList() {
+  try {
+    const res = await pageTagWorksApi()
+    const items = (res && res.result) || []
+    const names = Array.from(new Set(
+      items.map(function(item) { return item.name || '' }).filter(Boolean)
+    ))
+    categoryList.value = names
+    if (names.length === 0) {
+      ElMessage.warning(t('common.pxm_publish_no_categories'))
+    }
+  } catch (e) {
+    console.error('loadCategoryList error:', e)
+    ElMessage.error(t('common.pxm_publish_load_tags_failed'))
+    categoryList.value = []
   }
 }
 
@@ -618,26 +591,26 @@ const openResourceDialog = () => {
 /** 重置弹窗多选 */
 const resetDialogSelect = () => {
   searchDraftKey.value = ''
-  selectedDraftIds.value = []
+  selectedDraftId.value = ''
   draftWorkList.value = []
   draftPage.value = 1
   draftTotal.value = 0
   dialogStep.value = 0
-  tagList.value = []
-  selectedTagIds.value = []
+  categoryList.value = []
+  selectedCategory.value = ''
   selectedWorkForTags.value = null
   selectedWorkForSubmit.value = null
   rejectRemark.value = ''
-  tagLoading.value = false
+  // tagLoading.value = false
 }
 
 /** e. 批量提交发布 */
 const submitBatchPublish = () => {
-  if (selectedDraftIds.value.length === 0) {
+  if (!selectedDraftId.value) {
     ElMessage.warning(t('common.pxm_publish_incomplete'))
     return
   }
-  Promise.all(selectedDraftIds.value.map((id) => submitWorkApi(id)))
+  submitWorkApi(selectedDraftId.value)
     .then(() => {
       ElMessage.success(t('common.pxm_publish_apply'))
       resourceDialogVisible.value = false
@@ -696,7 +669,7 @@ const handleUpdate = (row) => {
 const resourceDialogVisible = ref(false)
 const searchDraftKey = ref('')
 const draftWorkList = ref([])
-const selectedDraftIds = ref([])
+const selectedDraftId = ref('')
 
 // 搜索防抖定时器
 let searchTimer = null
@@ -716,7 +689,7 @@ async function loadDraftWorkList() {
   try {
     draftPage.value = 1
     draftTotal.value = 0
-    selectedDraftIds.value = []
+    selectedDraftId.value = ''
     const res = await pageReleaseCandidatesApi({
       pageNumber: 1,
       pageSize: draftPageSize.value,
@@ -764,14 +737,9 @@ async function loadMoreDrafts() {
   }
 }
 
-/** 切换卡片选中状态 */
-function toggleDraftSelect(item) {
-  const idx = selectedDraftIds.value.indexOf(item.id)
-  if (idx === -1) {
-    selectedDraftIds.value.push(item.id)
-  } else {
-    selectedDraftIds.value.splice(idx, 1)
-  }
+/** 选择作品（单选） */
+function selectDraftWork(item) {
+  selectedDraftId.value = item.id
 }
 
 // ========== 状态映射工具函数 ==========
@@ -1052,19 +1020,6 @@ onBeforeUnmount(() => {
   object-fit: cover;
   display: block;
 }
-.publish-card-check {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #409eff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-}
 .publish-card-body {
   padding: 12px 14px 14px;
 }
@@ -1285,6 +1240,16 @@ img {
   color: #c0c4cc;
 }
 
+.selected-category-tag {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: #eaf3ff;
+  color: #1f6fe5;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* ========== 步骤条 ========== */
 .publish-steps {
   display: grid;
@@ -1330,5 +1295,140 @@ img {
 .publish-steps i {
   height: 1px;
   background: #e3e5e8;
+}
+
+/* ========== 步骤2：分类选择 ========== */
+.category-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+/* 左侧：已选作品摘要 */
+.selected-work-summary {
+  min-width: 0;
+  border: 1px solid #e8eef6;
+  border-radius: 14px;
+  background: #fff;
+  padding: 16px;
+  box-shadow: 0 10px 30px #0f172a0d;
+}
+
+.selected-work-summary h3 {
+  margin: 14px 0 0;
+  color: #202124;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-work-summary p {
+  margin: 6px 0 0;
+  color: #8b8f98;
+  font-size: 12px;
+}
+
+/* 暗色流式预览 */
+.preview-dark-flow {
+  background: #1a1d2e;
+  border-radius: 12px;
+  height: 160px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dark-flow-art {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 16px;
+}
+
+.mini-phone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  opacity: 0.5;
+}
+
+.mini-phone i {
+  display: block;
+  width: 24px;
+  height: 18px;
+  border-radius: 3px;
+}
+
+.mini-phone i:nth-child(1) {
+  background: #4a6cf7;
+}
+
+.mini-phone i:nth-child(2) {
+  background: #22c997;
+}
+
+.mini-phone i:nth-child(3) {
+  background: #f5a623;
+}
+
+/* 右侧：分类面板 */
+.category-panel {
+  max-width: none;
+  border: 1px solid #e8eef6;
+  border-radius: 14px;
+  background: #fff;
+  padding: 26px;
+  box-shadow: 0 10px 30px #0f172a0d;
+}
+
+.category-panel h3 {
+  margin: 0;
+  color: #202124;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.category-panel p {
+  margin: 8px 0 0;
+  color: #8a9ab0;
+  font-size: 13px;
+}
+
+.category-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.category-options button {
+  min-width: 72px;
+  height: 38px;
+  border: 1px solid #d8e3f2;
+  border-radius: 999px;
+  background: #fff;
+  color: #57708f;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.category-options button:hover {
+  border-color: #2d7ff9;
+  color: #1f6fe5;
+}
+
+.category-options button.selected {
+  border-color: #2d7ff9;
+  background: #eaf3ff;
+  color: #1f6fe5;
 }
 </style>

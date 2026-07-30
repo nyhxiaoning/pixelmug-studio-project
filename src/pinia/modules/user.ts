@@ -78,7 +78,14 @@ export const useUserStore = defineStore("user", {
       // 清除预览设备绑定选择
       sessionStorage.removeItem("creator.preview.deviceIds")
     }
-  }
+  },
+  persist: [
+    {
+      key: 'user-store',
+      storage: sessionStorage, // 修改这里
+      // paths: ['count'], // 需要持久化指定字段时开启
+    },
+  ],
 })
 
 function readMenuCodes() {

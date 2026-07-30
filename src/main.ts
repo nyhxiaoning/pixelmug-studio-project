@@ -7,6 +7,8 @@ import App from './App.vue'
 import { router } from "@/router"
 import { createPinia } from 'pinia'
 import i18n from './locales'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+
 
 
 // 样式导入
@@ -16,9 +18,12 @@ import '@/modules/pixel-editor/styles/index.scss'
 
 // 创建应用实例
 const app = createApp(App)
+const pinia = createPinia();
+
+pinia.use(piniaPluginPersistedstate);
 
 // 注册插件
-app.use(createPinia())
+app.use(pinia)
 app.use(router)
 app.use(i18n)
 

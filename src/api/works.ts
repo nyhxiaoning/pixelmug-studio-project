@@ -161,8 +161,13 @@ export function pageWorksApi(params: CreatorWorkPageRequest) {
 /**
  * 查询作品的发布标签
  */
+export interface WorkTagVO {
+  id: string
+  name: string
+}
+
 export function pageTagWorksApi() {
-  return request({
+  return request<{ result: WorkTagVO[] }>({
     url: "/creator/work-tags",
     method: "get",
   })

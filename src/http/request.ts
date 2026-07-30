@@ -24,12 +24,12 @@ instance.interceptors.request.use((config) => {
   }
 
   // 禁止修改标准化：headers
-  if(config.headers["Accept-Language"]){
-     config.headers["Accept-Language"] = currentLengthStr
+  if (!config.headers["Accept-Language"]) {
+    config.headers["Accept-Language"] = currentLengthStr;
   }
 
-  if(config.headers["X-Language"]){
-     config.headers["X-Language"] = currentLengthStr
+  if (!config.headers["X-Language"]) {
+    config.headers["X-Language"] = currentLengthStr
 
   }
 
