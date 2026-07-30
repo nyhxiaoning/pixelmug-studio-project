@@ -1416,7 +1416,7 @@ async function doSilentSave(): Promise<boolean> {
 }
 
 /** 仅执行 OSS 上传 + 创建/更新，不弹提示（供自动保存和离开页面调用） */
-async function saveOSSOnly(): Promise<void> {
+async function saveOSSOnly(): Promise<boolean> {
   const projectData = {
     id: project.value.id,
     version: project.value.version,
@@ -1498,7 +1498,16 @@ async function saveOSSOnly(): Promise<void> {
     frameDelay: project.value.frames[0]?.delay || 120,
   }
 
+      // 不能超过50k
+    if(workData.type ==='GIF'){
+      if(workData?.gifFileSize >50*1024*1024){
+        ElMessage.warning(t('common.gifSizeError'))
+        return false;
+      }
+    }
+
   if (editingWorkId.value) {
+
     await updateWorkApi(editingWorkId.value, workData)
     // 更新已有作品：同步 result
     if (editingWork.value?.result) {
@@ -1508,7 +1517,10 @@ async function saveOSSOnly(): Promise<void> {
         id: editingWork.value.result.id || editingWorkId.value || undefined,
       }
     }
+
+    return true
   } else {
+    // 不能超过50k，暂时不限制
     const createResponse = await createWorkApi(workData)
     const newId =
       typeof createResponse === 'object' && createResponse?.result
@@ -1520,6 +1532,7 @@ async function saveOSSOnly(): Promise<void> {
       const detail = await getWorkDetailApi(newId)
       editingWork.value = detail
     }
+    return true
   }
 }
 
@@ -1536,7 +1549,12 @@ async function handleSaveToOSS(): Promise<void> {
     saving.value = true
     status.value = t('common.pxm_editor_saving')
 
-    await saveOSSOnly()
+    let res =  await saveOSSOnly()
+    if(!res){
+       status.value = t('common.pxm_editor_save')
+      saving.value = false;
+      return;
+    }
 
     status.value = t('common.pxm_editor_saved')
     ElMessage.success(t('common.pxm_editor_saved'))
@@ -1547,6 +1565,7 @@ async function handleSaveToOSS(): Promise<void> {
   } finally {
     saving.value = false
   }
+
 }
 
 async function backHome() {

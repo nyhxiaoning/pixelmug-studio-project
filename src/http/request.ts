@@ -4,6 +4,8 @@ import axios from "axios"
 import { ElMessage } from "element-plus"
 import { useUserStore } from "@/pinia/modules/user"
 
+import { getLocale, getLocaleDisplayName, toggleLocale } from "@/locales"
+
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "",
   timeout: 50000,
@@ -12,10 +14,22 @@ const instance = axios.create({
 
 instance.interceptors.request.use((config) => {
   const userStore = useUserStore()
+  // Accept-Language: zh-CN,en-US,ja-JP,ko-KR 
+  // 未来国际化通用的时候，这里需要对应。
+  const currentLengthStr = (getLocale());
+  console.log(currentLengthStr, getLocale(), 'request---000')
   config.headers = config.headers || {}
   if (userStore.token) {
     config.headers.token = userStore.token
   }
+
+  // 禁止修改标准化：headers
+  if(config.headers["Accept-Language"]){
+     config.headers["Accept-Language"] = currentLengthStr
+  }
+
+  console.log(config.headers,'config.headers')
+  // config.headers["Accept-Language"] = currentLengthStr
   // config.headers.platform = 2
   return config
 })

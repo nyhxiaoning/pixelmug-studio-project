@@ -78,7 +78,7 @@ export interface CreatorWorkVO {
   publishStatus: "REJECTED" | "OFFLINE" |  "REVIEWING" | "PUBLISHED",
   status?:   "REJECTED" | "OFFLINE" |  "REVIEWING" | "PUBLISHED",
   workVersion?: string
-  hasUnpublishedChanges?: boolean
+  contentConsistent?: boolean
   submittedTime?: number
   remark?: string
   rejectedReason?: string

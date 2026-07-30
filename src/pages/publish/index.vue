@@ -97,7 +97,7 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column :label="$t('common.pxm_publish_version')" prop="version" width="100" />
+            <!-- <el-table-column :label="$t('common.pxm_publish_version')" prop="version" width="100" /> -->
             <el-table-column
               :label="$t('common.pxm_publish_last_submit')"
               prop="lastSubmit"
@@ -136,8 +136,8 @@
                     </el-button>
                   </template>
                   <!-- 已发布：发布更新 + 下架 -->
-                  <template v-if="row.status === 'published' || row.status === 'live'">
-                    <el-button size="small" pxm_publish_update @click="handleUpdate(row)">
+                  <template v-if="row.status === 'published'">
+                    <el-button v-if="row.contentConsistent" size="small" pxm_publish_update @click="handleUpdate(row)">
                       {{ $t('common.pxm_publish_update') }}
                     </el-button>
                     <el-button
@@ -753,6 +753,18 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
 }
+
+.publish-name img{
+  /* Firefox旧版本兼容 */
+  image-rendering: -moz-crisp-edges;
+  /* Safari 旧版兼容 */
+  image-rendering: -webkit-optimize-contrast;
+  /* 标准 */
+  image-rendering: crisp-edges;
+  /* Chrome/Edge像素渲染兜底 */
+  image-rendering: pixelated;
+}
+
 .publish-thumb {
   width: 128px;
   height: 64px;
@@ -928,5 +940,14 @@ onBeforeUnmount(() => {
   padding: 20px;
   color: #909399;
   font-size: 13px;
+}
+
+img {
+   /* 关闭平滑线性插值，启用锐利渲染 */
+  image-rendering: crisp-edges;
+  /* Chrome/Edge 兼容像素化放大 */
+  image-rendering: pixelated;
+  /* 兼容旧版 Safari */
+  image-rendering: -webkit-optimize-contrast;
 }
 </style>

@@ -1220,6 +1220,13 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+   /* 关闭平滑线性插值，启用锐利渲染 */
+  image-rendering: crisp-edges;
+  /* Chrome/Edge 兼容像素化放大 */
+  image-rendering: pixelated;
+  /* 兼容旧版 Safari */
+  image-rendering: -webkit-optimize-contrast;
+
 }
 .work-meta {
   padding: 12px;
