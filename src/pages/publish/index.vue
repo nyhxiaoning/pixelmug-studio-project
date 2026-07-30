@@ -588,20 +588,21 @@ const openResourceDialog = () => {
   loadDraftWorkList()
 }
 
-/** 重置弹窗多选 */
+/** 重置弹窗所有状态 */
 const resetDialogSelect = () => {
   searchDraftKey.value = ''
   selectedDraftId.value = ''
   draftWorkList.value = []
   draftPage.value = 1
   draftTotal.value = 0
+  draftLoadingMore.value = false
   dialogStep.value = 0
   categoryList.value = []
   selectedCategory.value = ''
   selectedWorkForTags.value = null
   selectedWorkForSubmit.value = null
   rejectRemark.value = ''
-  // tagLoading.value = false
+  submitting.value = false
 }
 
 /** e. 批量提交发布 */
