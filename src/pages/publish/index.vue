@@ -258,13 +258,13 @@
               </div>
             </div>
             <h3>{{ selectedWorkForTags?.name }}</h3>
-            <p>{{ $t('common.pxm_publish_unpublished') }} · {{ formatDate(selectedWorkForTags?.updateTime) }}</p>
+            <p>{{ $t('common.statusDraft') }} · {{ formatDate(selectedWorkForTags?.updateTime) }}</p>
           </aside>
 
           <!-- 右侧：分类选择 -->
           <section class="category-panel">
-            <h3>{{ $t('common.pxm_publish_category_select') }}</h3>
-            <p>{{ $t('common.pxm_publish_category_hint') }}</p>
+            <h3>{{ $t('common.categoryPanelTitle') }}</h3>
+            <p>{{ $t('common.categoryPanelHint') }}</p>
             <div class="category-options">
               <button
                 v-for="cat in categoryList"
@@ -333,10 +333,10 @@
             {{ $t('common.pxm_publish_picker_footnote') }}
           </div>
           <div v-else-if="dialogStep === 1" class="footer-left-text">
-            {{ $t('common.pxm_publish_tag_hint') }}
+            {{ $t('common.categoryFootnote') }}
           </div>
           <div v-else class="footer-left-text">
-            {{ $t('common.pxm_publish_submit_hint') }}
+            {{ $t('common.successFootnote') }}
           </div>
           <div class="footer-btn-group">
             <el-button v-if="dialogStep > 0" @click="dialogStep--">
@@ -346,7 +346,7 @@
               {{ $t('common.nextStep') }}
             </el-button>
             <el-button v-if="dialogStep === 2" type="primary" :loading="submitting" @click="handleStepSubmit">
-              {{ $t('common.pxm_publish_submit') }}
+              {{ $t('common.done') }}
             </el-button>
           </div>
         </div>
