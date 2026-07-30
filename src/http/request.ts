@@ -28,6 +28,11 @@ instance.interceptors.request.use((config) => {
      config.headers["Accept-Language"] = currentLengthStr
   }
 
+  if(config.headers["X-Language"]){
+     config.headers["X-Language"] = currentLengthStr
+
+  }
+
   // config.headers["Accept-Language"] = currentLengthStr
   // config.headers.platform = 2
   return config
