@@ -242,20 +242,12 @@
           <!-- 左侧：已选作品预览 -->
           <aside class="selected-work-summary">
             <div class="resource-preview preview-dark-flow">
-              <div class="dark-flow-art">
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-                <span class="mini-phone"><i></i><i></i><i></i></span>
-              </div>
+              <img
+                v-if="selectedWorkForTags?.coverUrl"
+                :src="selectedWorkForTags.coverUrl"
+                class="preview-cover-img"
+                alt="preview"
+              />
             </div>
             <h3>{{ selectedWorkForTags?.name }}</h3>
             <p>{{ $t('common.statusDraft') }} · {{ formatDate(selectedWorkForTags?.updateTime) }}</p>
@@ -268,12 +260,12 @@
             <div class="category-options">
               <button
                 v-for="cat in categoryList"
-                :key="cat"
+                :key="cat.tagCode"
                 type="button"
-                :class="{ selected: selectedCategory === cat }"
-                @click="selectedCategory = cat"
+                :class="{ selected: selectedCategory === cat.tagCode }"
+                @click="selectedCategory = cat.tagCode"
               >
-                {{ cat }}
+                {{ cat.name }}
               </button>
             </div>
           </section>
@@ -304,7 +296,7 @@
               </el-tag>
             </el-descriptions-item>
             <el-descriptions-item :label="$t('common.pxm_publish_tags')">
-              <span v-if="selectedCategory" class="selected-category-tag">{{ selectedCategory }}</span>
+              <span v-if="selectedCategory" class="selected-category-tag">{{ selectedCategoryName }}</span>
               <span v-else class="empty-text">--</span>
             </el-descriptions-item>
           </el-descriptions>
@@ -339,10 +331,16 @@
             {{ $t('common.successFootnote') }}
           </div>
           <div class="footer-btn-group">
-            <el-button v-if="dialogStep > 0" @click="dialogStep--">
-              {{ $t('common.pxm_common_prev') }}
+            <el-button v-if="dialogStep == 0 " @click="dialogStep--">
+              {{ $t('common.cancel') }}
             </el-button>
-            <el-button v-if="dialogStep < 2" type="primary" @click="handleStepNext">
+              <el-button v-if="dialogStep == 1 " @click="dialogStep--">
+              {{ $t('common.previousStep') }}
+            </el-button>
+            <el-button v-if="dialogStep == 0 " type="primary" @click="handleStepNext">
+              {{ $t('common.nextStep') }}
+            </el-button>
+            <el-button v-if="dialogStep ==  1 " type="primary" @click="submitBatchPublish">
               {{ $t('common.nextStep') }}
             </el-button>
             <el-button v-if="dialogStep === 2" type="primary" :loading="submitting" @click="handleStepSubmit">
@@ -388,6 +386,12 @@ const statData = ref({
 const dialogStep = ref(0)
 const categoryList = ref([])
 const selectedCategory = ref('')
+
+const selectedCategoryName = computed(() => {
+  if (!selectedCategory.value) return ''
+  const found = categoryList.value.find((c) => c.tagCode === selectedCategory.value)
+  return found ? found.name : selectedCategory.value
+})
 const selectedWorkForTags = ref(null)
 const selectedWorkForSubmit = ref(null)
 const rejectRemark = ref('')
@@ -417,11 +421,16 @@ async function loadCategoryList() {
   try {
     const res = await pageTagWorksApi()
     const items = (res && res.result) || []
-    const names = Array.from(new Set(
-      items.map(function(item) { return item.name || '' }).filter(Boolean)
-    ))
-    categoryList.value = names
-    if (names.length === 0) {
+    const seen = new Set()
+    const categories = []
+    for (const item of items) {
+      const code = item.tagCode || item.id || item.name || ''
+      if (!code || seen.has(code)) continue
+      seen.add(code)
+      categories.push({ name: item.name || '', tagCode: code })
+    }
+    categoryList.value = categories
+    if (categories.length === 0) {
       ElMessage.warning(t('common.pxm_publish_no_categories'))
     }
   } catch (e) {
@@ -433,21 +442,21 @@ async function loadCategoryList() {
 
 /** 步骤3：提交审核 */
 async function handleStepSubmit() {
-  if (!selectedWorkForSubmit.value) return
-  submitting.value = true
-  try {
-    const workId = selectedWorkForSubmit.value.id
-    const remark = rejectRemark.value || undefined
-    await submitWorkApi(workId, remark ? { remark } : undefined)
-    ElMessage.success(t('common.pxm_publish_submit_success'))
-    resourceDialogVisible.value = false
-    resetTableData()
-  } catch (e) {
-    console.error('handleStepSubmit error:', e)
-    ElMessage.error(t('common.pxm_publish_submit_failed'))
-  } finally {
-    submitting.value = false
-  }
+    searchDraftKey.value = ''
+  selectedDraftId.value = ''
+  draftWorkList.value = []
+  draftPage.value = 1
+  draftTotal.value = 0
+  draftLoadingMore.value = false
+  dialogStep.value = 0
+  categoryList.value = []
+  selectedCategory.value = ''
+  selectedWorkForTags.value = null
+  selectedWorkForSubmit.value = null
+  rejectRemark.value = ''
+  submitting.value = false
+
+
 }
 
 // ========== 工具函数 ==========
@@ -606,20 +615,36 @@ const resetDialogSelect = () => {
 }
 
 /** e. 批量提交发布 */
-const submitBatchPublish = () => {
-  if (!selectedDraftId.value) {
-    ElMessage.warning(t('common.pxm_publish_incomplete'))
-    return
+const submitBatchPublish = async  () => {
+    if (!selectedWorkForSubmit.value) return
+  submitting.value = true
+  try {
+    const workId = selectedWorkForSubmit.value.id
+    const currentTaqCode = selectedCategory.value || undefined
+    const remark = rejectRemark.value || undefined
+    await submitWorkApi(workId,{tagCode:currentTaqCode})
+    ElMessage.success(t('common.pxm_publish_submit_success'))
+    resourceDialogVisible.value = false
+    resetTableData()
+  } catch (e) {
+    console.error('handleStepSubmit error:', e)
+    ElMessage.error(t('common.pxm_publish_submit_failed'))
+  } finally {
+    submitting.value = false
   }
-  submitWorkApi(selectedDraftId.value)
-    .then(() => {
-      ElMessage.success(t('common.pxm_publish_apply'))
-      resourceDialogVisible.value = false
-      resetTableData()
-    })
-    .catch(() => {
-      ElMessage.error(t('common.pxm_publish_action_failed'))
-    })
+  // if (!selectedDraftId.value) {
+  //   ElMessage.warning(t('common.pxm_publish_incomplete'))
+  //   return
+  // }
+  // submitWorkApi(selectedDraftId.value, { tagCode: selectedCategory.value || undefined })
+  //   .then(() => {
+  //     ElMessage.success(t('common.pxm_publish_apply'))
+  //     resourceDialogVisible.value = false
+  //     resetTableData()
+  //   })
+  //   .catch(() => {
+  //     ElMessage.error(t('common.pxm_publish_action_failed'))
+  //   })
 }
 
 /** h. 单行直接发布（已驳回/已下架） */
@@ -1337,45 +1362,17 @@ img {
   background: #1a1d2e;
   border-radius: 12px;
   height: 160px;
-  position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.dark-flow-art {
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-  padding: 16px;
-}
-
-.mini-phone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  opacity: 0.5;
-}
-
-.mini-phone i {
+.preview-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  width: 24px;
-  height: 18px;
-  border-radius: 3px;
-}
-
-.mini-phone i:nth-child(1) {
-  background: #4a6cf7;
-}
-
-.mini-phone i:nth-child(2) {
-  background: #22c997;
-}
-
-.mini-phone i:nth-child(3) {
-  background: #f5a623;
 }
 
 /* 右侧：分类面板 */

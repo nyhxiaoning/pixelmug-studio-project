@@ -13,7 +13,7 @@ export interface CreatorWorkPageRequest extends PageQuery {
 
 /** 作品发布审核提交请求 */
 export interface WorkSubmitRequest {
-  remark?: string
+  tagCode?: string
 }
 
 /**

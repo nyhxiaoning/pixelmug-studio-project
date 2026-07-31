@@ -164,6 +164,7 @@ export function pageWorksApi(params: CreatorWorkPageRequest) {
 export interface WorkTagVO {
   id: string
   name: string
+  tagCode: string
 }
 
 export function pageTagWorksApi() {
