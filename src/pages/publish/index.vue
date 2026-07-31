@@ -274,48 +274,28 @@
 
       <!-- 步骤 3：提交审核确认 -->
       <div v-show="dialogStep === 2" class="dialog-step-content">
-        <div class="submit-step-card">
-          <div class="submit-step-header">
-            <el-icon :size="48" color="#67c23a"><CircleCheck /></el-icon>
-            <h2>{{ $t('common.pxm_publish_confirm_title') }}</h2>
-          </div>
-
-          <el-descriptions :column="1" border class="submit-desc">
-            <el-descriptions-item :label="$t('common.pxm_publish_files')">
-              <div class="submit-work-name">
-                <img :src="selectedWorkForSubmit?.coverUrl" class="submit-work-thumb" alt="" />
-                <span>{{ selectedWorkForSubmit?.name }}</span>
+        <div class="publish-success-step">
+          <div class="publish-success-card">
+            <span class="publish-success-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <h3>{{ $t('common.pxm_publish_confirm_title') }}</h3>
+            <p>{{ $t('common.pxm_publish_review_notice') }}</p>
+            <dl>
+              <div>
+                <dt>{{ $t('common.successWorkName') }}</dt>
+                <dd>{{ selectedWorkForSubmit?.name || '--' }}</dd>
               </div>
-            </el-descriptions-item>
-            <el-descriptions-item :label="$t('common.pxm_publish_category')">
-              {{ selectedWorkForSubmit?.type || '--' }}
-            </el-descriptions-item>
-            <el-descriptions-item :label="$t('common.pxm_publish_status_filter')">
-              <el-tag :type="getStatusTagType(selectedWorkForSubmit?.status)">
-                {{ getStatusLabel(selectedWorkForSubmit?.status) }}
-              </el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item :label="$t('common.pxm_publish_tags')">
-              <span v-if="selectedCategory" class="selected-category-tag">{{ selectedCategoryName }}</span>
-              <span v-else class="empty-text">--</span>
-            </el-descriptions-item>
-          </el-descriptions>
-
-          <el-form
-            v-if="selectedWorkForSubmit?.status === 'rejected'"
-            :model="rejectRemark"
-            label-position="top"
-            style="margin-top: 16px"
-          >
-            <el-form-item :label="$t('common.pxm_publish_remark')">
-              <el-input
-                v-model="rejectRemark"
-                type="textarea"
-                :rows="3"
-                :placeholder="$t('common.pxm_publish_remark_placeholder')"
-              />
-            </el-form-item>
-          </el-form>
+              <div>
+                <dt>{{ $t('common.category') }}</dt>
+                <dd>{{ selectedCategoryName || '--' }}</dd>
+              </div>
+              <div>
+                <dt>{{ $t('common.successStatus') }}</dt>
+                <dd>{{ $t('common.pxm_publish_status_pending') }}</dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </div>
 
@@ -440,23 +420,10 @@ async function loadCategoryList() {
   }
 }
 
-/** 步骤3：提交审核 */
+/** 步骤3：完成提交 */
 async function handleStepSubmit() {
-    searchDraftKey.value = ''
-  selectedDraftId.value = ''
-  draftWorkList.value = []
-  draftPage.value = 1
-  draftTotal.value = 0
-  draftLoadingMore.value = false
-  dialogStep.value = 0
-  categoryList.value = []
-  selectedCategory.value = ''
-  selectedWorkForTags.value = null
-  selectedWorkForSubmit.value = null
-  rejectRemark.value = ''
-  submitting.value = false
-
-
+  resourceDialogVisible.value = false
+  resetTableData()
 }
 
 // ========== 工具函数 ==========
@@ -616,35 +583,21 @@ const resetDialogSelect = () => {
 
 /** e. 批量提交发布 */
 const submitBatchPublish = async  () => {
-    if (!selectedWorkForSubmit.value) return
+  if (!selectedWorkForSubmit.value) return
   submitting.value = true
   try {
     const workId = selectedWorkForSubmit.value.id
-    const currentTaqCode = selectedCategory.value || undefined
+    const tagCode = selectedCategory.value || undefined
     const remark = rejectRemark.value || undefined
-    await submitWorkApi(workId,{tagCode:currentTaqCode})
-    ElMessage.success(t('common.pxm_publish_submit_success'))
-    resourceDialogVisible.value = false
-    resetTableData()
+    await submitWorkApi(workId, { tagCode, remark })
+    ElMessage.success(t('common.submitSuccessTitle'))
+    dialogStep.value = 2
   } catch (e) {
-    console.error('handleStepSubmit error:', e)
+    console.error('submitBatchPublish error:', e)
     ElMessage.error(t('common.pxm_publish_submit_failed'))
   } finally {
     submitting.value = false
   }
-  // if (!selectedDraftId.value) {
-  //   ElMessage.warning(t('common.pxm_publish_incomplete'))
-  //   return
-  // }
-  // submitWorkApi(selectedDraftId.value, { tagCode: selectedCategory.value || undefined })
-  //   .then(() => {
-  //     ElMessage.success(t('common.pxm_publish_apply'))
-  //     resourceDialogVisible.value = false
-  //     resetTableData()
-  //   })
-  //   .catch(() => {
-  //     ElMessage.error(t('common.pxm_publish_action_failed'))
-  //   })
 }
 
 /** h. 单行直接发布（已驳回/已下架） */
@@ -1225,55 +1178,81 @@ img {
 }
 
 /* -------- 步骤3：提交确认 -------- */
-.submit-step-card {
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 0 8px;
-}
-
-.submit-step-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.submit-step-header h2 {
-  margin: 0;
-  font-size: 20px;
-  color: #303133;
-}
-
-.submit-desc {
-  margin-bottom: 16px;
-}
-
-.submit-work-name {
+/* ========== 步骤3：成功确认卡片 ========== */
+.publish-success-step {
+  min-height: 0;
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  padding: 40px 32px;
+  background: #f8fafc;
 }
 
-.submit-work-thumb {
+.publish-success-card {
+  width: min(520px, 100%);
+  border: 1px solid #e8eef6;
+  border-radius: 16px;
+  background: #fff;
+  padding: 34px;
+  text-align: center;
+  box-shadow: 0 16px 44px #0f172a14;
+}
+
+.publish-success-icon {
   width: 64px;
-  height: 40px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.empty-text {
-  color: #c0c4cc;
-}
-
-.selected-category-tag {
-  display: inline-block;
-  padding: 4px 14px;
+  height: 64px;
+  margin: 0 auto 18px;
   border-radius: 999px;
-  background: #eaf3ff;
-  color: #1f6fe5;
-  font-size: 13px;
+  background: #e8f7ef;
+  color: #17a05d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.publish-success-card h3 {
+  margin: 0;
+  color: #202124;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.publish-success-card p {
+  margin: 10px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.publish-success-card dl {
+  margin: 24px 0 0;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.publish-success-card dl div {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  align-items: center;
+  gap: 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 12px 14px;
+}
+
+.publish-success-card dt {
+  color: #8b8f98;
+  font-size: 12px;
   font-weight: 600;
+}
+
+.publish-success-card dd {
+  margin: 0;
+  color: #202124;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 /* ========== 步骤条 ========== */

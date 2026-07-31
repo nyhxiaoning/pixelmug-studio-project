@@ -359,6 +359,7 @@ export default {
 
   // 第三步：提交成功-成功态文案
   submitSuccessTitle: 'Submitted for review',
+  pxm_publish_review_notice: 'The work is now in official review and will be listed after approval.',
   submitSuccessMessage: 'The work is now in official review and will be listed after approval.',
   successFootnote: 'Track the review status in Publishing Management.',
 

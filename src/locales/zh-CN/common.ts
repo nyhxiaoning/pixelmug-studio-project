@@ -124,6 +124,7 @@ export default {
   pxm_publish_search_placeholder: '搜索要发布的作品',
   pxm_publish_picker_footnote: '选择一个作品提交发布审核，通过审核后即可上架。',
   pxm_publish_confirm_title: '确认操作',
+  pxm_publish_review_notice: '作品已进入官方审核流程，审核通过后会自动上架。',
   pxm_publish_confirm_update: '确认提交该作品的更新版本吗？',
   pxm_publish_confirm_unpublish: '确认下架该作品吗？下架后用户将无法继续查看。',
   pxm_publish_confirm_withdraw: '确认撤回该作品的审核申请吗？',

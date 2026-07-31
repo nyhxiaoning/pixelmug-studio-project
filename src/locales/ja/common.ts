@@ -269,6 +269,7 @@ export default {
 
   // 第三步：提交成功-成功态文案
   submitSuccessTitle: '審査に提出しました',
+  pxm_publish_review_notice: '作品は公式審査に入りました。承認後に自動で公開されます。',
   submitSuccessMessage: '作品は公式審査に入りました。承認後に自動で公開されます。',
   successFootnote: '公開管理リストで審査状況を確認できます。',
 
