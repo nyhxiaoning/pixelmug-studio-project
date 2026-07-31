@@ -317,11 +317,11 @@
               <el-button v-if="dialogStep == 1 " @click="dialogStep--">
               {{ $t('common.previousStep') }}
             </el-button>
-            <el-button v-if="dialogStep == 0 " type="primary" @click="handleStepNext">
+            <el-button v-if="dialogStep == 0 " type="primary" :disabled="!selectedDraftId" @click="handleStepNext">
               {{ $t('common.nextStep') }}
             </el-button>
-            <el-button v-if="dialogStep ==  1 " type="primary" @click="submitBatchPublish">
-              {{ $t('common.nextStep') }}
+            <el-button v-if="dialogStep ==  1 " type="primary" :disabled="!selectedCategory" @click="submitBatchPublish">
+              {{ $t('common.submitReview') }}
             </el-button>
             <el-button v-if="dialogStep === 2" type="primary" :loading="submitting" @click="handleStepSubmit">
               {{ $t('common.done') }}
