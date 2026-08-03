@@ -311,7 +311,7 @@
             {{ $t('common.successFootnote') }}
           </div>
           <div class="footer-btn-group">
-            <el-button v-if="dialogStep == 0 " @click="dialogStep--">
+            <el-button v-if="dialogStep == 0" @click="resourceDialogVisible = false">
               {{ $t('common.cancel') }}
             </el-button>
               <el-button v-if="dialogStep == 1 " @click="dialogStep--">
