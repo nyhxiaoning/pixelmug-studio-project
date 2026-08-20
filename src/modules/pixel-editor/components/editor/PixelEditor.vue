@@ -658,6 +658,7 @@ import {
   setPixel,
 } from '@/modules/pixel-editor/core'
 import { downloadBlob, safeName } from '@/modules/pixel-editor/core/download'
+import { runDevicePreview } from '@/modules/pixel-editor/core/device-preview'
 import { encodeGif } from '@/modules/pixel-editor/core/gif-encoder'
 import {
   decodeGifFrames,
@@ -1369,6 +1370,11 @@ function hasChangesSinceLastSave(): boolean {
   return project.value.updatedAt > lastSaveTimestamp.value
 }
 
+/** 记录已持久化的画板版本，保留保存过程中产生的新修改 */
+function markCurrentWorkSaved(savedTimestamp: number = project.value.updatedAt): void {
+  lastSaveTimestamp.value = savedTimestamp
+}
+
 /** 格式化时间 HH:mm */
 function formatAutoSaveTime(ts: number): string {
   const d = new Date(ts)
@@ -1391,6 +1397,7 @@ async function doSilentSave(): Promise<boolean> {
   if (saving.value) return false // 手动保存中，跳过
 
   try {
+    const savedTimestamp = project.value.updatedAt
     // 复用 handleSaveToOSS 的上传逻辑，但不弹 toast
     await saveOSSOnly()
 
@@ -1399,7 +1406,7 @@ async function doSilentSave(): Promise<boolean> {
       return false
     }
 
-    lastSaveTimestamp.value = Date.now()
+    markCurrentWorkSaved(savedTimestamp)
 
     if (!autoSaveFirstDone.value) {
       autoSaveFirstDone.value = true
@@ -1537,35 +1544,37 @@ async function saveOSSOnly(): Promise<boolean> {
 }
 
 // OSS Save & Create/Update Work
-async function handleSaveToOSS(): Promise<void> {
-  if (saving.value) return
+async function handleSaveToOSS(): Promise<boolean> {
+  if (saving.value) return false
 
   try {
     if (!isValidWork()) {
       console.log('false')
-      return
+      return false
     }
 
+    const savedTimestamp = project.value.updatedAt
     saving.value = true
     status.value = t('common.pxm_editor_saving')
 
-    let res =  await saveOSSOnly()
-    if(!res){
-       status.value = t('common.pxm_editor_save')
-      saving.value = false;
-      return;
+    const saved = await saveOSSOnly()
+    if (!saved) {
+      status.value = t('common.pxm_editor_save')
+      return false
     }
 
+    markCurrentWorkSaved(savedTimestamp)
     status.value = t('common.pxm_editor_saved')
     ElMessage.success(t('common.pxm_editor_saved'))
+    return true
   } catch (error) {
     console.error('Save to OSS failed:', error)
     status.value = t('common.pxm_editor_save_failed')
     ElMessage.error(t('common.pxm_editor_save_failed'))
+    return false
   } finally {
     saving.value = false
   }
-
 }
 
 async function backHome() {
@@ -1574,25 +1583,8 @@ async function backHome() {
   router.push('/works')
 }
 
-const sendWorkToDevice = async () => {
-  console.log(project.value, 'project.value')
-  console.log(projects.value, 'projects.value')
-
+async function pushCurrentWorkToDevice(selectedDevices: string[]): Promise<void> {
   const work = editingWork.value?.result as any
-  console.log(editingWork.value, 'editingWork.value')
-  const DEVICE_SESSION_KEY = 'creator.preview.deviceIds'
-  const selectedDevicesJSON = sessionStorage.getItem(DEVICE_SESSION_KEY)
-  const selectedDevices = JSON.parse(selectedDevicesJSON) as any
-
-  if (!selectedDevices) {
-    ElMessage.warning(t('common.pxm_device_preview_before_bind'))
-    return
-  }
-
-  if (selectedDevices && selectedDevices.length === 0) {
-    ElMessage.warning(t('common.pxm_device_preview_before_bind'))
-    return
-  }
   try {
     console.log('sendWorkToDevice-work', work)
     const fileUrl = work?.binFileUrl || work?.gifFileUrl || work?.editableFileUrl || ''
@@ -1602,7 +1594,7 @@ const sendWorkToDevice = async () => {
     }
 
     // 增加一下这里的work
-    let deviceLength = selectedDevices.length
+    const deviceLength = selectedDevices.length
     const res = await previewToDeviceApi({
       deviceIds: selectedDevices,
       type: work.type as any,
@@ -1629,6 +1621,25 @@ const sendWorkToDevice = async () => {
     console.error('preview error:', e)
     ElMessage.error(t('common.pxm_editor_push_failed'))
   }
+}
+
+const sendWorkToDevice = async () => {
+  const DEVICE_SESSION_KEY = 'creator.preview.deviceIds'
+  const selectedDevicesJSON = sessionStorage.getItem(DEVICE_SESSION_KEY)
+  const selectedDevices = selectedDevicesJSON
+    ? (JSON.parse(selectedDevicesJSON) as string[])
+    : []
+
+  if (!Array.isArray(selectedDevices) || selectedDevices.length === 0) {
+    ElMessage.warning(t('common.pxm_device_preview_before_bind'))
+    return
+  }
+
+  await runDevicePreview({
+    hasChanges: hasChangesSinceLastSave,
+    save: handleSaveToOSS,
+    preview: () => pushCurrentWorkToDevice(selectedDevices),
+  })
 }
 
 // Project management
@@ -1684,6 +1695,7 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       // Step 5: 切换到编辑模式
       projects.value.push(newProject)
       project.value = newProject
+      markCurrentWorkSaved()
       view.value = 'editor'
       currentId.value = newProject.id
       localStorage.setItem(CURRENT_KEY, newProject.id)
@@ -1768,6 +1780,7 @@ async function loadWorkForEdit(workId: string): Promise<void> {
 
         projects.value.push(newProject)
         project.value = newProject
+        markCurrentWorkSaved()
         view.value = 'editor'
         currentId.value = newProject.id
         localStorage.setItem(CURRENT_KEY, newProject.id)
@@ -1887,6 +1900,7 @@ async function loadWorkForEdit(workId: string): Promise<void> {
 
       projects.value.push(newProject)
       project.value = newProject
+      markCurrentWorkSaved()
       view.value = 'editor'
       currentId.value = newProject.id
       localStorage.setItem(CURRENT_KEY, newProject.id)
