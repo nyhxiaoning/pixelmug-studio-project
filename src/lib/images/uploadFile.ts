@@ -370,13 +370,20 @@ export const uploadDoodle = (colors: Array<string | null>): Promise<any> => {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     try {
-      // 将 null 像素替换为默认颜色，避免下游转换出错
-      const filledColors = colors.map((c) => c || '#CACACA')
-      const jsonBlob = colorsToJsonBlob(filledColors);
+      // 空像素统一保留为 null；PNG 会将其输出为完全透明像素。
+      const normalizedColors = Array.from(
+        { length: WIDTH * HEIGHT },
+        (_, index) => colors[index] || null
+      );
+      const jsonBlob = colorsToJsonBlob(normalizedColors);
       const jsonFileUpload = await uploadFile(jsonBlob, doodleJsonFileName, 'STATIC_BIN');
-      const doodleImgBlob = await convertHexArrayToPng(filledColors, defaultImageSize.width, defaultImageSize.height);
+      const doodleImgBlob = await convertHexArrayToPng(
+        normalizedColors,
+        defaultImageSize.width,
+        defaultImageSize.height
+      );
       const pngFileUpload = await uploadFile(doodleImgBlob, doodleImgFileName, 'STATIC_BIN');
-      const colorBlob = colorsToBlob(filledColors);
+      const colorBlob = colorsToBlob(normalizedColors);
       const binFileUpload = await uploadFile(colorBlob, binFileName, 'STATIC_BIN');
 
       resolve({
