@@ -6,6 +6,17 @@
 
 /* ==================== CSS Variables (scoped to .pe-theme-host) ==================== */
 .pe-theme-host {
+  --pe-nav-height: 57px;
+  --pe-shell-gap: 14px;
+  --pe-side-panel-width: 260px;
+  --pe-panel-radius: 8px;
+  --pe-reference-border: #e1e6ec;
+  --pe-reference-page: #f4f6f8;
+  --pe-reference-control: #eef2f6;
+  --pe-reference-selected: #e3f8ee;
+  --pe-reference-danger: #fff4f6;
+  --pe-reference-ink: #191919;
+
   /* Dark theme (default) */
   --pe-bg: #111318;
   --pe-panel: #1b1f28;
@@ -32,27 +43,27 @@
 }
 
 .pe-theme-host[data-theme="light"] {
-  --pe-bg: #f4f6f8;
+  --pe-bg: var(--pe-reference-page);
   --pe-panel: #ffffff;
-  --pe-panel-2: #edf1f5;
+  --pe-panel-2: var(--pe-reference-control);
   --pe-input-bg: #ffffff;
-  --pe-line: #cfd7e2;
-  --pe-panel-border: rgba(20, 30, 45, 0.12);
-  --pe-text: #182230;
-  --pe-muted: #637083;
+  --pe-line: var(--pe-reference-border);
+  --pe-panel-border: var(--pe-reference-border);
+  --pe-text: #242424;
+  --pe-muted: #7d8794;
   --pe-primary: #2fb66f;
   --pe-primary-dark: #20965a;
   --pe-primary-text: #ffffff;
-  --pe-active-bg: #dff5e8;
+  --pe-active-bg: var(--pe-reference-selected);
   --pe-active-soft: rgba(47, 182, 111, 0.16);
   --pe-danger: #d83452;
   --pe-danger-text: #b4233f;
-  --pe-danger-border: rgba(216, 52, 82, 0.5);
+  --pe-danger-border: #ff9aaa;
   --pe-blue: #236fd6;
   --pe-canvas-bg: #05070b;
   --pe-brand-mark-bg: #e8edf4;
   --pe-button-hover: #95a3b5;
-  --pe-shadow: 0 14px 34px rgba(30, 42, 60, 0.12);
+  --pe-shadow: none;
   --pe-modal-backdrop: rgba(16, 24, 38, 0.42);
 }
 
