@@ -270,6 +270,19 @@ test('keeps the left toolbar compact without removing its existing groups', () =
   assert.deepEqual(groupIndexes, [...groupIndexes].sort((left, right) => left - right))
 })
 
+test('keeps pixel text alignment buttons compact and behaviorally unchanged', () => {
+  const textAlignmentButtonStyle = extractCssBlock(
+    editorStyles,
+    '.pe-tool-section--text .pe-button-row--three .pe-secondary'
+  )
+
+  assert.match(textAlignmentButtonStyle, /padding:\s*4px 11px/)
+  assert.doesNotMatch(textAlignmentButtonStyle, /width\s*:|grid-template-columns/)
+  assert.match(editorSource, /@click="handleStampText\(0\)"/)
+  assert.match(editorSource, /@click="handleStampText\(1\)"/)
+  assert.match(editorSource, /@click="handleStampText\(2\)"/)
+})
+
 test('renders the reference workspace grid without changing Canvas behavior', () => {
   const editorCanvasTag = editorSource.match(/<canvas\s+[^>]*ref="editorCanvasRef"[^>]*>/)?.[0]
 

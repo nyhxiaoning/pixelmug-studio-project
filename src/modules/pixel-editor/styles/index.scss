@@ -625,6 +625,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.pe-tool-section--text .pe-button-row--three .pe-secondary {
+  padding: 4px 11px;
+}
+
 .pe-text-options {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
