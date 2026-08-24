@@ -214,19 +214,6 @@
               <input v-model="currentColor" type="color" />
               <input v-model="currentColor" class="pe-hex-input" maxlength="7" />
             </div>
-            <div class="pe-palette">
-              <button
-                v-for="color in palette"
-                :key="color"
-                type="button"
-                class="pe-swatch"
-                :class="{ active: color === currentColor }"
-                :style="{ background: color }"
-                :title="color"
-                :aria-label="color"
-                @click="currentColor = color"
-              />
-            </div>
           </section>
 
           <section class="pe-tool-section pe-tool-section--shapes">
@@ -470,10 +457,7 @@
               </div>
             </section>
 
-            <section class="pe-tool-section pe-theme-settings">
-              <h2>{{ t('common.pxm_editor_theme') }}</h2>
-              <ThemeSwitcher />
-            </section>
+         
           </footer>
         </aside>
 
