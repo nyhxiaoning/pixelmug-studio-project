@@ -74,7 +74,7 @@
 
 .pe-app-shell {
   min-height: 100vh;
-  padding: 16px;
+  padding: 0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--pe-bg);
   color: var(--pe-text);
@@ -104,6 +104,105 @@
 }
 
 /* ==================== Top Bar ==================== */
+.pe-editor-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--pe-nav-height);
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto minmax(380px, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 0 18px;
+  background: #fff;
+  border-bottom: 1px solid var(--pe-reference-border);
+}
+
+.pe-theme-host[data-theme="dark"] .pe-editor-nav {
+  background: var(--pe-panel);
+}
+
+.pe-nav-start,
+.pe-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pe-nav-actions {
+  justify-content: flex-end;
+}
+
+.pe-nav-center {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.pe-nav-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 4px;
+  background: transparent;
+}
+
+.pe-nav-back img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.pe-nav-title {
+  width: min(320px, 28vw);
+  border: 0 !important;
+  padding: 6px 8px !important;
+  background: transparent !important;
+  color: var(--pe-text);
+  font-weight: 700;
+}
+
+.pe-nav-title:focus-visible {
+  outline: 2px solid var(--pe-primary);
+  outline-offset: 1px;
+}
+
+.pe-nav-counts {
+  color: var(--pe-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pe-nav-status {
+  max-width: min(320px, 30vw);
+  overflow: hidden;
+  color: var(--pe-muted);
+  font-size: 11px;
+  line-height: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pe-nav-action,
+.pe-nav-save {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.pe-nav-save {
+  background: var(--pe-reference-ink) !important;
+  color: #fff !important;
+}
+
 .pe-topbar {
   display: flex;
   align-items: center;
@@ -299,11 +398,12 @@
   grid-template-columns: 280px minmax(520px, 1fr);
   gap: 14px;
   align-items: start;
+  padding: var(--pe-shell-gap);
 }
 
 .pe-tools-panel {
   position: sticky;
-  top: 14px;
+  top: calc(var(--pe-nav-height) + var(--pe-shell-gap));
 }
 
 .pe-tools-panel section + section {

@@ -135,6 +135,9 @@ export default {
   // ====================== 像素编辑器模块 ======================
   pxm_editor_theme_light: 'Light color',
   pxm_editor_theme_dark: 'Dark color',
+  pxm_editor_project_name: 'Project name',
+  pxm_editor_theme: 'Theme',
+  pxm_editor_canvas: 'Canvas',
   pxm_editor_title_label: 'Work title',
   pxm_editor_save: 'Save',
   pxm_editor_isornot_tile: "Save current work?",

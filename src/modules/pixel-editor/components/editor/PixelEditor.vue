@@ -47,482 +47,526 @@
     </section>
   </div> -->
 
-  <div class="pe-workspace pe-theme-host">
-    <aside class="pe-panel pe-tools-panel">
-      <section>
-        <h2>{{ t('common.pxm_editor_tools') }}</h2>
-        <div class="pe-tool-grid" role="toolbar">
-          <button
-            v-for="tool in drawingTools"
-            :key="tool.id"
-            type="button"
-            class="pe-tool"
-            :class="{ active: activeTool === tool.id }"
-            :title="tool.label"
-            @click="handleSelectTool(tool.id)"
-          >
-            {{ tool.label }}
-          </button>
-        </div>
-        <div class="pe-control-row">
-          <label>{{ t('common.pxm_editor_color') }}</label>
-          <input v-model="currentColor" type="color" />
-          <input v-model="currentColor" class="pe-hex-input" maxlength="7" />
-        </div>
-        <div class="pe-palette">
-          <button
-            v-for="color in palette"
-            :key="color"
-            type="button"
-            class="pe-swatch"
-            :class="{ active: color === currentColor }"
-            :style="{ background: color }"
-            :title="color"
-            @click="currentColor = color"
-          />
-        </div>
+  <div
+    class="pe-app-shell pe-theme-host"
+    :data-theme="theme"
+  >
+    <header class="pe-editor-nav">
+      <div class="pe-nav-start">
         <button
           type="button"
-          class="pe-tool pe-wide-tool pe-gap-top"
-          :class="{ active: activeTool === 'shape' }"
-          :title="t('common.pxm_editor_shapes')"
-          @click="handleSelectTool('shape')"
+          class="pe-nav-back"
+          :title="t('common.pxm_editor_back_home')"
+          @click="backHome"
         >
-          {{ t('common.pxm_editor_shapes') }}
-        </button>
-        <div class="pe-control-row pe-shape-row">
-          <label>{{ t('common.pxm_editor_shapes') }}</label>
-          <select v-model="shapeType">
-            <option value="rectangle">{{ t('common.pxm_editor_rectangle') }}</option>
-            <option value="square">{{ t('common.pxm_editor_square') }}</option>
-            <option value="line">{{ t('common.pxm_editor_line') }}</option>
-            <option value="ellipse">{{ t('common.pxm_editor_ellipse') }}</option>
-            <option value="circle">{{ t('common.pxm_editor_circle') }}</option>
-            <option value="triangle">{{ t('common.pxm_editor_triangle') }}</option>
-          </select>
-          <select v-model="shapeFill">
-            <option value="filled">{{ t('common.pxm_editor_solid') }}</option>
-            <option value="outline">{{ t('common.pxm_editor_hollow') }}</option>
-          </select>
-        </div>
-        <button
-          type="button"
-          class="pe-tool pe-wide-tool pe-gap-top"
-          :class="{ active: activeTool === 'select' }"
-          :title="t('common.pxm_editor_selection')"
-          @click="handleSelectTool('select')"
-        >
-          {{ t('common.pxm_editor_selection') }}
-        </button>
-        <div class="pe-button-row">
-          <button type="button" class="pe-secondary" @click="handleCopySelection(false)">
-            {{ t('common.pxm_editor_copy') }}
-          </button>
-          <button type="button" class="pe-secondary" @click="handleCopySelection(true)">
-            {{ t('common.pxm_editor_cut') }}
-          </button>
-        </div>
-        <div class="pe-button-row">
-          <button type="button" class="pe-danger-outline" @click="handleDeleteSelection">
-            {{ t('common.pxm_editor_erase') }}
-          </button>
-          <button
-            type="button"
-            class="pe-secondary"
-            :class="{ active: activeTool === 'move' }"
-            @click="handleSelectTool('move')"
+          <img
+            :src="pixelEditorIcon"
+            alt=""
           >
-            {{ t('common.pxm_editor_move') }}
-          </button>
-        </div>
-        <button
-          type="button"
-          class="pe-secondary pe-wide"
-          :class="{ active: activeTool === 'magic' }"
-          @click="handleSelectTool('magic')"
+        </button>
+        <input
+          v-model.trim="project.name"
+          class="pe-nav-title"
+          :aria-label="t('common.pxm_editor_project_name')"
+          @change="handleRenameProject"
         >
-          {{ t('common.pxm_editor_magic') }}
-        </button>
-        <div class="pe-button-row">
-          <button type="button" class="pe-secondary" @click="handleTransformSelection('rotate-cw')">
-            {{ t('common.pxm_editor_rotate_cw') }}
-          </button>
-          <button
-            type="button"
-            class="pe-secondary"
-            @click="handleTransformSelection('rotate-ccw')"
-          >
-            {{ t('common.pxm_editor_rotate_ccw') }}
-          </button>
-        </div>
-        <div class="pe-button-row">
-          <button type="button" class="pe-secondary" @click="handleTransformSelection('flip-h')">
-            {{ t('common.pxm_editor_flip_x') }}
-          </button>
-          <button type="button" class="pe-secondary" @click="handleTransformSelection('flip-v')">
-            {{ t('common.pxm_editor_flip_y') }}
-          </button>
-        </div>
-        <div class="pe-button-row">
-          <button type="button" class="pe-secondary" @click="handleUndo">
-            {{ t('common.pxm_editor_undo') }}
-          </button>
-          <button type="button" class="pe-secondary" @click="handleRedo">
-            {{ t('common.pxm_editor_redo') }}
-          </button>
-        </div>
-        <button type="button" class="pe-danger-outline pe-wide" @click="handleClearLayer">
-          {{ t('common.pxm_editor_clear_layer') }}
-        </button>
-      </section>
+      </div>
 
-      <section>
-        <h2>{{ t('common.pxm_editor_onion') }}</h2>
-        <label class="pe-switch-row">
-          <input v-model="onion.enabled" type="checkbox" @change="renderAll" />
-          <span>{{ t('common.pxm_editor_show_adjacent') }}</span>
-        </label>
-        <div class="pe-control-row">
-          <label>{{ t('common.pxm_editor_color_title') }}</label>
-          <select v-model="onion.colorMode" @change="renderAll">
-            <option value="real">{{ t('common.pxm_editor_real_color') }}</option>
-            <option value="tint">{{ t('common.pxm_editor_tint_color') }}</option>
-          </select>
+      <div class="pe-nav-center">
+        <div class="pe-nav-counts">
+          {{ project.frames.length }} {{ t('common.pxm_editor_frame_unit') }} ·
+          {{ currentFrame.layers.length }} {{ t('common.pxm_editor_layer_unit') }}
         </div>
-        <div class="pe-control-row">
-          <label>{{ t('common.pxm_editor_prev_opacity') }}</label>
-          <input
-            v-model.number="onion.prevOpacity"
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            @input="renderAll"
-          />
-          <span>{{ Math.round(onion.prevOpacity * 100) }}%</span>
+        <div
+          class="pe-nav-status"
+          role="status"
+          aria-live="polite"
+          :title="status"
+        >
+          {{ status }}
         </div>
-        <div class="pe-control-row">
-          <label>{{ t('common.pxm_editor_next_opacity') }}</label>
-          <input
-            v-model.number="onion.nextOpacity"
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            @input="renderAll"
-          />
-          <span>{{ Math.round(onion.nextOpacity * 100) }}%</span>
-        </div>
-      </section>
+      </div>
 
-      <section>
-        <h2>{{ t('common.pxm_editor_text') }}</h2>
-        <textarea v-model="textTool.text" rows="3" />
-        <div class="pe-control-row">
-          <label>{{ t('common.pxm_editor_tool_font_size') }}</label>
-          <select v-model.number="textTool.size">
-            <option :value="8">8 px</option>
-            <option :value="10">10 px</option>
-            <option :value="12">12 px</option>
-          </select>
-          <label>{{ t('common.pxm_editor_tool_width_mode') }}</label>
-          <select v-model="textTool.widthMode">
-            <option value="monospaced">{{ t('common.pxm_editor_equal_width') }}</option>
-            <option value="proportional">{{ t('common.pxm_editor_proportional') }}</option>
-          </select>
-        </div>
-        <div class="pe-button-row">
-          <button type="button" class="pe-secondary" @click="handleStampText(0)">
-            {{ t('common.pxm_editor_left') }}
-          </button>
-          <button type="button" class="pe-secondary" @click="handleStampText(1)">
-            {{ t('common.pxm_editor_center') }}
-          </button>
-          <button type="button" class="pe-secondary" @click="handleStampText(2)">
-            {{ t('common.pxm_editor_right') }}
-          </button>
-        </div>
-      </section>
-
-      <section>
-        <h2>{{ t('common.pxm_editor_import') }}</h2>
+      <div class="pe-nav-actions">
         <input
           ref="staticFileInputRef"
           type="file"
           accept="image/png,image/jpeg,image/webp"
           hidden
           @change="handleLoadStaticImage"
-        />
+        >
         <input
           ref="gifFileInputRef"
           type="file"
           accept="image/gif"
           hidden
           @change="handleLoadGifImage"
-        />
-        <button type="button" class="pe-secondary pe-wide" @click="handleStaticFileInputClick">
-          {{ t('common.pxm_editor_import_static') }}
-        </button>
-        <button type="button" class="pe-secondary pe-wide" @click="handleGifFileInputClick">
-          {{ t('common.pxm_editor_import_animated') }}
-        </button>
-      </section>
+        >
 
-      <section>
-        <h2>{{ t('common.pxm_editor_export') }}</h2>
-        <div class="pe-button-row">
-          <button type="button" class="pe-primary" @click="handleExportPng">
-            {{ t('common.pxm_editor_export_png') }}
+        <el-dropdown
+          trigger="click"
+          @command="handleImportCommand"
+        >
+          <button
+            type="button"
+            class="pe-nav-action"
+          >
+            {{ t('common.pxm_editor_import') }}
           </button>
-          <button type="button" class="pe-primary" @click="handleExportGif">
-            {{ t('common.pxm_editor_export_gif') }}
-          </button>
-        </div>
-        <div class="pe-control-row">
-          <label>{{ t('common.pxm_editor_scale_label') }}</label>
-          <select v-model.number="exportScale">
-            <option :value="1">1x</option>
-            <option :value="4">4x</option>
-            <option :value="8">8x</option>
-            <option :value="16">16x</option>
-            <option :value="20">20x</option>
-          </select>
-        </div>
-      </section>
-    </aside>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="static">
+                {{ t('common.pxm_editor_import_static') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="animated">
+                {{ t('common.pxm_editor_import_animated') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
 
-    <section class="pe-editor-panel">
-      <div class="pe-panel pe-editor-toolbar">
-        <div>
-          <strong>{{ project.name }}</strong>
-          <span
-            >{{ project.frames.length }} {{ t('common.pxm_editor_frame_unit') }} ·
-            {{ t('common.pxm_editor_layer_unit') }} {{ activeLayer + 1 }}</span
+        <el-dropdown
+          trigger="click"
+          @command="handleExportCommand"
+        >
+          <button
+            type="button"
+            class="pe-nav-action"
           >
-          <span
-            v-if="editingWork"
-            class="pe-editing-badge"
-            style="
-              margin-left: 8px;
-              padding: 2px 8px;
-              background: #409eff;
-              color: white;
-              border-radius: 4px;
-              font-size: 12px;
-              font-weight: 500;
-            "
-          >
-            {{ t('common.pxm_editor_editing_mode') }}
-          </span>
-        </div>
-        <ThemeSwitcher />
-        <div class="pe-status">
-          {{ status }}
-        </div>
+            {{ t('common.pxm_editor_export') }}
+          </button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="png">
+                {{ t('common.pxm_editor_export_png') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="gif">
+                {{ t('common.pxm_editor_export_gif') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+
         <button
           type="button"
-          class="pe-save-btn"
-          :class="{ disabled: saving }"
+          class="pe-nav-action"
+          @click.stop="sendWorkToDevice"
+        >
+          {{ t('common.pxm_action_preview') }}
+        </button>
+        <button
+          type="button"
+          class="pe-nav-save"
+          :disabled="saving"
           @click="handleSaveToOSS"
         >
           {{ t('common.pxm_editor_save') }}
         </button>
-        <button
-          type="button"
-          class="pe-save-btn"
-          :title="$t('common.pxm_action_preview')"
-          @click.stop="sendWorkToDevice"
-        >
-          {{ $t('common.pxm_action_preview') }}
-        </button>
-        <button type="button" class="pe-save-btn" @click="backHome">
-          {{ t('common.pxm_editor_back_home') }}
-        </button>
       </div>
+    </header>
 
-      <section class="pe-panel pe-frames-panel">
-        <div class="pe-frame-strip-head">
-          <div class="pe-panel-title-row">
-            <h2>{{ t('common.pxm_editor_frames') }}</h2>
-            <button type="button" class="pe-primary pe-small" @click="handleAddFrame">
-              {{ t('common.pxm_editor_add') }}
+    <div class="pe-workspace">
+      <aside class="pe-panel pe-tools-panel">
+        <section>
+          <h2>{{ t('common.pxm_editor_tools') }}</h2>
+          <div class="pe-tool-grid" role="toolbar">
+            <button
+              v-for="tool in drawingTools"
+              :key="tool.id"
+              type="button"
+              class="pe-tool"
+              :class="{ active: activeTool === tool.id }"
+              :title="tool.label"
+              @click="handleSelectTool(tool.id)"
+            >
+              {{ tool.label }}
+            </button>
+          </div>
+          <div class="pe-control-row">
+            <label>{{ t('common.pxm_editor_color') }}</label>
+            <input v-model="currentColor" type="color" />
+            <input v-model="currentColor" class="pe-hex-input" maxlength="7" />
+          </div>
+          <div class="pe-palette">
+            <button
+              v-for="color in palette"
+              :key="color"
+              type="button"
+              class="pe-swatch"
+              :class="{ active: color === currentColor }"
+              :style="{ background: color }"
+              :title="color"
+              @click="currentColor = color"
+            />
+          </div>
+          <button
+            type="button"
+            class="pe-tool pe-wide-tool pe-gap-top"
+            :class="{ active: activeTool === 'shape' }"
+            :title="t('common.pxm_editor_shapes')"
+            @click="handleSelectTool('shape')"
+          >
+            {{ t('common.pxm_editor_shapes') }}
+          </button>
+          <div class="pe-control-row pe-shape-row">
+            <label>{{ t('common.pxm_editor_shapes') }}</label>
+            <select v-model="shapeType">
+              <option value="rectangle">{{ t('common.pxm_editor_rectangle') }}</option>
+              <option value="square">{{ t('common.pxm_editor_square') }}</option>
+              <option value="line">{{ t('common.pxm_editor_line') }}</option>
+              <option value="ellipse">{{ t('common.pxm_editor_ellipse') }}</option>
+              <option value="circle">{{ t('common.pxm_editor_circle') }}</option>
+              <option value="triangle">{{ t('common.pxm_editor_triangle') }}</option>
+            </select>
+            <select v-model="shapeFill">
+              <option value="filled">{{ t('common.pxm_editor_solid') }}</option>
+              <option value="outline">{{ t('common.pxm_editor_hollow') }}</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            class="pe-tool pe-wide-tool pe-gap-top"
+            :class="{ active: activeTool === 'select' }"
+            :title="t('common.pxm_editor_selection')"
+            @click="handleSelectTool('select')"
+          >
+            {{ t('common.pxm_editor_selection') }}
+          </button>
+          <div class="pe-button-row">
+            <button type="button" class="pe-secondary" @click="handleCopySelection(false)">
+              {{ t('common.pxm_editor_copy') }}
+            </button>
+            <button type="button" class="pe-secondary" @click="handleCopySelection(true)">
+              {{ t('common.pxm_editor_cut') }}
             </button>
           </div>
           <div class="pe-button-row">
-            <button type="button" class="pe-secondary" @click="handleDuplicateFrame">
-              {{ t('common.pxm_editor_duplicate') }}
+            <button type="button" class="pe-danger-outline" @click="handleDeleteSelection">
+              {{ t('common.pxm_editor_erase') }}
             </button>
-            <button type="button" class="pe-danger-outline" @click="handleDeleteFrame">
-              {{ t('common.pxm_editor_delete') }}
-            </button>
-          </div>
-          <button type="button" class="pe-danger-outline pe-wide" @click="handleDeleteAllFrames">
-            {{ t('common.pxm_editor_delete_all') }}
-          </button>
-        </div>
-        <div class="pe-frames-list">
-          <button
-            v-for="(frame, index) in project.frames"
-            :key="frame.id"
-            type="button"
-            class="pe-frame-item"
-            :class="{
-              active: currentFrameIndex === index,
-              dragging: draggingFrameIndex === index,
-              'drag-over': dragOverFrameIndex === index,
-            }"
-            draggable="true"
-            @click="handleSelectFrame(index)"
-            @dragstart="handleStartFrameDrag(index, $event)"
-            @dragover.prevent="handleDragOverFrame(index, $event)"
-            @dragleave="dragOverFrameIndex = null"
-            @drop.prevent="handleDropFrame(index)"
-            @dragend="handleEndFrameDrag"
-          >
-            <canvas :ref="(el) => setFrameThumbRef(frame.id, el)" width="96" height="48" />
-            <span
-              >{{ t('common.pxm_editor_frame_prefix') }} {{ index + 1 }}
-              {{ t('common.pxm_editor_frame_unit') }}</span
-            >
-          </button>
-        </div>
-      </section>
-
-      <div class="pe-panel pe-frame-settings-bar">
-        <div class="pe-control-row">
-          <label>{{ t('common.pxm_editor_interval') }}</label>
-          <input
-            v-model="frameDelayInput"
-            type="number"
-            min="20"
-            max="5000"
-            step="10"
-            @blur="handleCommitFrameDelay"
-            @change="handleCommitFrameDelay"
-            @keydown.enter="handleCommitFrameDelay"
-          />
-          <span>ms</span>
-        </div>
-      </div>
-
-      <div class="pe-canvas-layer-row">
-        <div class="pe-panel pe-canvas-stage">
-          <div class="pe-canvas-coordinate">
-            <span v-if="hoverPoint">({{ hoverPoint.x }}, {{ hoverPoint.y }})</span>
-            <span v-else>&nbsp;</span>
-          </div>
-          <canvas
-            ref="editorCanvasRef"
-            width="960"
-            height="480"
-            @pointerdown="handlePointerDown"
-            @pointermove="handlePointerMove"
-            @pointerup="handlePointerUp"
-            @pointercancel="handlePointerUp"
-            @pointerleave="handlePointerLeave"
-          />
-        </div>
-        <section class="pe-panel pe-layers-panel">
-          <div class="pe-panel-title-row">
-            <h2>{{ t('common.pxm_editor_layers') }}</h2>
             <button
               type="button"
-              class="pe-primary pe-small"
-              :disabled="currentFrame.layers.length >= 4"
-              @click="handleAddLayer"
+              class="pe-secondary"
+              :class="{ active: activeTool === 'move' }"
+              @click="handleSelectTool('move')"
             >
-              {{ t('common.pxm_editor_add') }}
+              {{ t('common.pxm_editor_move') }}
             </button>
           </div>
-          <div class="pe-layer-list">
-            <div
-              v-for="(layer, index) in currentFrame.layers"
-              :key="layer.id"
-              role="button"
-              tabindex="0"
-              class="pe-layer-item"
-              :class="{ active: activeLayer === index }"
-              @click="handleSelectLayer(index)"
+          <button
+            type="button"
+            class="pe-secondary pe-wide"
+            :class="{ active: activeTool === 'magic' }"
+            @click="handleSelectTool('magic')"
+          >
+            {{ t('common.pxm_editor_magic') }}
+          </button>
+          <div class="pe-button-row">
+            <button type="button" class="pe-secondary" @click="handleTransformSelection('rotate-cw')">
+              {{ t('common.pxm_editor_rotate_cw') }}
+            </button>
+            <button
+              type="button"
+              class="pe-secondary"
+              @click="handleTransformSelection('rotate-ccw')"
             >
-              <input
-                v-model="layer.visible"
-                type="checkbox"
-                @click.stop
-                @change="handleUpdateLayerSettings"
-              />
-              <span>{{ layer.name }}</span>
-              <input
-                v-model.number="layer.opacity"
-                type="range"
-                min="0.1"
-                max="1"
-                step="0.05"
-                @click.stop
-                @input="handleUpdateLayerSettings"
-              />
-              <button
-                type="button"
-                class="pe-danger-outline pe-mini"
-                :disabled="currentFrame.layers.length <= 2"
-                @click.stop="handleDeleteLayer(index)"
-              >
-                {{ t('common.pxm_editor_delete_layer') }}
-              </button>
-            </div>
+              {{ t('common.pxm_editor_rotate_ccw') }}
+            </button>
           </div>
-          <div class="pe-canvas-overview">
-            <div ref="overviewScrollRef" class="pe-overview-scroll">
-              <canvas
-                :ref="setOverviewCanvasRef"
-                :width="overviewCanvasSize"
-                :height="overviewCanvasSize"
-                :style="{
-                  width: `${overviewCanvasSize}px`,
-                  height: `${overviewCanvasSize}px`,
-                }"
-                @pointerdown="handleJumpViewportFromOverview"
-                @pointermove="handleOverviewPointerMove"
-                @pointerleave="handleOverviewPointerLeave"
-              />
-            </div>
-            <div class="pe-overview-actions">
-              <label class="pe-overview-zoom-control">
-                <span>{{ t('common.pxm_editor_zoom') }} {{ overviewZoom.toFixed(2) }}x</span>
-                <input
-                  type="range"
-                  min="1"
-                  max="16"
-                  step="0.25"
-                  :value="overviewZoom"
-                  @input="handleSetOverviewZoom($event.target.value)"
-                />
-              </label>
-              <el-button type="button" class="pe-secondary" @click="handleSaveOverviewPng">
-                {{ t('common.pxm_editor_overview_save') }}
-              </el-button>
-              <span v-if="hoverOverviewPoint" class="pe-overview-coordinate"
-                >({{ hoverOverviewPoint.x }}, {{ hoverOverviewPoint.y }})</span
-              >
-              <span v-else class="pe-overview-coordinate">&nbsp;</span>
-            </div>
+          <div class="pe-button-row">
+            <button type="button" class="pe-secondary" @click="handleTransformSelection('flip-h')">
+              {{ t('common.pxm_editor_flip_x') }}
+            </button>
+            <button type="button" class="pe-secondary" @click="handleTransformSelection('flip-v')">
+              {{ t('common.pxm_editor_flip_y') }}
+            </button>
+          </div>
+          <div class="pe-button-row">
+            <button type="button" class="pe-secondary" @click="handleUndo">
+              {{ t('common.pxm_editor_undo') }}
+            </button>
+            <button type="button" class="pe-secondary" @click="handleRedo">
+              {{ t('common.pxm_editor_redo') }}
+            </button>
+          </div>
+          <button type="button" class="pe-danger-outline pe-wide" @click="handleClearLayer">
+            {{ t('common.pxm_editor_clear_layer') }}
+          </button>
+        </section>
+
+        <section>
+          <h2>{{ t('common.pxm_editor_onion') }}</h2>
+          <label class="pe-switch-row">
+            <input v-model="onion.enabled" type="checkbox" @change="renderAll" />
+            <span>{{ t('common.pxm_editor_show_adjacent') }}</span>
+          </label>
+          <div class="pe-control-row">
+            <label>{{ t('common.pxm_editor_color_title') }}</label>
+            <select v-model="onion.colorMode" @change="renderAll">
+              <option value="real">{{ t('common.pxm_editor_real_color') }}</option>
+              <option value="tint">{{ t('common.pxm_editor_tint_color') }}</option>
+            </select>
+          </div>
+          <div class="pe-control-row">
+            <label>{{ t('common.pxm_editor_prev_opacity') }}</label>
+            <input
+              v-model.number="onion.prevOpacity"
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              @input="renderAll"
+            />
+            <span>{{ Math.round(onion.prevOpacity * 100) }}%</span>
+          </div>
+          <div class="pe-control-row">
+            <label>{{ t('common.pxm_editor_next_opacity') }}</label>
+            <input
+              v-model.number="onion.nextOpacity"
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              @input="renderAll"
+            />
+            <span>{{ Math.round(onion.nextOpacity * 100) }}%</span>
           </div>
         </section>
-      </div>
 
-      <section class="pe-panel pe-preview-panel">
-        <div class="pe-panel-title-row">
-          <h2>{{ t('common.pxm_editor_led_preview') }}</h2>
+        <section>
+          <h2>{{ t('common.pxm_editor_text') }}</h2>
+          <textarea v-model="textTool.text" rows="3" />
+          <div class="pe-control-row">
+            <label>{{ t('common.pxm_editor_tool_font_size') }}</label>
+            <select v-model.number="textTool.size">
+              <option :value="8">8 px</option>
+              <option :value="10">10 px</option>
+              <option :value="12">12 px</option>
+            </select>
+            <label>{{ t('common.pxm_editor_tool_width_mode') }}</label>
+            <select v-model="textTool.widthMode">
+              <option value="monospaced">{{ t('common.pxm_editor_equal_width') }}</option>
+              <option value="proportional">{{ t('common.pxm_editor_proportional') }}</option>
+            </select>
+          </div>
+          <div class="pe-button-row">
+            <button type="button" class="pe-secondary" @click="handleStampText(0)">
+              {{ t('common.pxm_editor_left') }}
+            </button>
+            <button type="button" class="pe-secondary" @click="handleStampText(1)">
+              {{ t('common.pxm_editor_center') }}
+            </button>
+            <button type="button" class="pe-secondary" @click="handleStampText(2)">
+              {{ t('common.pxm_editor_right') }}
+            </button>
+          </div>
+        </section>
+
+        <section>
+          <h2>{{ t('common.pxm_editor_export') }}</h2>
+          <div class="pe-control-row">
+            <label>{{ t('common.pxm_editor_scale_label') }}</label>
+            <select v-model.number="exportScale">
+              <option :value="1">1x</option>
+              <option :value="4">4x</option>
+              <option :value="8">8x</option>
+              <option :value="16">16x</option>
+              <option :value="20">20x</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="pe-theme-settings">
+          <h2>{{ t('common.pxm_editor_theme') }}</h2>
+          <ThemeSwitcher />
+        </section>
+      </aside>
+
+      <section class="pe-editor-panel">
+        <section class="pe-panel pe-frames-panel">
+          <div class="pe-frame-strip-head">
+            <div class="pe-panel-title-row">
+              <h2>{{ t('common.pxm_editor_frames') }}</h2>
+              <button type="button" class="pe-primary pe-small" @click="handleAddFrame">
+                {{ t('common.pxm_editor_add') }}
+              </button>
+            </div>
+            <div class="pe-button-row">
+              <button type="button" class="pe-secondary" @click="handleDuplicateFrame">
+                {{ t('common.pxm_editor_duplicate') }}
+              </button>
+              <button type="button" class="pe-danger-outline" @click="handleDeleteFrame">
+                {{ t('common.pxm_editor_delete') }}
+              </button>
+            </div>
+            <button type="button" class="pe-danger-outline pe-wide" @click="handleDeleteAllFrames">
+              {{ t('common.pxm_editor_delete_all') }}
+            </button>
+          </div>
+          <div class="pe-frames-list">
+            <button
+              v-for="(frame, index) in project.frames"
+              :key="frame.id"
+              type="button"
+              class="pe-frame-item"
+              :class="{
+                active: currentFrameIndex === index,
+                dragging: draggingFrameIndex === index,
+                'drag-over': dragOverFrameIndex === index,
+              }"
+              draggable="true"
+              @click="handleSelectFrame(index)"
+              @dragstart="handleStartFrameDrag(index, $event)"
+              @dragover.prevent="handleDragOverFrame(index, $event)"
+              @dragleave="dragOverFrameIndex = null"
+              @drop.prevent="handleDropFrame(index)"
+              @dragend="handleEndFrameDrag"
+            >
+              <canvas :ref="(el) => setFrameThumbRef(frame.id, el)" width="96" height="48" />
+              <span
+                >{{ t('common.pxm_editor_frame_prefix') }} {{ index + 1 }}
+                {{ t('common.pxm_editor_frame_unit') }}</span
+              >
+            </button>
+          </div>
+        </section>
+
+        <div class="pe-panel pe-frame-settings-bar">
+          <div class="pe-control-row">
+            <label>{{ t('common.pxm_editor_interval') }}</label>
+            <input
+              v-model="frameDelayInput"
+              type="number"
+              min="20"
+              max="5000"
+              step="10"
+              @blur="handleCommitFrameDelay"
+              @change="handleCommitFrameDelay"
+              @keydown.enter="handleCommitFrameDelay"
+            />
+            <span>ms</span>
+          </div>
         </div>
-        <button type="button" class="pe-secondary pe-preview-play-btn" @click="handleTogglePreview">
-          {{
-            previewPlaying
-              ? t('common.pxm_editor_stop_play')
-              : t('common.pxm_editor_play_all_frames')
-          }}
-        </button>
-        <canvas ref="previewCanvasRef" width="480" height="240" />
+
+        <div class="pe-canvas-layer-row">
+          <div class="pe-panel pe-canvas-stage">
+            <div class="pe-canvas-coordinate">
+              <span v-if="hoverPoint">({{ hoverPoint.x }}, {{ hoverPoint.y }})</span>
+              <span v-else>&nbsp;</span>
+            </div>
+            <canvas
+              ref="editorCanvasRef"
+              width="960"
+              height="480"
+              @pointerdown="handlePointerDown"
+              @pointermove="handlePointerMove"
+              @pointerup="handlePointerUp"
+              @pointercancel="handlePointerUp"
+              @pointerleave="handlePointerLeave"
+            />
+          </div>
+          <section class="pe-panel pe-layers-panel">
+            <div class="pe-panel-title-row">
+              <h2>{{ t('common.pxm_editor_layers') }}</h2>
+              <button
+                type="button"
+                class="pe-primary pe-small"
+                :disabled="currentFrame.layers.length >= 4"
+                @click="handleAddLayer"
+              >
+                {{ t('common.pxm_editor_add') }}
+              </button>
+            </div>
+            <div class="pe-layer-list">
+              <div
+                v-for="(layer, index) in currentFrame.layers"
+                :key="layer.id"
+                role="button"
+                tabindex="0"
+                class="pe-layer-item"
+                :class="{ active: activeLayer === index }"
+                @click="handleSelectLayer(index)"
+              >
+                <input
+                  v-model="layer.visible"
+                  type="checkbox"
+                  @click.stop
+                  @change="handleUpdateLayerSettings"
+                />
+                <span>{{ layer.name }}</span>
+                <input
+                  v-model.number="layer.opacity"
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.05"
+                  @click.stop
+                  @input="handleUpdateLayerSettings"
+                />
+                <button
+                  type="button"
+                  class="pe-danger-outline pe-mini"
+                  :disabled="currentFrame.layers.length <= 2"
+                  @click.stop="handleDeleteLayer(index)"
+                >
+                  {{ t('common.pxm_editor_delete_layer') }}
+                </button>
+              </div>
+            </div>
+            <div class="pe-canvas-overview">
+              <div ref="overviewScrollRef" class="pe-overview-scroll">
+                <canvas
+                  :ref="setOverviewCanvasRef"
+                  :width="overviewCanvasSize"
+                  :height="overviewCanvasSize"
+                  :style="{
+                    width: `${overviewCanvasSize}px`,
+                    height: `${overviewCanvasSize}px`,
+                  }"
+                  @pointerdown="handleJumpViewportFromOverview"
+                  @pointermove="handleOverviewPointerMove"
+                  @pointerleave="handleOverviewPointerLeave"
+                />
+              </div>
+              <div class="pe-overview-actions">
+                <label class="pe-overview-zoom-control">
+                  <span>{{ t('common.pxm_editor_zoom') }} {{ overviewZoom.toFixed(2) }}x</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="16"
+                    step="0.25"
+                    :value="overviewZoom"
+                    @input="handleSetOverviewZoom($event.target.value)"
+                  />
+                </label>
+                <el-button type="button" class="pe-secondary" @click="handleSaveOverviewPng">
+                  {{ t('common.pxm_editor_overview_save') }}
+                </el-button>
+                <span v-if="hoverOverviewPoint" class="pe-overview-coordinate"
+                  >({{ hoverOverviewPoint.x }}, {{ hoverOverviewPoint.y }})</span
+                >
+                <span v-else class="pe-overview-coordinate">&nbsp;</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="pe-panel pe-preview-panel">
+          <div class="pe-panel-title-row">
+            <h2>{{ t('common.pxm_editor_led_preview') }}</h2>
+          </div>
+          <button type="button" class="pe-secondary pe-preview-play-btn" @click="handleTogglePreview">
+            {{
+              previewPlaying
+                ? t('common.pxm_editor_stop_play')
+                : t('common.pxm_editor_play_all_frames')
+            }}
+          </button>
+          <canvas ref="previewCanvasRef" width="480" height="240" />
+        </section>
       </section>
-    </section>
+    </div>
   </div>
 
   <div v-if="importDialog.open" class="pe-modal-backdrop">
@@ -616,6 +660,7 @@ import { uploadPixelJSON, uploadDoodle, uploadGif } from '@/lib/images/uploadFil
 import { createWorkApi, updateWorkApi, getWorkDetailApi } from '@/api/works'
 import type { CreatorWorkSaveRequest, CreatorWorkVO } from '@/api/works'
 import { listDevicesApi, previewToDeviceApi } from '@/api/device'
+import pixelEditorIcon from '@/modules/pixel-editor/icon.png'
 
 // Theme switcher
 import ThemeSwitcher from '../common/ThemeSwitcher.vue'
@@ -746,7 +791,9 @@ const frameThumbCanvases = ref<Record<string, HTMLCanvasElement | null>>({})
 
 // Reactive state
 const view = ref<'library' | 'editor'>('library')
-const theme = ref<'dark' | 'light'>(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark')
+const storedTheme = localStorage.getItem(THEME_KEY)
+const theme = ref<'dark' | 'light'>(storedTheme === 'dark' ? 'dark' : 'light')
+if (!storedTheme) localStorage.setItem(THEME_KEY, theme.value)
 
 const projects = ref(loadProjects())
 const currentId = ref(localStorage.getItem(CURRENT_KEY) || '')
@@ -3306,6 +3353,22 @@ function handleStaticFileInputClick(): void {
 
 function handleGifFileInputClick(): void {
   gifFileInputRef.value?.click()
+}
+
+function handleImportCommand(command: 'static' | 'animated'): void {
+  if (command === 'static') {
+    handleStaticFileInputClick()
+    return
+  }
+  handleGifFileInputClick()
+}
+
+function handleExportCommand(command: 'png' | 'gif'): void {
+  if (command === 'png') {
+    handleExportPng()
+    return
+  }
+  handleExportGif()
 }
 
 // Format time

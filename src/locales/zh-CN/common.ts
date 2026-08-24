@@ -136,6 +136,9 @@ export default {
   // ====================== 像素编辑器模块 ======================
   pxm_editor_theme_light: '浅色',
   pxm_editor_theme_dark: '深色',
+  pxm_editor_project_name: '作品名称',
+  pxm_editor_theme: '主题',
+  pxm_editor_canvas: '画板',
   pxm_editor_title_label: '作品标题',
   pxm_editor_save: '保存',
   pxm_editor_isornot_tile: "是否保存当前的作品？",

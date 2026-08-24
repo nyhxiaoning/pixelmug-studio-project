@@ -122,6 +122,9 @@ export default {
   pxm_publish_incomplete: 'この作品はまだ提出できません。情報を整えて再試行してください。',
 
   // ====================== 像素编辑器模块 ======================
+  pxm_editor_project_name: '作品名',
+  pxm_editor_theme: 'テーマ',
+  pxm_editor_canvas: 'キャンバス',
   pxm_editor_title_label: '作品タイトル',
   pxm_editor_save: '保存',
   pxm_editor_ready: '準備完了',
