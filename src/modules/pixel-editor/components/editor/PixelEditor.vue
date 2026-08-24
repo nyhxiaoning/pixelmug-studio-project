@@ -692,13 +692,7 @@
                 <span>ms</span>
               </span>
             </label>
-            <button
-              type="button"
-              class="pe-frame-delete-all"
-              @click="handleDeleteAllFrames"
-            >
-              {{ t('common.pxm_editor_delete_all') }}
-            </button>
+
           </div>
 
           <div class="pe-frame-content">
