@@ -425,12 +425,17 @@
 /* ==================== Workspace ==================== */
 .pe-editor-scroll {
   min-width: 1024px;
+  height: calc(100vh - var(--pe-nav-height));
+  min-height: 0;
+  overflow: hidden;
 }
 
 .pe-editor-grid {
   display: grid;
+  height: 100%;
+  min-height: 0;
   grid-template-columns: var(--pe-side-panel-width) minmax(520px, 1fr) var(--pe-side-panel-width);
-  grid-template-rows: 526px auto;
+  grid-template-rows: minmax(0, 1fr) clamp(144px, 22vh, 170px);
   grid-template-areas:
     "tools canvas layers"
     "tools frames frames";
@@ -716,7 +721,7 @@
 .pe-canvas-panel {
   grid-area: canvas;
   min-width: 0;
-  min-height: 526px;
+  min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   padding: 14px;
@@ -786,7 +791,7 @@
 .pe-layers-panel {
   grid-area: layers;
   width: var(--pe-side-panel-width);
-  min-height: 526px;
+  min-height: 0;
   padding: 14px;
   overflow: auto;
 }
@@ -943,11 +948,13 @@
 .pe-frame-panel {
   grid-area: frames;
   min-width: 0;
+  min-height: 0;
   display: grid;
   grid-template-columns: 162px minmax(0, 1fr);
   gap: 14px;
   padding: 14px;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .pe-frame-controls {
@@ -1202,6 +1209,25 @@
 
 /* ==================== Responsive ==================== */
 @media (max-height: 699px) {
+  .pe-editor-scroll {
+    height: auto;
+    overflow: visible;
+  }
+
+  .pe-editor-grid {
+    height: auto;
+    grid-template-rows: 526px auto;
+  }
+
+  .pe-canvas-panel,
+  .pe-layers-panel {
+    min-height: 526px;
+  }
+
+  .pe-frame-panel {
+    overflow: visible;
+  }
+
   .pe-tools-panel {
     overflow-y: auto;
   }

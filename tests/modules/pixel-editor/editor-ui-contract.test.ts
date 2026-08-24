@@ -394,7 +394,10 @@ test('keeps Canvas zoom bounded, accessible, and isolated to its viewport', () =
   assert.match(viewportStyle, /align-items:\s*safe center/)
   assert.match(viewportStyle, /justify-content:\s*safe center/)
   assert.match(viewportStyle, /overflow:\s*auto/)
-  assert.match(editorGridStyle, /grid-template-rows:\s*526px auto/)
+  assert.match(
+    editorGridStyle,
+    /grid-template-rows:\s*minmax\(0,\s*1fr\) clamp\(144px,\s*22vh,\s*170px\)/
+  )
   assert.match(canvasStyle, /flex:\s*0 0 auto/)
   assert.match(canvasStyle, /max-width:\s*none/)
   assert.doesNotMatch(canvasStyle, /width:\s*min\(/)
@@ -411,6 +414,39 @@ test('keeps Canvas zoom bounded, accessible, and isolated to its viewport', () =
     assert.match(localeSource, /pxm_editor_zoom_out\s*:/)
     assert.match(localeSource, /pxm_editor_zoom_in\s*:/)
   }
+})
+
+test('fills the desktop editor viewport while preserving local overflow owners', () => {
+  const editorScrollStyle = extractCssBlock(editorStyles, '.pe-editor-scroll')
+  const editorGridStyle = extractCssBlock(editorStyles, '.pe-editor-grid')
+  const canvasPanelStyle = extractCssBlock(editorStyles, '.pe-canvas-panel')
+  const canvasViewportStyle = extractCssBlock(editorStyles, '.pe-canvas-viewport')
+  const layersPanelStyle = extractCssBlock(editorStyles, '.pe-layers-panel')
+  const framePanelStyle = extractCssBlock(editorStyles, '.pe-frame-panel')
+  const framesListStyle = extractCssBlock(editorStyles, '.pe-frames-list')
+  const shortHeightStyle = extractCssBlock(editorStyles, '@media (max-height: 699px)')
+
+  assert.match(editorScrollStyle, /height:\s*calc\(100vh - var\(--pe-nav-height\)\)/)
+  assert.match(editorScrollStyle, /min-height:\s*0/)
+  assert.match(editorScrollStyle, /overflow:\s*hidden/)
+  assert.match(editorGridStyle, /height:\s*100%/)
+  assert.match(editorGridStyle, /min-height:\s*0/)
+  assert.match(
+    editorGridStyle,
+    /grid-template-rows:\s*minmax\(0,\s*1fr\) clamp\(144px,\s*22vh,\s*170px\)/
+  )
+  assert.match(canvasPanelStyle, /min-height:\s*0/)
+  assert.match(layersPanelStyle, /min-height:\s*0/)
+  assert.match(framePanelStyle, /min-height:\s*0/)
+  assert.match(framePanelStyle, /overflow:\s*hidden/)
+  assert.match(canvasViewportStyle, /overflow:\s*auto/)
+  assert.match(layersPanelStyle, /overflow:\s*auto/)
+  assert.match(framesListStyle, /overflow-x:\s*auto/)
+  assert.match(framesListStyle, /overflow-y:\s*hidden/)
+  assert.match(shortHeightStyle, /\.pe-editor-scroll\s*\{[^}]*height:\s*auto[^}]*overflow:\s*visible/s)
+  assert.match(shortHeightStyle, /\.pe-editor-grid\s*\{[^}]*height:\s*auto[^}]*grid-template-rows:\s*526px auto/s)
+  assert.match(shortHeightStyle, /\.pe-canvas-panel,\s*\.pe-layers-panel\s*\{[^}]*min-height:\s*526px/s)
+  assert.match(shortHeightStyle, /\.pe-frame-panel\s*\{[^}]*overflow:\s*visible/s)
 })
 
 test('contains Canvas wheel gestures and preserves the pointer anchor', () => {
