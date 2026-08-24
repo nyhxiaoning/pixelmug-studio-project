@@ -79,6 +79,7 @@
           {{ currentFrame.layers.length }} {{ t('common.pxm_editor_layer_unit') }}
         </div>
         <div
+          v-if="status && status !== t('common.pxm_editor_ready')"
           class="pe-nav-status"
           role="status"
           aria-live="polite"
@@ -112,6 +113,10 @@
             type="button"
             class="pe-nav-action"
           >
+            <Upload
+              :size="17"
+              aria-hidden="true"
+            />
             {{ t('common.pxm_editor_import') }}
           </button>
           <template #dropdown>
@@ -134,6 +139,10 @@
             type="button"
             class="pe-nav-action"
           >
+            <Download
+              :size="17"
+              aria-hidden="true"
+            />
             {{ t('common.pxm_editor_export') }}
           </button>
           <template #dropdown>
@@ -150,9 +159,13 @@
 
         <button
           type="button"
-          class="pe-nav-action"
+          class="pe-nav-action pe-nav-preview"
           @click.stop="sendWorkToDevice"
         >
+          <MonitorUp
+            :size="17"
+            aria-hidden="true"
+          />
           {{ t('common.pxm_action_preview') }}
         </button>
         <button
@@ -161,6 +174,10 @@
           :disabled="saving"
           @click="handleSaveToOSS"
         >
+          <Save
+            :size="17"
+            aria-hidden="true"
+          />
           {{ t('common.pxm_editor_save') }}
         </button>
       </div>
@@ -599,7 +616,7 @@
                   @input="handleSetOverviewZoom($event.target.value)"
                 />
               </label>
-              <el-button type="button" class="pe-secondary" @click="handleSaveOverviewPng">
+              <el-button class="pe-secondary" @click="handleSaveOverviewPng">
                 {{ t('common.pxm_editor_overview_save') }}
               </el-button>
               <span v-if="hoverOverviewPoint" class="pe-overview-coordinate"
@@ -840,12 +857,14 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Brush,
   Copy,
+  Download,
   Eraser,
   Eye,
   EyeOff,
   FlipHorizontal2,
   FlipVertical2,
   Grid2X2,
+  MonitorUp,
   Move,
   PaintBucket,
   Pipette,
@@ -854,10 +873,12 @@ import {
   Redo2,
   RotateCcw,
   RotateCw,
+  Save,
   Scissors,
   Sparkles,
   Trash2,
   Undo2,
+  Upload,
   WandSparkles,
 } from 'lucide-vue-next'
 

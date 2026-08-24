@@ -97,6 +97,51 @@ test('renders the reference top navigation with existing behavior bindings', () 
   assert.equal(editorSource.match(/ref="gifFileInputRef"/g)?.length, 1)
 })
 
+test('matches the reference navigation affordances and keeps transient feedback unobtrusive', () => {
+  const importAction = editorSource.match(
+    /<el-dropdown[\s\S]*?@command="handleImportCommand"[\s\S]*?<\/el-dropdown>/
+  )?.[0]
+  const exportAction = editorSource.match(
+    /<el-dropdown[\s\S]*?@command="handleExportCommand"[\s\S]*?<\/el-dropdown>/
+  )?.[0]
+  const previewAction = editorSource.match(
+    /<button[\s\S]*?class="pe-nav-action pe-nav-preview"[\s\S]*?@click\.stop="sendWorkToDevice"[\s\S]*?<\/button>/
+  )?.[0]
+  const saveAction = editorSource.match(
+    /<button[\s\S]*?class="pe-nav-save"[\s\S]*?@click="handleSaveToOSS"[\s\S]*?<\/button>/
+  )?.[0]
+  const navBackStyle = extractCssBlock(editorStyles, '.pe-nav-back')
+  const navActionStyle = extractCssBlock(editorStyles, '.pe-nav-action,')
+
+  assert.ok(importAction)
+  assert.match(importAction, /<Upload\b[\s\S]*?aria-hidden="true"/)
+  assert.match(importAction, /pxm_editor_import/)
+  assert.ok(exportAction)
+  assert.match(exportAction, /<Download\b[\s\S]*?aria-hidden="true"/)
+  assert.match(exportAction, /pxm_editor_export/)
+  assert.ok(previewAction)
+  assert.match(previewAction, /<MonitorUp\b[\s\S]*?aria-hidden="true"/)
+  assert.match(previewAction, /pxm_action_preview/)
+  assert.ok(saveAction)
+  assert.match(saveAction, /<Save\b[\s\S]*?aria-hidden="true"/)
+  assert.match(saveAction, /pxm_editor_save/)
+  assert.match(
+    editorSource,
+    /v-if="status && status !== t\('common\.pxm_editor_ready'\)"[\s\S]*class="pe-nav-status"[\s\S]*role="status"[\s\S]*aria-live="polite"/
+  )
+  assert.match(navBackStyle, /border:\s*0\s*!important/)
+  assert.match(navBackStyle, /background:\s*transparent\s*!important/)
+  assert.match(navActionStyle, /display:\s*inline-flex/)
+  assert.match(navActionStyle, /align-items:\s*center/)
+  assert.match(navActionStyle, /gap:\s*6px/)
+  assert.match(editorStyles, /\.pe-nav-preview\s*\{[\s\S]*position:\s*relative/)
+  assert.match(
+    editorStyles,
+    /\.pe-nav-preview::before\s*\{[\s\S]*border-left:[\s\S]*pointer-events:\s*none/
+  )
+  assert.doesNotMatch(editorSource, /<el-button\b[^>]*\btype="button"/)
+})
+
 test('defines the navigation labels in every supported locale', () => {
   for (const localeSource of localeSources) {
     assert.match(localeSource, /pxm_editor_project_name\s*:/)

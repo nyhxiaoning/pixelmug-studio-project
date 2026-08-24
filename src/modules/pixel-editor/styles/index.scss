@@ -152,7 +152,8 @@
   width: 36px;
   height: 36px;
   padding: 4px;
-  background: transparent;
+  border: 0 !important;
+  background: transparent !important;
 }
 
 .pe-nav-back img {
@@ -195,10 +196,29 @@
 
 .pe-nav-action,
 .pe-nav-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   min-height: 36px;
   padding: 0 12px;
   border-radius: 8px;
   white-space: nowrap;
+}
+
+.pe-nav-preview {
+  position: relative;
+  margin-left: 9px;
+}
+
+.pe-nav-preview::before {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: -9px;
+  border-left: 1px solid var(--pe-reference-border);
+  content: '';
+  pointer-events: none;
 }
 
 .pe-nav-save {
