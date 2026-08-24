@@ -32,6 +32,22 @@ function extractCssBlock(source: string, marker: string): string {
   assert.fail(`Missing closing brace for: ${marker}`)
 }
 
+function extractBraceBlock(source: string, marker: string): string {
+  const start = source.indexOf(marker)
+  assert.ok(start >= 0, `Missing code block: ${marker}`)
+  const openBrace = source.indexOf('{', start)
+  assert.ok(openBrace >= 0, `Missing opening brace for: ${marker}`)
+
+  let depth = 0
+  for (let index = openBrace; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1
+    if (source[index] === '}') depth -= 1
+    if (depth === 0) return source.slice(start, index + 1)
+  }
+
+  assert.fail(`Missing closing brace for: ${marker}`)
+}
+
 function extractStartTags(source: string, tagName: string): string[] {
   const tags: string[] = []
   const marker = `<${tagName}`
@@ -191,8 +207,8 @@ test('renders the reference workspace grid without changing Canvas behavior', ()
   assert.match(editorSource, /class="pe-panel pe-layers-panel"/)
   assert.match(editorSource, /class="pe-panel pe-frame-panel"/)
   assert.ok(editorCanvasTag)
-  assert.match(editorCanvasTag, /width="960"/)
-  assert.match(editorCanvasTag, /height="480"/)
+  assert.match(editorCanvasTag, /:width="EDITOR_CANVAS_WIDTH"/)
+  assert.match(editorCanvasTag, /:height="EDITOR_CANVAS_HEIGHT"/)
   assert.match(editorCanvasTag, /@pointerdown="handlePointerDown"/)
   assert.match(editorCanvasTag, /@pointermove="handlePointerMove"/)
   assert.match(editorCanvasTag, /@pointerup="handlePointerUp"/)
@@ -208,6 +224,106 @@ test('renders the reference workspace grid without changing Canvas behavior', ()
   assert.match(editorSource, /@pointerleave="handleOverviewPointerLeave"/)
   assert.match(editorStyles, /grid-template-areas:\s*['"]tools canvas layers['"]/)
   assert.match(editorStyles, /['"]tools frames frames['"]/)
+})
+
+test('zooms only the central Canvas from 50 to 300 percent', () => {
+  const editorCanvasTag = editorSource.match(/<canvas\s+[^>]*ref="editorCanvasRef"[^>]*>/)?.[0]
+
+  assert.ok(editorCanvasTag)
+  assert.match(editorSource, /const CANVAS_ZOOM_MIN = 50/)
+  assert.match(editorSource, /const CANVAS_ZOOM_MAX = 300/)
+  assert.match(editorSource, /const CANVAS_ZOOM_STEP = 10/)
+  assert.match(editorSource, /const EDITOR_CANVAS_WIDTH = 960/)
+  assert.match(editorSource, /const EDITOR_CANVAS_HEIGHT = 480/)
+  assert.match(editorSource, /const canvasZoom = ref<number>\(100\)/)
+  assert.match(editorSource, /class="pe-canvas-zoom"/)
+  assert.match(editorSource, /@input="handleCanvasZoomInput"/)
+  assert.match(editorSource, /@click="handleAdjustCanvasZoom\(-CANVAS_ZOOM_STEP\)"/)
+  assert.match(editorSource, /@click="handleAdjustCanvasZoom\(CANVAS_ZOOM_STEP\)"/)
+  assert.match(editorSource, /<output[^>]*>\{\{ canvasZoom \}\}%<\/output>/)
+  assert.match(editorCanvasTag, /:style="canvasZoomStyle"/)
+  assert.match(editorCanvasTag, /:width="EDITOR_CANVAS_WIDTH"/)
+  assert.match(editorCanvasTag, /:height="EDITOR_CANVAS_HEIGHT"/)
+})
+
+test('keeps Canvas zoom bounded, accessible, and isolated to its viewport', () => {
+  const zoomControl = editorSource.match(
+    /<div\s+[^>]*class="pe-canvas-zoom"[^>]*>[\s\S]*?<\/div>/
+  )?.[0]
+  const viewportStyle = extractCssBlock(editorStyles, '.pe-canvas-viewport')
+  const canvasStyle = extractCssBlock(editorStyles, '.pe-canvas-viewport canvas')
+  const canvasZoomStyle = extractBraceBlock(
+    editorSource,
+    'const canvasZoomStyle = computed(() => ({'
+  )
+  const setCanvasZoom = extractBraceBlock(editorSource, 'function handleSetCanvasZoom')
+  const canvasPoint = extractBraceBlock(editorSource, 'function canvasPoint')
+  const layoutStyles = [
+    '.pe-editor-grid',
+    '.pe-tools-panel',
+    '.pe-layers-panel',
+    '.pe-frame-panel',
+  ].map((selector) => extractCssBlock(editorStyles, selector))
+  const overviewControl = editorSource.match(
+    /<div class="pe-canvas-overview">[\s\S]*?<\/section>/
+  )?.[0]
+
+  assert.ok(zoomControl)
+  assert.match(zoomControl, /role="group"/)
+  assert.match(zoomControl, /:aria-label="t\('common\.pxm_editor_zoom'\)"/)
+  assert.match(zoomControl, /:disabled="canvasZoom <= CANVAS_ZOOM_MIN"/)
+  assert.match(zoomControl, /pxm_editor_zoom_out/)
+  assert.match(zoomControl, /type="range"/)
+  assert.match(zoomControl, /:min="CANVAS_ZOOM_MIN"/)
+  assert.match(zoomControl, /:max="CANVAS_ZOOM_MAX"/)
+  assert.match(zoomControl, /:step="CANVAS_ZOOM_STEP"/)
+  assert.match(zoomControl, /@input="handleCanvasZoomInput"/)
+  assert.match(zoomControl, /:disabled="canvasZoom >= CANVAS_ZOOM_MAX"/)
+  assert.match(zoomControl, /pxm_editor_zoom_in/)
+  assert.match(zoomControl, /<output aria-live="polite">\{\{ canvasZoom \}\}%<\/output>/)
+  assert.match(canvasZoomStyle, /width:\s*`\$\{canvasZoom\.value\}%`/)
+  assert.match(
+    canvasZoomStyle,
+    /maxWidth:\s*`\$\{EDITOR_CANVAS_WIDTH \* \(canvasZoom\.value \/ 100\)\}px`/
+  )
+  assert.doesNotMatch(canvasZoomStyle, /overviewZoom/)
+  assert.match(setCanvasZoom, /const numeric = Number\(value\)/)
+  assert.match(setCanvasZoom, /if \(!Number\.isFinite\(numeric\)\) return/)
+  assert.match(
+    setCanvasZoom,
+    /canvasZoom\.value = Math\.max\(CANVAS_ZOOM_MIN, Math\.min\(CANVAS_ZOOM_MAX, numeric\)\)/
+  )
+  assert.match(editorSource, /event\.target instanceof HTMLInputElement/)
+  assert.match(canvasPoint, /const rect = canvas\.getBoundingClientRect\(\)/)
+  assert.match(
+    canvasPoint,
+    /const x = Math\.floor\(\(\(event\.clientX - rect\.left\) \/ rect\.width\) \* WIDTH\)/
+  )
+  assert.match(
+    canvasPoint,
+    /const y = Math\.floor\(\(\(event\.clientY - rect\.top\) \/ rect\.height\) \* HEIGHT\)/
+  )
+  assert.doesNotMatch(canvasPoint, /canvasZoom|CANVAS_ZOOM/)
+  assert.match(viewportStyle, /display:\s*flex/)
+  assert.match(viewportStyle, /align-items:\s*safe center/)
+  assert.match(viewportStyle, /justify-content:\s*safe center/)
+  assert.match(viewportStyle, /overflow:\s*auto/)
+  assert.match(canvasStyle, /flex:\s*0 0 auto/)
+  assert.match(canvasStyle, /max-width:\s*none/)
+  assert.doesNotMatch(canvasStyle, /width:\s*min\(/)
+  for (const layoutStyle of layoutStyles) {
+    assert.doesNotMatch(layoutStyle, /canvasZoom|canvas[-_]zoom|CANVAS_ZOOM|--[^;]*zoom/i)
+  }
+  assert.ok(overviewControl)
+  assert.match(overviewControl, /\{\{ overviewZoom\.toFixed\(2\) \}\}x/)
+  assert.match(overviewControl, /:value="overviewZoom"/)
+  assert.match(overviewControl, /@input="handleSetOverviewZoom\(\$event\.target\.value\)"/)
+  assert.doesNotMatch(overviewControl, /canvasZoom/)
+
+  for (const localeSource of localeSources) {
+    assert.match(localeSource, /pxm_editor_zoom_out\s*:/)
+    assert.match(localeSource, /pxm_editor_zoom_in\s*:/)
+  }
 })
 
 test('renders compact layer rows with percent opacity and safe duplication', () => {

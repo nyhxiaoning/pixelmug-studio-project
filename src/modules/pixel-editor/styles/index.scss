@@ -655,27 +655,53 @@
   min-height: 34px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   color: var(--pe-muted);
   font-size: 13px;
 }
 
-.pe-canvas-meta strong {
+.pe-canvas-zoom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.pe-canvas-zoom button {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+}
+
+.pe-canvas-zoom input {
+  width: 132px;
+}
+
+.pe-canvas-zoom output {
+  width: 48px;
   color: var(--pe-text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .pe-canvas-viewport {
   min-width: 0;
   min-height: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: safe center;
+  justify-content: safe center;
   overflow: auto;
   overscroll-behavior: contain;
 }
 
 .pe-canvas-viewport canvas {
-  width: min(100%, 960px);
+  flex: 0 0 auto;
   height: auto;
+  max-width: none;
+  margin: 0;
   aspect-ratio: 2 / 1;
   display: block;
   background: var(--pe-canvas-bg);

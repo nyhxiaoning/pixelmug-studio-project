@@ -213,6 +213,8 @@ export default {
   pxm_editor_layer_two: 'Layer 2',
   pxm_editor_layer_prefix: 'Layer',
   pxm_editor_zoom: 'Zoom',
+  pxm_editor_zoom_out: 'Zoom canvas out',
+  pxm_editor_zoom_in: 'Zoom canvas in',
   pxm_editor_pixel: 'Pixel',
   pxm_editor_coordinate: 'Coordinate',
   pxm_editor_coordinate_x: 'X',

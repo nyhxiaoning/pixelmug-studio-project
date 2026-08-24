@@ -203,6 +203,8 @@ export default {
   pxm_editor_layer_two: 'レイヤー 2',
   pxm_editor_layer_prefix: 'レイヤー',
   pxm_editor_zoom: 'ズーム',
+  pxm_editor_zoom_out: 'キャンバスを縮小',
+  pxm_editor_zoom_in: 'キャンバスを拡大',
   pxm_editor_pixel: 'ピクセル',
   pxm_editor_coordinate: '座標',
   pxm_editor_coordinate_x: 'X',

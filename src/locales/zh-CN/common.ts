@@ -214,6 +214,8 @@ export default {
   pxm_editor_layer_two: '图层 2',
   pxm_editor_layer_prefix: '图层',
   pxm_editor_zoom: '缩放',
+  pxm_editor_zoom_out: '缩小画板',
+  pxm_editor_zoom_in: '放大画板',
   pxm_editor_pixel: '像素',
   pxm_editor_coordinate: '坐标',
   pxm_editor_coordinate_x: 'X',

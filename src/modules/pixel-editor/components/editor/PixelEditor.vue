@@ -480,14 +480,54 @@
         <section class="pe-panel pe-canvas-panel">
           <div class="pe-canvas-meta">
             <span>{{ t('common.pxm_editor_canvas') }} W {{ project.width }}, H {{ project.height }}</span>
-            <strong>{{ t('common.pxm_editor_zoom') }} {{ Math.round(overviewZoom * 100) }}%</strong>
+            <div
+              class="pe-canvas-zoom"
+              role="group"
+              :aria-label="t('common.pxm_editor_zoom')"
+            >
+              <button
+                type="button"
+                :disabled="canvasZoom <= CANVAS_ZOOM_MIN"
+                :title="t('common.pxm_editor_zoom_out')"
+                :aria-label="t('common.pxm_editor_zoom_out')"
+                @click="handleAdjustCanvasZoom(-CANVAS_ZOOM_STEP)"
+              >
+                <Minus
+                  :size="16"
+                  aria-hidden="true"
+                />
+              </button>
+              <input
+                :value="canvasZoom"
+                type="range"
+                :min="CANVAS_ZOOM_MIN"
+                :max="CANVAS_ZOOM_MAX"
+                :step="CANVAS_ZOOM_STEP"
+                :aria-label="t('common.pxm_editor_zoom')"
+                @input="handleCanvasZoomInput"
+              >
+              <button
+                type="button"
+                :disabled="canvasZoom >= CANVAS_ZOOM_MAX"
+                :title="t('common.pxm_editor_zoom_in')"
+                :aria-label="t('common.pxm_editor_zoom_in')"
+                @click="handleAdjustCanvasZoom(CANVAS_ZOOM_STEP)"
+              >
+                <Plus
+                  :size="16"
+                  aria-hidden="true"
+                />
+              </button>
+              <output aria-live="polite">{{ canvasZoom }}%</output>
+            </div>
             <span v-if="hoverPoint">({{ hoverPoint.x }}, {{ hoverPoint.y }})</span>
           </div>
           <div class="pe-canvas-viewport">
             <canvas
               ref="editorCanvasRef"
-              width="960"
-              height="480"
+              :style="canvasZoomStyle"
+              :width="EDITOR_CANVAS_WIDTH"
+              :height="EDITOR_CANVAS_HEIGHT"
               @pointerdown="handlePointerDown"
               @pointermove="handlePointerMove"
               @pointerup="handlePointerUp"
@@ -865,6 +905,7 @@ import {
   FlipVertical2,
   Grid2X2,
   MonitorUp,
+  Minus,
   Move,
   PaintBucket,
   Pipette,
@@ -1009,6 +1050,11 @@ const FUSION_FONT_ROOT = 'assets/fonts'
 const FUSION_FONT_LANGS = ['latin', 'zh_hans', 'zh_hant', 'ja', 'ko']
 const FUSION_FONT_CACHE = new Set<string>()
 const TEXT_ALPHA_THRESHOLD = 180
+const CANVAS_ZOOM_MIN = 50
+const CANVAS_ZOOM_MAX = 300
+const CANVAS_ZOOM_STEP = 10
+const EDITOR_CANVAS_WIDTH = 960
+const EDITOR_CANVAS_HEIGHT = 480
 
 // Template refs
 const staticFileInputRef = ref<HTMLInputElement | null>(null)
@@ -1037,6 +1083,26 @@ const firstProject = computed(() => {
 })
 
 const project = ref(firstProject.value)
+const canvasZoom = ref<number>(100)
+const canvasZoomStyle = computed(() => ({
+  width: `${canvasZoom.value}%`,
+  maxWidth: `${EDITOR_CANVAS_WIDTH * (canvasZoom.value / 100)}px`,
+}))
+
+function handleSetCanvasZoom(value: string | number): void {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return
+  canvasZoom.value = Math.max(CANVAS_ZOOM_MIN, Math.min(CANVAS_ZOOM_MAX, numeric))
+}
+
+function handleCanvasZoomInput(event: Event): void {
+  if (!(event.target instanceof HTMLInputElement)) return
+  handleSetCanvasZoom(event.target.value)
+}
+
+function handleAdjustCanvasZoom(delta: number): void {
+  handleSetCanvasZoom(canvasZoom.value + delta)
+}
 
 // Palette
 const palette = ref(corePalette)
