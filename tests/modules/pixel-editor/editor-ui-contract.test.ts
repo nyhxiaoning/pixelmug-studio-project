@@ -16,6 +16,55 @@ const localeSources = [
   '../../../src/locales/ja/common.ts',
 ].map((path) => readFileSync(new URL(path, import.meta.url), 'utf8'))
 
+function extractCssBlock(source: string, marker: string): string {
+  const start = source.indexOf(marker)
+  assert.ok(start >= 0, `Missing CSS block: ${marker}`)
+  const openBrace = source.indexOf('{', start)
+  assert.ok(openBrace >= 0, `Missing opening brace for: ${marker}`)
+
+  let depth = 0
+  for (let index = openBrace; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1
+    if (source[index] === '}') depth -= 1
+    if (depth === 0) return source.slice(start, index + 1)
+  }
+
+  assert.fail(`Missing closing brace for: ${marker}`)
+}
+
+function extractStartTags(source: string, tagName: string): string[] {
+  const tags: string[] = []
+  const marker = `<${tagName}`
+  let searchFrom = 0
+
+  while (searchFrom < source.length) {
+    const start = source.indexOf(marker, searchFrom)
+    if (start < 0) break
+
+    let quote = ''
+    for (let index = start + marker.length; index < source.length; index += 1) {
+      const character = source[index]
+      if ((character === '"' || character === "'") && (!quote || quote === character)) {
+        quote = quote ? '' : character
+      } else if (character === '>' && !quote) {
+        tags.push(source.slice(start, index + 1))
+        searchFrom = index + 1
+        break
+      }
+    }
+  }
+
+  return tags
+}
+
+function buttonTagsByClass(className: string): string[] {
+  const tags = extractStartTags(editorSource, 'button')
+    .filter((candidate) => new RegExp(`class="[^"]*\\b${className}\\b`).test(candidate))
+
+  assert.ok(tags.length > 0, `Missing button with class ${className}`)
+  return tags
+}
+
 test('defines the Creator Center reference layout tokens', () => {
   assert.match(editorStyles, /--pe-nav-height:\s*57px/)
   assert.match(editorStyles, /--pe-shell-gap:\s*14px/)
@@ -128,7 +177,7 @@ test('renders compact layer rows with percent opacity and safe duplication', () 
   )?.[0]
 
   assert.match(editorSource, /class="pe-layer-visibility"/)
-  assert.match(editorSource, /class="pe-layer-name"/)
+  assert.match(editorSource, /class="pe-layer-select"/)
   assert.match(editorSource, /class="pe-layer-opacity"/)
   assert.match(editorSource, /@click\.stop="handleDuplicateLayer\(index\)"/)
   assert.match(editorSource, /@click\.stop="handleDeleteLayer\(index\)"/)
@@ -262,6 +311,81 @@ test('separates device preview from the on-demand local animation preview', () =
   assert.ok(toggleHandler)
   assert.match(toggleHandler, /previewPlaying\.value = true/)
   assert.match(toggleHandler, /nextTick\(tick\)/)
+})
+
+test('keeps the desktop editor grid at explicit responsive breakpoints', () => {
+  const baseEditorScroll = extractCssBlock(editorStyles, '.pe-editor-scroll')
+  const compactDesktop = extractCssBlock(editorStyles, '@media (max-width: 1279px)')
+  const narrowViewport = extractCssBlock(editorStyles, '@media (max-width: 1023px)')
+
+  assert.match(baseEditorScroll, /min-width:\s*1024px/)
+  assert.doesNotMatch(baseEditorScroll, /overflow-x:/)
+  assert.match(compactDesktop, /\.pe-editor-grid\s*\{[\s\S]*grid-template-columns:\s*var\(--pe-side-panel-width\) minmax\(440px, 1fr\) var\(--pe-side-panel-width\)/)
+  assert.match(compactDesktop, /\.pe-editor-nav\s*\{[\s\S]*grid-template-columns:/)
+  assert.doesNotMatch(compactDesktop, /\.pe-editor-grid\s*\{[\s\S]*grid-template-columns:\s*1fr/)
+
+  const scrollOwner = extractCssBlock(narrowViewport, '.fullscreen-layout')
+  const appShellRule = extractCssBlock(narrowViewport, '.pe-app-shell')
+  const editorScrollRule = extractCssBlock(narrowViewport, '.pe-editor-scroll')
+  assert.match(scrollOwner, /overflow-x:\s*auto/)
+  assert.match(appShellRule, /min-width:\s*1024px/)
+  assert.match(editorScrollRule, /min-width:\s*1024px/)
+  assert.doesNotMatch(appShellRule, /overflow-x:/)
+  assert.doesNotMatch(editorScrollRule, /overflow-x:/)
+  assert.doesNotMatch(narrowViewport, /\.pe-editor-grid\s*\{[\s\S]*grid-template-columns:\s*1fr/)
+  assert.doesNotMatch(editorStyles, /@media \(max-width: 1120px\)/)
+  assert.doesNotMatch(editorStyles, /@media \(max-width: 780px\)/)
+})
+
+test('restores a visible keyboard focus ring after the global reset', () => {
+  const focusRing = extractCssBlock(editorStyles, '.pe-app-shell button:focus-visible')
+
+  assert.match(focusRing, /\.pe-app-shell input:focus-visible/)
+  assert.match(focusRing, /\.pe-app-shell select:focus-visible/)
+  assert.match(focusRing, /outline:\s*2px solid var\(--pe-primary\)/)
+  assert.match(focusRing, /outline-offset:\s*2px/)
+})
+
+test('gives every icon-only editor button an accessible name', () => {
+  for (const className of [
+    'pe-nav-back',
+    'pe-icon-tool',
+    'pe-swatch',
+    'pe-layer-visibility',
+    'pe-layer-action',
+    'pe-frame-action',
+    'pe-local-preview-close',
+  ]) {
+    for (const tag of buttonTagsByClass(className)) {
+      assert.match(tag, /(?:^|\s):?title=/, `${className} needs a localized title`)
+      assert.match(tag, /(?:^|\s):?aria-label=/, `${className} needs an accessible name`)
+    }
+  }
+
+  const sizedIconTags = editorSource.match(/<(?:component|[A-Z][A-Za-z0-9]*)\b[^>]*:size="[^"]+"[^>]*\/>/g) ?? []
+  assert.ok(sizedIconTags.length > 0)
+  for (const tag of sizedIconTags) {
+    assert.match(tag, /aria-hidden="true"/, `Decorative icon must be hidden: ${tag}`)
+  }
+})
+
+test('uses a real layer selection button without nesting interactive row semantics', () => {
+  const layerRowStartTag = editorSource.match(
+    /<div\s+v-for="\(layer, index\) in currentFrame\.layers"[\s\S]*?>/
+  )?.[0]
+  const layerSelectTags = buttonTagsByClass('pe-layer-select')
+
+  assert.ok(layerRowStartTag)
+  assert.match(layerRowStartTag, /role="group"/)
+  assert.match(layerRowStartTag, /:aria-label="layer\.name"/)
+  assert.doesNotMatch(layerRowStartTag, /tabindex=/)
+  assert.doesNotMatch(layerRowStartTag, /@click=/)
+  assert.doesNotMatch(layerRowStartTag, /@keydown/)
+  assert.equal(layerSelectTags.length, 1)
+  assert.match(layerSelectTags[0], /:title="layer\.name"/)
+  assert.match(layerSelectTags[0], /:aria-label="layer\.name"/)
+  assert.match(layerSelectTags[0], /:aria-pressed="activeLayer === index"/)
+  assert.match(layerSelectTags[0], /@click="handleSelectLayer\(index\)"/)
 })
 
 test('styles the import modal and local preview as reference overlays', () => {

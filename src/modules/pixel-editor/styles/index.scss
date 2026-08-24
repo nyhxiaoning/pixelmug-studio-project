@@ -279,6 +279,13 @@
   border-color: var(--pe-button-hover);
 }
 
+.pe-app-shell button:focus-visible,
+.pe-app-shell input:focus-visible,
+.pe-app-shell select:focus-visible {
+  outline: 2px solid var(--pe-primary);
+  outline-offset: 2px;
+}
+
 .pe-app-shell button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -398,7 +405,6 @@
 /* ==================== Workspace ==================== */
 .pe-editor-scroll {
   min-width: 1024px;
-  overflow-x: auto;
 }
 
 .pe-editor-grid {
@@ -750,7 +756,6 @@
   border: 1px solid transparent;
   border-radius: 7px;
   text-align: left;
-  cursor: pointer;
 }
 
 .pe-layer-item.active {
@@ -758,13 +763,23 @@
   background: var(--pe-active-soft);
 }
 
-.pe-layer-name {
+.pe-layer-select {
+  width: 100%;
   min-width: 0;
   overflow: hidden;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: inherit;
   text-overflow: ellipsis;
+  text-align: left;
   white-space: nowrap;
   font-size: 13px;
   font-weight: 600;
+}
+
+.pe-layer-select:hover {
+  background: var(--pe-control-bg);
 }
 
 .pe-layer-opacity {
@@ -1069,16 +1084,41 @@
 }
 
 /* ==================== Responsive ==================== */
-@media (max-width: 1120px) {
-  .pe-frames-panel {
-    grid-template-columns: 1fr;
+@media (max-width: 1279px) {
+  .pe-editor-nav {
+    grid-template-columns: minmax(180px, 1fr) auto auto;
+    gap: 10px;
+    padding-inline: 12px;
+  }
+
+  .pe-nav-actions {
+    gap: 6px;
+  }
+
+  .pe-nav-action,
+  .pe-nav-save {
+    padding-inline: 9px;
+  }
+
+  .pe-nav-title {
+    width: min(240px, 22vw);
+  }
+
+  .pe-editor-grid {
+    grid-template-columns: var(--pe-side-panel-width) minmax(440px, 1fr) var(--pe-side-panel-width);
   }
 }
 
-@media (max-width: 780px) {
-  .pe-topbar,
-  .pe-topbar-right,
-  .pe-top-actions,
+@media (max-width: 1023px) {
+  .fullscreen-layout {
+    overflow-x: auto;
+  }
+
+  .pe-app-shell,
+  .pe-editor-scroll {
+    min-width: 1024px;
+  }
+
   .pe-library-head {
     flex-direction: column;
     align-items: stretch;
@@ -1088,7 +1128,6 @@
     width: 100%;
   }
 
-  .pe-import-grid,
   .pe-project-card {
     grid-template-columns: 1fr;
   }

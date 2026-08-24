@@ -57,6 +57,7 @@
           type="button"
           class="pe-nav-back"
           :title="t('common.pxm_editor_back_home')"
+          :aria-label="t('common.pxm_editor_back_home')"
           @click="backHome"
         >
           <img
@@ -205,6 +206,7 @@
                 :class="{ active: color === currentColor }"
                 :style="{ background: color }"
                 :title="color"
+                :aria-label="color"
                 @click="currentColor = color"
               />
             </div>
@@ -494,11 +496,10 @@
             <div
               v-for="(layer, index) in currentFrame.layers"
               :key="layer.id"
-              role="button"
-              tabindex="0"
+              role="group"
+              :aria-label="layer.name"
               class="pe-layer-item"
               :class="{ active: activeLayer === index }"
-              @click="handleSelectLayer(index)"
             >
               <button
                 type="button"
@@ -518,10 +519,16 @@
                   aria-hidden="true"
                 />
               </button>
-              <span
-                class="pe-layer-name"
+              <button
+                type="button"
+                class="pe-layer-select"
                 :title="layer.name"
-              >{{ layer.name }}</span>
+                :aria-label="layer.name"
+                :aria-pressed="activeLayer === index"
+                @click="handleSelectLayer(index)"
+              >
+                {{ layer.name }}
+              </button>
               <label
                 class="pe-layer-opacity"
                 @click.stop
