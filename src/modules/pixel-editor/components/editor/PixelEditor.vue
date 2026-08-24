@@ -522,12 +522,16 @@
             </div>
             <span v-if="hoverPoint">({{ hoverPoint.x }}, {{ hoverPoint.y }})</span>
           </div>
-          <div class="pe-canvas-viewport">
+          <div
+            ref="canvasViewportRef"
+            class="pe-canvas-viewport"
+          >
             <canvas
               ref="editorCanvasRef"
               :style="canvasZoomStyle"
               :width="EDITOR_CANVAS_WIDTH"
               :height="EDITOR_CANVAS_HEIGHT"
+              @wheel="handleCanvasWheel"
               @pointerdown="handlePointerDown"
               @pointermove="handlePointerMove"
               @pointerup="handlePointerUp"
@@ -1060,6 +1064,7 @@ const EDITOR_CANVAS_HEIGHT = 480
 const staticFileInputRef = ref<HTMLInputElement | null>(null)
 const gifFileInputRef = ref<HTMLInputElement | null>(null)
 const editorCanvasRef = ref<HTMLCanvasElement | null>(null)
+const canvasViewportRef = ref<HTMLDivElement | null>(null)
 const overviewScrollRef = ref<HTMLDivElement | null>(null)
 const overviewCanvasRef = ref<HTMLCanvasElement | null>(null)
 const previewCanvasRef = ref<HTMLCanvasElement | null>(null)
@@ -1102,6 +1107,32 @@ function handleCanvasZoomInput(event: Event): void {
 
 function handleAdjustCanvasZoom(delta: number): void {
   handleSetCanvasZoom(canvasZoom.value + delta)
+}
+
+async function handleCanvasWheel(event: WheelEvent): Promise<void> {
+  event.preventDefault()
+  if (event.deltaY === 0) return
+
+  const canvas = editorCanvasRef.value
+  const viewport = canvasViewportRef.value
+  if (!canvas || !viewport) return
+
+  const delta = event.deltaY < 0 ? CANVAS_ZOOM_STEP : -CANVAS_ZOOM_STEP
+  const nextZoom = Math.max(
+    CANVAS_ZOOM_MIN,
+    Math.min(CANVAS_ZOOM_MAX, canvasZoom.value + delta)
+  )
+  if (nextZoom === canvasZoom.value) return
+
+  const rect = canvas.getBoundingClientRect()
+  const anchorX = (event.clientX - rect.left) / rect.width
+  const anchorY = (event.clientY - rect.top) / rect.height
+  handleSetCanvasZoom(nextZoom)
+  await nextTick()
+
+  const nextRect = canvas.getBoundingClientRect()
+  viewport.scrollLeft += nextRect.left + anchorX * nextRect.width - event.clientX
+  viewport.scrollTop += nextRect.top + anchorY * nextRect.height - event.clientY
 }
 
 // Palette

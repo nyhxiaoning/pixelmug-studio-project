@@ -328,6 +328,58 @@ test('keeps Canvas zoom bounded, accessible, and isolated to its viewport', () =
   }
 })
 
+test('contains Canvas wheel gestures and preserves the pointer anchor', () => {
+  const editorCanvasTag = editorSource.match(/<canvas\s+[^>]*ref="editorCanvasRef"[^>]*>/)?.[0]
+  const wheelHandler = extractBraceBlock(editorSource, 'async function handleCanvasWheel')
+  const canvasStyle = extractCssBlock(editorStyles, '.pe-canvas-viewport canvas')
+
+  assert.ok(editorCanvasTag)
+  assert.match(editorSource, /ref="canvasViewportRef"/)
+  assert.match(editorCanvasTag, /@wheel="handleCanvasWheel"/)
+  assert.doesNotMatch(editorCanvasTag, /@wheel\.passive/)
+  assert.match(
+    wheelHandler,
+    /^async function handleCanvasWheel\(event: WheelEvent\): Promise<void> \{\s*event\.preventDefault\(\)/
+  )
+  assert.match(wheelHandler, /if \(event\.deltaY === 0\) return/)
+  assert.match(
+    wheelHandler,
+    /event\.deltaY < 0 \? CANVAS_ZOOM_STEP : -CANVAS_ZOOM_STEP/
+  )
+  assert.match(
+    wheelHandler,
+    /Math\.max\(\s*CANVAS_ZOOM_MIN,\s*Math\.min\(CANVAS_ZOOM_MAX,\s*canvasZoom\.value \+ delta\)\s*\)/
+  )
+  assert.match(wheelHandler, /if \(nextZoom === canvasZoom\.value\) return/)
+  assert.match(wheelHandler, /const rect = canvas\.getBoundingClientRect\(\)/)
+  assert.match(
+    wheelHandler,
+    /const anchorX = \(event\.clientX - rect\.left\) \/ rect\.width/
+  )
+  assert.match(
+    wheelHandler,
+    /const anchorY = \(event\.clientY - rect\.top\) \/ rect\.height/
+  )
+  assert.match(wheelHandler, /handleSetCanvasZoom\(nextZoom\)/)
+  assert.match(wheelHandler, /await nextTick\(\)/)
+  assert.match(wheelHandler, /const nextRect = canvas\.getBoundingClientRect\(\)/)
+  assert.match(
+    wheelHandler,
+    /viewport\.scrollLeft \+= nextRect\.left \+ anchorX \* nextRect\.width - event\.clientX/
+  )
+  assert.match(
+    wheelHandler,
+    /viewport\.scrollTop \+= nextRect\.top \+ anchorY \* nextRect\.height - event\.clientY/
+  )
+  assert.doesNotMatch(wheelHandler, /overviewZoom/)
+  assert.doesNotMatch(wheelHandler, /event\.(?:ctrlKey|metaKey)/)
+  assert.match(canvasStyle, /cursor:\s*grab/)
+  assert.ok(
+    wheelHandler.indexOf('event.preventDefault()')
+      < wheelHandler.indexOf('if (event.deltaY === 0) return')
+  )
+})
+
 test('renders compact layer rows with percent opacity and safe duplication', () => {
   const opacityControl = editorSource.match(
     /<label\s+class="pe-layer-opacity"[\s\S]*?<\/label>/
