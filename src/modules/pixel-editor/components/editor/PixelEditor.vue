@@ -415,7 +415,7 @@
 
           <section class="pe-tool-section pe-tool-section--text">
             <h2>{{ t('common.pxm_editor_text') }}</h2>
-            <textarea v-model="textTool.text" rows="3" />
+            <textarea v-model="textTool.text" rows="1" wrap="off" />
             <div class="pe-control-row pe-text-options">
               <label>{{ t('common.pxm_editor_tool_font_size') }}</label>
               <select v-model.number="textTool.size">

@@ -198,6 +198,78 @@ test('groups existing tools in the live reference order', () => {
   assert.match(editorSource, /@click="handleStampText\(2\)"/)
 })
 
+test('keeps the left toolbar compact without removing its existing groups', () => {
+  const toolbarStyle = extractCssBlock(editorStyles, '.pe-tools-panel')
+  const toolbarSectionStyle = extractCssBlock(editorStyles, '.pe-tools-panel .pe-tool-section')
+  const toolbarHeadingStyle = extractCssBlock(
+    editorStyles,
+    '.pe-tools-panel .pe-tool-section h2 {'
+  )
+  const toolbarTypographyStyle = extractCssBlock(
+    editorStyles,
+    '.pe-tools-panel .pe-tool-section h2,'
+  )
+  const toolbarControlRowStyle = extractCssBlock(editorStyles, '.pe-tools-panel .pe-control-row')
+  const toolbarGridStyle = extractCssBlock(editorStyles, '.pe-tools-panel .pe-tool-grid')
+  const toolbarButtonRowStyle = extractCssBlock(editorStyles, '.pe-tools-panel .pe-button-row')
+  const toolbarInputStyle = extractCssBlock(
+    editorStyles,
+    '.pe-tools-panel input:not([type="range"]):not([type="color"])'
+  )
+  const toolbarIconStyle = extractCssBlock(editorStyles, '.pe-tools-panel .pe-icon-tool')
+  const toolbarSvgStyle = extractCssBlock(editorStyles, '.pe-tools-panel .pe-icon-tool svg')
+  const selectionGridStyle = extractCssBlock(
+    editorStyles,
+    '.pe-tool-section--selection .pe-tool-grid'
+  )
+  const textStyle = extractCssBlock(editorStyles, '.pe-tool-section--text textarea')
+  const shortViewportStyle = extractCssBlock(editorStyles, '@media (max-height: 699px)')
+  const textareaTag = extractStartTags(editorSource, 'textarea').find((tag) =>
+    tag.includes('v-model="textTool.text"')
+  )
+  const groupMarkers = [
+    'pe-tool-section--drawing',
+    'pe-tool-section--shapes',
+    'pe-tool-section--selection',
+    'pe-tool-section--onion',
+    'pe-tool-section--text',
+    'pe-tools-footer',
+  ]
+
+  assert.match(toolbarStyle, /font-size:\s*12px/)
+  assert.match(toolbarStyle, /overflow:\s*hidden/)
+  assert.match(toolbarTypographyStyle, /font-size:\s*12px/)
+  assert.doesNotMatch(toolbarTypographyStyle, /font-weight\s*:/)
+  assert.match(toolbarSectionStyle, /padding:\s*3px 8px/)
+  assert.match(toolbarHeadingStyle, /margin-bottom:\s*3px/)
+  assert.match(toolbarHeadingStyle, /line-height:\s*1\.2/)
+  assert.doesNotMatch(toolbarHeadingStyle, /font-weight\s*:/)
+  assert.match(toolbarControlRowStyle, /gap:\s*5px/)
+  assert.match(toolbarControlRowStyle, /margin-top:\s*4px/)
+  assert.match(toolbarGridStyle, /gap:\s*4px/)
+  assert.match(toolbarButtonRowStyle, /gap:\s*5px/)
+  assert.match(toolbarButtonRowStyle, /margin-top:\s*4px/)
+  assert.match(toolbarInputStyle, /height:\s*28px/)
+  assert.match(toolbarInputStyle, /min-height:\s*28px/)
+  assert.match(toolbarInputStyle, /padding:\s*4px 6px/)
+  assert.match(toolbarIconStyle, /min-height:\s*32px/)
+  assert.match(toolbarSvgStyle, /width:\s*15px/)
+  assert.match(toolbarSvgStyle, /height:\s*15px/)
+  assert.match(selectionGridStyle, /grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/)
+  assert.ok(textareaTag)
+  assert.match(textareaTag, /rows="1"/)
+  assert.match(textareaTag, /wrap="off"/)
+  assert.match(textStyle, /white-space:\s*nowrap/)
+  assert.match(textStyle, /overflow-x:\s*auto/)
+  assert.match(textStyle, /overflow-y:\s*hidden/)
+  assert.match(textStyle, /resize:\s*none/)
+  assert.match(shortViewportStyle, /\.pe-tools-panel\s*\{[^}]*overflow-y:\s*auto/s)
+
+  const groupIndexes = groupMarkers.map((marker) => editorSource.indexOf(marker))
+  assert.ok(groupIndexes.every((index) => index >= 0))
+  assert.deepEqual(groupIndexes, [...groupIndexes].sort((left, right) => left - right))
+})
+
 test('renders the reference workspace grid without changing Canvas behavior', () => {
   const editorCanvasTag = editorSource.match(/<canvas\s+[^>]*ref="editorCanvasRef"[^>]*>/)?.[0]
 
