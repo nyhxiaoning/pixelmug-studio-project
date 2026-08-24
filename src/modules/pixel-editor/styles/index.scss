@@ -759,10 +759,15 @@
 
 .pe-layer-item {
   display: grid;
-  grid-template-columns: auto 82px 1fr auto;
-  gap: 8px;
+  grid-template-columns: 28px minmax(0, 1fr) 80px 28px 28px;
+  gap: 6px;
   align-items: center;
+  min-height: 40px;
+  padding: 5px 6px;
+  border: 1px solid transparent;
+  border-radius: 7px;
   text-align: left;
+  cursor: pointer;
 }
 
 .pe-layer-item.active {
@@ -770,31 +775,140 @@
   background: var(--pe-active-soft);
 }
 
+.pe-layer-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pe-layer-opacity {
+  width: 80px;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px;
+  color: var(--pe-muted);
+  font-size: 12px;
+}
+
+.pe-layer-opacity input {
+  width: 100%;
+  min-width: 0;
+  padding: 4px 3px;
+  text-align: right;
+}
+
+.pe-layer-visibility,
+.pe-layer-action {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--pe-text);
+}
+
+.pe-layer-visibility:hover,
+.pe-layer-action:hover:not(:disabled) {
+  background: var(--pe-control-bg);
+}
+
+.pe-layer-action--danger {
+  color: var(--pe-danger);
+}
+
 /* ==================== Frames Panel ==================== */
-.pe-frames-area {
+.pe-frame-panel {
   grid-area: frames;
   min-width: 0;
   display: grid;
-  gap: var(--pe-shell-gap);
-}
-
-.pe-frames-panel {
+  grid-template-columns: 162px minmax(0, 1fr);
+  gap: 14px;
   padding: 14px;
-  display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
-  gap: 12px;
   align-items: stretch;
 }
 
-.pe-frame-strip-head {
+.pe-frame-controls {
   display: grid;
   align-content: start;
   gap: 10px;
 }
 
-.pe-frames-panel .pe-button-row,
-.pe-frames-panel .pe-frames-list {
-  margin-top: 0;
+.pe-frame-controls h2,
+.pe-preview-panel h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pe-frame-action-row {
+  display: grid;
+  grid-template-columns: repeat(4, 34px);
+  gap: 6px;
+}
+
+.pe-frame-action {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--pe-line);
+  border-radius: 7px;
+  background: var(--pe-control-bg);
+  color: var(--pe-text);
+}
+
+.pe-frame-action:hover:not(:disabled) {
+  border-color: var(--pe-primary);
+  background: var(--pe-active-soft);
+}
+
+.pe-frame-action--danger,
+.pe-frame-delete-all {
+  color: var(--pe-danger);
+}
+
+.pe-frame-delay {
+  display: grid;
+  gap: 6px;
+  color: var(--pe-muted);
+  font-size: 12px;
+}
+
+.pe-frame-delay-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.pe-frame-delay-input input {
+  width: 100%;
+  min-width: 0;
+}
+
+.pe-frame-delete-all {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+}
+
+.pe-frame-content {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+  gap: 14px;
+  align-items: start;
 }
 
 .pe-frames-list {
@@ -847,15 +961,6 @@
   background: #000;
   border-radius: 6px;
   border: 1px solid var(--pe-panel-border);
-}
-
-.pe-frame-settings-bar {
-  padding: 12px 14px;
-}
-
-.pe-frame-settings-bar .pe-control-row {
-  max-width: 380px;
-  margin-top: 0;
 }
 
 /* ==================== Modal ==================== */

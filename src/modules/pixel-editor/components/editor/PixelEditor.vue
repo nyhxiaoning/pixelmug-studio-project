@@ -500,29 +500,68 @@
               :class="{ active: activeLayer === index }"
               @click="handleSelectLayer(index)"
             >
-              <input
-                v-model="layer.visible"
-                type="checkbox"
-                @click.stop
-                @change="handleUpdateLayerSettings"
-              />
-              <span>{{ layer.name }}</span>
-              <input
-                v-model.number="layer.opacity"
-                type="range"
-                min="0.1"
-                max="1"
-                step="0.05"
-                @click.stop
-                @input="handleUpdateLayerSettings"
-              />
               <button
                 type="button"
-                class="pe-danger-outline pe-mini"
+                class="pe-layer-visibility"
+                :title="t(layer.visible ? 'common.pxm_editor_hide_layer' : 'common.pxm_editor_show_layer')"
+                :aria-label="t(layer.visible ? 'common.pxm_editor_hide_layer' : 'common.pxm_editor_show_layer')"
+                @click.stop="layer.visible = !layer.visible; handleUpdateLayerSettings()"
+              >
+                <Eye
+                  v-if="layer.visible"
+                  :size="16"
+                  aria-hidden="true"
+                />
+                <EyeOff
+                  v-else
+                  :size="16"
+                  aria-hidden="true"
+                />
+              </button>
+              <span
+                class="pe-layer-name"
+                :title="layer.name"
+              >{{ layer.name }}</span>
+              <label
+                class="pe-layer-opacity"
+                @click.stop
+              >
+                <input
+                  type="number"
+                  min="10"
+                  max="100"
+                  step="1"
+                  :value="layerOpacityPercent(layer)"
+                  :aria-label="t('common.pxm_editor_layer_opacity')"
+                  @change="handleLayerOpacityPercent(layer, $event)"
+                >
+                <span>%</span>
+              </label>
+              <button
+                type="button"
+                class="pe-layer-action"
+                :disabled="currentFrame.layers.length >= 4"
+                :title="t('common.pxm_editor_duplicate')"
+                :aria-label="t('common.pxm_editor_duplicate')"
+                @click.stop="handleDuplicateLayer(index)"
+              >
+                <Copy
+                  :size="16"
+                  aria-hidden="true"
+                />
+              </button>
+              <button
+                type="button"
+                class="pe-layer-action pe-layer-action--danger"
                 :disabled="currentFrame.layers.length <= 2"
+                :title="t('common.pxm_editor_delete_layer')"
+                :aria-label="t('common.pxm_editor_delete_layer')"
                 @click.stop="handleDeleteLayer(index)"
               >
-                {{ t('common.pxm_editor_delete_layer') }}
+                <Trash2
+                  :size="16"
+                  aria-hidden="true"
+                />
               </button>
             </div>
           </div>
@@ -564,27 +603,86 @@
           </div>
         </section>
 
-        <section class="pe-frames-area">
-          <section class="pe-panel pe-frames-panel">
-            <div class="pe-frame-strip-head">
-              <div class="pe-panel-title-row">
-                <h2>{{ t('common.pxm_editor_frames') }}</h2>
-                <button type="button" class="pe-primary pe-small" @click="handleAddFrame">
-                  {{ t('common.pxm_editor_add') }}
-                </button>
-              </div>
-              <div class="pe-button-row">
-                <button type="button" class="pe-secondary" @click="handleDuplicateFrame">
-                  {{ t('common.pxm_editor_duplicate') }}
-                </button>
-                <button type="button" class="pe-danger-outline" @click="handleDeleteFrame">
-                  {{ t('common.pxm_editor_delete') }}
-                </button>
-              </div>
-              <button type="button" class="pe-danger-outline pe-wide" @click="handleDeleteAllFrames">
-                {{ t('common.pxm_editor_delete_all') }}
+        <section class="pe-panel pe-frame-panel">
+          <div class="pe-frame-controls">
+            <h2>{{ t('common.pxm_editor_frames') }}</h2>
+            <div class="pe-frame-action-row">
+              <button
+                type="button"
+                class="pe-frame-action"
+                :title="previewPlaying ? t('common.pxm_editor_stop_play') : t('common.pxm_editor_play_all_frames')"
+                :aria-label="previewPlaying ? t('common.pxm_editor_stop_play') : t('common.pxm_editor_play_all_frames')"
+                @click="handleTogglePreview"
+              >
+                <Play
+                  :size="17"
+                  aria-hidden="true"
+                />
+              </button>
+              <button
+                type="button"
+                class="pe-frame-action"
+                :title="t('common.pxm_editor_add')"
+                :aria-label="t('common.pxm_editor_add')"
+                @click="handleAddFrame"
+              >
+                <Plus
+                  :size="17"
+                  aria-hidden="true"
+                />
+              </button>
+              <button
+                type="button"
+                class="pe-frame-action"
+                :title="t('common.pxm_editor_duplicate')"
+                :aria-label="t('common.pxm_editor_duplicate')"
+                @click="handleDuplicateFrame"
+              >
+                <Copy
+                  :size="17"
+                  aria-hidden="true"
+                />
+              </button>
+              <button
+                type="button"
+                class="pe-frame-action pe-frame-action--danger"
+                :disabled="project.frames.length <= 1"
+                :title="t('common.pxm_editor_delete')"
+                :aria-label="t('common.pxm_editor_delete')"
+                @click="handleDeleteFrame"
+              >
+                <Trash2
+                  :size="17"
+                  aria-hidden="true"
+                />
               </button>
             </div>
+            <label class="pe-frame-delay">
+              <span>{{ t('common.pxm_editor_interval') }}</span>
+              <span class="pe-frame-delay-input">
+                <input
+                  v-model="frameDelayInput"
+                  type="number"
+                  min="20"
+                  max="5000"
+                  step="10"
+                  @blur="handleCommitFrameDelay"
+                  @change="handleCommitFrameDelay"
+                  @keydown.enter="handleCommitFrameDelay"
+                >
+                <span>ms</span>
+              </span>
+            </label>
+            <button
+              type="button"
+              class="pe-frame-delete-all"
+              @click="handleDeleteAllFrames"
+            >
+              {{ t('common.pxm_editor_delete_all') }}
+            </button>
+          </div>
+
+          <div class="pe-frame-content">
             <div class="pe-frames-list">
               <button
                 v-for="(frame, index) in project.frames"
@@ -604,45 +702,26 @@
                 @drop.prevent="handleDropFrame(index)"
                 @dragend="handleEndFrameDrag"
               >
-                <canvas :ref="(el) => setFrameThumbRef(frame.id, el)" width="96" height="48" />
+                <canvas
+                  :ref="(el) => setFrameThumbRef(frame.id, el)"
+                  width="96"
+                  height="48"
+                />
                 <span
                   >{{ t('common.pxm_editor_frame_prefix') }} {{ index + 1 }}
                   {{ t('common.pxm_editor_frame_unit') }}</span
                 >
               </button>
             </div>
-          </section>
-
-          <div class="pe-panel pe-frame-settings-bar">
-            <div class="pe-control-row">
-              <label>{{ t('common.pxm_editor_interval') }}</label>
-              <input
-                v-model="frameDelayInput"
-                type="number"
-                min="20"
-                max="5000"
-                step="10"
-                @blur="handleCommitFrameDelay"
-                @change="handleCommitFrameDelay"
-                @keydown.enter="handleCommitFrameDelay"
+            <section class="pe-preview-panel">
+              <h3>{{ t('common.pxm_editor_led_preview') }}</h3>
+              <canvas
+                ref="previewCanvasRef"
+                width="480"
+                height="240"
               />
-              <span>ms</span>
-            </div>
+            </section>
           </div>
-
-          <section class="pe-panel pe-preview-panel">
-            <div class="pe-panel-title-row">
-              <h2>{{ t('common.pxm_editor_led_preview') }}</h2>
-            </div>
-            <button type="button" class="pe-secondary pe-preview-play-btn" @click="handleTogglePreview">
-              {{
-                previewPlaying
-                  ? t('common.pxm_editor_stop_play')
-                  : t('common.pxm_editor_play_all_frames')
-              }}
-            </button>
-            <canvas ref="previewCanvasRef" width="480" height="240" />
-          </section>
         </section>
       </div>
     </main>
@@ -730,12 +809,16 @@ import {
   Brush,
   Copy,
   Eraser,
+  Eye,
+  EyeOff,
   FlipHorizontal2,
   FlipVertical2,
   Grid2X2,
   Move,
   PaintBucket,
   Pipette,
+  Play,
+  Plus,
   Redo2,
   RotateCcw,
   RotateCw,
@@ -800,6 +883,7 @@ import {
   saveProjects,
   setPixel,
 } from '@/modules/pixel-editor/core'
+import type { Layer } from '@/modules/pixel-editor/core'
 import { downloadBlob, safeName } from '@/modules/pixel-editor/core/download'
 import { runDevicePreview } from '@/modules/pixel-editor/core/device-preview'
 import { encodeGif } from '@/modules/pixel-editor/core/gif-encoder'
@@ -2378,6 +2462,24 @@ function handleUpdateLayerSettings(): void {
   touchProject(t('common.pxm_editor_layer_settings_updated'))
 }
 
+function layerOpacityPercent(layer: Layer): number {
+  return Math.round(layer.opacity * 100)
+}
+
+function handleLayerOpacityPercent(layer: Layer, event: Event): void {
+  const input = event.target as HTMLInputElement
+  const raw = input.value.trim()
+  const percent = Number(raw)
+  if (!raw || !Number.isFinite(percent)) {
+    input.value = String(layerOpacityPercent(layer))
+    return
+  }
+  const clamped = Math.max(10, Math.min(100, percent))
+  layer.opacity = clamped / 100
+  input.value = String(clamped)
+  handleUpdateLayerSettings()
+}
+
 function handleRenameProject(): void {
   project.value.name = String(project.value.name || '').slice(0, 48)
   touchProject(t('common.pxm_editor_project_name_updated'))
@@ -3102,6 +3204,22 @@ function handleAddLayer(): void {
   currentFrame.value.layers.push(makeLayer(currentFrame.value.layers.length))
   activeLayer.value = currentFrame.value.layers.length - 1
   touchProject(t('common.pxm_editor_layer_added'))
+}
+
+function handleDuplicateLayer(index: number): void {
+  if (!currentFrame.value || currentFrame.value.layers.length >= 4) return
+  const source = currentFrame.value.layers[index]
+  if (!source) return
+  snapshot()
+  const copy = makeLayer(index + 1)
+  copy.name = `${source.name} ${t('common.pxm_editor_copy_suffix')}`
+  copy.visible = source.visible
+  copy.opacity = source.opacity
+  copy.pixels = [...source.pixels]
+  copy.canvasPixels = { ...source.canvasPixels }
+  currentFrame.value.layers.splice(index + 1, 0, copy)
+  activeLayer.value = index + 1
+  touchProject(t('common.pxm_editor_layer_duplicated'))
 }
 
 function handleDeleteLayer(index: number): void {
