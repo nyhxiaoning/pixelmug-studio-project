@@ -73,10 +73,11 @@
 }
 
 .pe-app-shell {
+  min-width: 1024px;
   min-height: 100vh;
   padding: 0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--pe-bg);
+  background: var(--pe-reference-page);
   color: var(--pe-text);
 }
 
@@ -393,17 +394,24 @@
 }
 
 /* ==================== Workspace ==================== */
-.pe-workspace {
+.pe-editor-scroll {
+  min-width: 1024px;
+  overflow-x: auto;
+}
+
+.pe-editor-grid {
   display: grid;
-  grid-template-columns: var(--pe-side-panel-width) minmax(520px, 1fr);
-  gap: 14px;
-  align-items: start;
+  grid-template-columns: var(--pe-side-panel-width) minmax(520px, 1fr) var(--pe-side-panel-width);
+  grid-template-areas:
+    "tools canvas layers"
+    "tools frames frames";
+  gap: var(--pe-shell-gap);
   padding: var(--pe-shell-gap);
+  align-items: stretch;
 }
 
 .pe-tools-panel {
-  position: sticky;
-  top: calc(var(--pe-nav-height) + var(--pe-shell-gap));
+  grid-area: tools;
   width: var(--pe-side-panel-width);
   height: calc(100vh - var(--pe-nav-height) - (var(--pe-shell-gap) * 2));
   padding: 0;
@@ -586,11 +594,6 @@
 }
 
 /* ==================== Editor Panel ==================== */
-.pe-editor-panel {
-  display: grid;
-  gap: 14px;
-}
-
 .pe-editor-toolbar {
   display: flex;
   align-items: center;
@@ -611,42 +614,56 @@
   text-align: right;
 }
 
-.pe-canvas-layer-row {
+.pe-canvas-panel {
+  grid-area: canvas;
+  min-width: 0;
+  min-height: 526px;
   display: grid;
-  grid-template-columns: minmax(520px, 960px) minmax(260px, 1fr);
-  gap: 14px;
-  align-items: start;
-}
-
-.pe-canvas-stage {
+  grid-template-rows: auto minmax(0, 1fr);
   padding: 14px;
 }
 
-.pe-canvas-coordinate {
-  min-height: 18px;
-  margin-bottom: 8px;
+.pe-canvas-meta {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: var(--pe-muted);
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 13px;
-  text-align: right;
 }
 
-.pe-canvas-stage canvas {
+.pe-canvas-meta strong {
+  color: var(--pe-text);
+}
+
+.pe-canvas-viewport {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.pe-canvas-viewport canvas {
   width: min(100%, 960px);
   height: auto;
   aspect-ratio: 2 / 1;
   display: block;
-  margin: 0;
   background: var(--pe-canvas-bg);
-  border-radius: 8px;
+  border: 1px solid #303640;
+  border-radius: 6px;
   image-rendering: pixelated;
   touch-action: none;
   cursor: crosshair;
 }
 
-.pe-preview-panel,
 .pe-layers-panel {
+  grid-area: layers;
+  width: var(--pe-side-panel-width);
+  min-height: 526px;
   padding: 14px;
+  overflow: auto;
 }
 
 .pe-canvas-overview {
@@ -721,6 +738,10 @@
   min-width: 120px;
 }
 
+.pe-preview-panel {
+  padding: 14px;
+}
+
 .pe-preview-panel canvas {
   width: min(100%, 480px);
   height: auto;
@@ -750,6 +771,13 @@
 }
 
 /* ==================== Frames Panel ==================== */
+.pe-frames-area {
+  grid-area: frames;
+  min-width: 0;
+  display: grid;
+  gap: var(--pe-shell-gap);
+}
+
 .pe-frames-panel {
   padding: 14px;
   display: grid;
@@ -915,10 +943,6 @@
 
 /* ==================== Responsive ==================== */
 @media (max-width: 1120px) {
-  .pe-workspace {
-    grid-template-columns: 260px 1fr;
-  }
-
   .pe-frames-panel {
     grid-template-columns: 1fr;
   }
@@ -937,15 +961,9 @@
     width: 100%;
   }
 
-  .pe-workspace,
-  .pe-canvas-layer-row,
   .pe-import-grid,
   .pe-project-card {
     grid-template-columns: 1fr;
-  }
-
-  .pe-tools-panel {
-    position: static;
   }
 }
 

@@ -165,370 +165,306 @@
       </div>
     </header>
 
-    <div class="pe-workspace">
-      <aside class="pe-panel pe-tools-panel">
-        <section class="pe-tool-section pe-tool-section--drawing">
-          <h2>{{ t('common.pxm_editor_tools') }}</h2>
-          <div
-            class="pe-tool-grid pe-tool-grid--five"
-            role="toolbar"
-          >
-            <button
-              v-for="tool in drawingTools"
-              :key="tool.id"
-              type="button"
-              class="pe-icon-tool"
-              :class="{ active: activeTool === tool.id }"
-              :title="tool.label"
-              :aria-label="tool.label"
-              @click="handleSelectTool(tool.id)"
+    <main class="pe-editor-scroll">
+      <div class="pe-editor-grid">
+        <aside class="pe-panel pe-tools-panel">
+          <section class="pe-tool-section pe-tool-section--drawing">
+            <h2>{{ t('common.pxm_editor_tools') }}</h2>
+            <div
+              class="pe-tool-grid pe-tool-grid--five"
+              role="toolbar"
             >
-              <component
-                :is="toolIcon(tool.id)"
+              <button
+                v-for="tool in drawingTools"
+                :key="tool.id"
+                type="button"
+                class="pe-icon-tool"
+                :class="{ active: activeTool === tool.id }"
+                :title="tool.label"
+                :aria-label="tool.label"
+                @click="handleSelectTool(tool.id)"
+              >
+                <component
+                  :is="toolIcon(tool.id)"
+                  :size="18"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
+            <div class="pe-control-row pe-color-row">
+              <label>{{ t('common.pxm_editor_color') }}</label>
+              <input v-model="currentColor" type="color" />
+              <input v-model="currentColor" class="pe-hex-input" maxlength="7" />
+            </div>
+            <div class="pe-palette">
+              <button
+                v-for="color in palette"
+                :key="color"
+                type="button"
+                class="pe-swatch"
+                :class="{ active: color === currentColor }"
+                :style="{ background: color }"
+                :title="color"
+                @click="currentColor = color"
+              />
+            </div>
+          </section>
+
+          <section class="pe-tool-section pe-tool-section--shapes">
+            <h2>{{ t('common.pxm_editor_shapes') }}</h2>
+            <button
+              type="button"
+              class="pe-icon-tool pe-wide-tool"
+              :class="{ active: activeTool === 'shape' }"
+              :title="t('common.pxm_editor_shapes')"
+              :aria-label="t('common.pxm_editor_shapes')"
+              @click="handleSelectTool('shape')"
+            >
+              <Grid2X2
                 :size="18"
                 aria-hidden="true"
               />
+              <span>{{ t('common.pxm_editor_shapes') }}</span>
             </button>
-          </div>
-          <div class="pe-control-row pe-color-row">
-            <label>{{ t('common.pxm_editor_color') }}</label>
-            <input v-model="currentColor" type="color" />
-            <input v-model="currentColor" class="pe-hex-input" maxlength="7" />
-          </div>
-          <div class="pe-palette">
-            <button
-              v-for="color in palette"
-              :key="color"
-              type="button"
-              class="pe-swatch"
-              :class="{ active: color === currentColor }"
-              :style="{ background: color }"
-              :title="color"
-              @click="currentColor = color"
-            />
-          </div>
-        </section>
-
-        <section class="pe-tool-section pe-tool-section--shapes">
-          <h2>{{ t('common.pxm_editor_shapes') }}</h2>
-          <button
-            type="button"
-            class="pe-icon-tool pe-wide-tool"
-            :class="{ active: activeTool === 'shape' }"
-            :title="t('common.pxm_editor_shapes')"
-            :aria-label="t('common.pxm_editor_shapes')"
-            @click="handleSelectTool('shape')"
-          >
-            <Grid2X2
-              :size="18"
-              aria-hidden="true"
-            />
-            <span>{{ t('common.pxm_editor_shapes') }}</span>
-          </button>
-          <div class="pe-control-row pe-shape-row">
-            <select v-model="shapeType">
-              <option value="rectangle">{{ t('common.pxm_editor_rectangle') }}</option>
-              <option value="square">{{ t('common.pxm_editor_square') }}</option>
-              <option value="line">{{ t('common.pxm_editor_line') }}</option>
-              <option value="ellipse">{{ t('common.pxm_editor_ellipse') }}</option>
-              <option value="circle">{{ t('common.pxm_editor_circle') }}</option>
-              <option value="triangle">{{ t('common.pxm_editor_triangle') }}</option>
-            </select>
-            <select v-model="shapeFill">
-              <option value="filled">{{ t('common.pxm_editor_solid') }}</option>
-              <option value="outline">{{ t('common.pxm_editor_hollow') }}</option>
-            </select>
-          </div>
-        </section>
-
-        <section class="pe-tool-section pe-tool-section--selection">
-          <h2>{{ t('common.pxm_editor_selection') }}</h2>
-          <div class="pe-tool-grid pe-tool-grid--three">
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :class="{ active: activeTool === 'select' }"
-              :title="t('common.pxm_editor_selection')"
-              :aria-label="t('common.pxm_editor_selection')"
-              @click="handleSelectTool('select')"
-            >
-              <Sparkles :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :class="{ active: activeTool === 'move' }"
-              :title="t('common.pxm_editor_move')"
-              :aria-label="t('common.pxm_editor_move')"
-              @click="handleSelectTool('move')"
-            >
-              <Move :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :class="{ active: activeTool === 'magic' }"
-              :title="t('common.pxm_editor_magic')"
-              :aria-label="t('common.pxm_editor_magic')"
-              @click="handleSelectTool('magic')"
-            >
-              <WandSparkles :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :title="t('common.pxm_editor_copy')"
-              :aria-label="t('common.pxm_editor_copy')"
-              @click="handleCopySelection(false)"
-            >
-              <Copy :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :title="t('common.pxm_editor_cut')"
-              :aria-label="t('common.pxm_editor_cut')"
-              @click="handleCopySelection(true)"
-            >
-              <Scissors :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool pe-icon-tool--danger"
-              :title="t('common.pxm_editor_erase')"
-              :aria-label="t('common.pxm_editor_erase')"
-              @click="handleDeleteSelection"
-            >
-              <Eraser :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :title="t('common.pxm_editor_rotate_cw')"
-              :aria-label="t('common.pxm_editor_rotate_cw')"
-              @click="handleTransformSelection('rotate-cw')"
-            >
-              <RotateCw :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :title="t('common.pxm_editor_rotate_ccw')"
-              :aria-label="t('common.pxm_editor_rotate_ccw')"
-              @click="handleTransformSelection('rotate-ccw')"
-            >
-              <RotateCcw :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :title="t('common.pxm_editor_flip_x')"
-              :aria-label="t('common.pxm_editor_flip_x')"
-              @click="handleTransformSelection('flip-h')"
-            >
-              <FlipHorizontal2 :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :title="t('common.pxm_editor_flip_y')"
-              :aria-label="t('common.pxm_editor_flip_y')"
-              @click="handleTransformSelection('flip-v')"
-            >
-              <FlipVertical2 :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :title="t('common.pxm_editor_undo')"
-              :aria-label="t('common.pxm_editor_undo')"
-              @click="handleUndo"
-            >
-              <Undo2 :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool"
-              :title="t('common.pxm_editor_redo')"
-              :aria-label="t('common.pxm_editor_redo')"
-              @click="handleRedo"
-            >
-              <Redo2 :size="18" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              class="pe-icon-tool pe-icon-tool--danger"
-              :title="t('common.pxm_editor_clear_layer')"
-              :aria-label="t('common.pxm_editor_clear_layer')"
-              @click="handleClearLayer"
-            >
-              <Trash2 :size="18" aria-hidden="true" />
-            </button>
-          </div>
-        </section>
-
-        <section class="pe-tool-section pe-tool-section--onion">
-          <h2>{{ t('common.pxm_editor_onion') }}</h2>
-          <label class="pe-switch-row">
-            <input v-model="onion.enabled" type="checkbox" @change="renderAll" />
-            <span>{{ t('common.pxm_editor_show_adjacent') }}</span>
-          </label>
-          <div class="pe-control-row">
-            <label>{{ t('common.pxm_editor_color_title') }}</label>
-            <select v-model="onion.colorMode" @change="renderAll">
-              <option value="real">{{ t('common.pxm_editor_real_color') }}</option>
-              <option value="tint">{{ t('common.pxm_editor_tint_color') }}</option>
-            </select>
-          </div>
-          <div class="pe-control-row">
-            <label>{{ t('common.pxm_editor_prev_opacity') }}</label>
-            <input
-              v-model.number="onion.prevOpacity"
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              @input="renderAll"
-            />
-            <span>{{ Math.round(onion.prevOpacity * 100) }}%</span>
-          </div>
-          <div class="pe-control-row">
-            <label>{{ t('common.pxm_editor_next_opacity') }}</label>
-            <input
-              v-model.number="onion.nextOpacity"
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              @input="renderAll"
-            />
-            <span>{{ Math.round(onion.nextOpacity * 100) }}%</span>
-          </div>
-        </section>
-
-        <section class="pe-tool-section pe-tool-section--text">
-          <h2>{{ t('common.pxm_editor_text') }}</h2>
-          <textarea v-model="textTool.text" rows="3" />
-          <div class="pe-control-row pe-text-options">
-            <label>{{ t('common.pxm_editor_tool_font_size') }}</label>
-            <select v-model.number="textTool.size">
-              <option :value="8">8 px</option>
-              <option :value="10">10 px</option>
-              <option :value="12">12 px</option>
-            </select>
-            <label>{{ t('common.pxm_editor_tool_width_mode') }}</label>
-            <select v-model="textTool.widthMode">
-              <option value="monospaced">{{ t('common.pxm_editor_equal_width') }}</option>
-              <option value="proportional">{{ t('common.pxm_editor_proportional') }}</option>
-            </select>
-          </div>
-          <div class="pe-button-row pe-button-row--three">
-            <button type="button" class="pe-secondary" @click="handleStampText(0)">
-              {{ t('common.pxm_editor_left') }}
-            </button>
-            <button type="button" class="pe-secondary" @click="handleStampText(1)">
-              {{ t('common.pxm_editor_center') }}
-            </button>
-            <button type="button" class="pe-secondary" @click="handleStampText(2)">
-              {{ t('common.pxm_editor_right') }}
-            </button>
-          </div>
-        </section>
-
-        <footer class="pe-tools-footer">
-          <section class="pe-tool-section pe-export-settings">
-            <h2>{{ t('common.pxm_editor_export') }}</h2>
-            <div class="pe-control-row">
-              <label>{{ t('common.pxm_editor_scale_label') }}</label>
-              <select v-model.number="exportScale">
-                <option :value="1">1x</option>
-                <option :value="4">4x</option>
-                <option :value="8">8x</option>
-                <option :value="16">16x</option>
-                <option :value="20">20x</option>
+            <div class="pe-control-row pe-shape-row">
+              <select v-model="shapeType">
+                <option value="rectangle">{{ t('common.pxm_editor_rectangle') }}</option>
+                <option value="square">{{ t('common.pxm_editor_square') }}</option>
+                <option value="line">{{ t('common.pxm_editor_line') }}</option>
+                <option value="ellipse">{{ t('common.pxm_editor_ellipse') }}</option>
+                <option value="circle">{{ t('common.pxm_editor_circle') }}</option>
+                <option value="triangle">{{ t('common.pxm_editor_triangle') }}</option>
+              </select>
+              <select v-model="shapeFill">
+                <option value="filled">{{ t('common.pxm_editor_solid') }}</option>
+                <option value="outline">{{ t('common.pxm_editor_hollow') }}</option>
               </select>
             </div>
           </section>
 
-          <section class="pe-tool-section pe-theme-settings">
-            <h2>{{ t('common.pxm_editor_theme') }}</h2>
-            <ThemeSwitcher />
-          </section>
-        </footer>
-      </aside>
-
-      <section class="pe-editor-panel">
-        <section class="pe-panel pe-frames-panel">
-          <div class="pe-frame-strip-head">
-            <div class="pe-panel-title-row">
-              <h2>{{ t('common.pxm_editor_frames') }}</h2>
-              <button type="button" class="pe-primary pe-small" @click="handleAddFrame">
-                {{ t('common.pxm_editor_add') }}
-              </button>
-            </div>
-            <div class="pe-button-row">
-              <button type="button" class="pe-secondary" @click="handleDuplicateFrame">
-                {{ t('common.pxm_editor_duplicate') }}
-              </button>
-              <button type="button" class="pe-danger-outline" @click="handleDeleteFrame">
-                {{ t('common.pxm_editor_delete') }}
-              </button>
-            </div>
-            <button type="button" class="pe-danger-outline pe-wide" @click="handleDeleteAllFrames">
-              {{ t('common.pxm_editor_delete_all') }}
-            </button>
-          </div>
-          <div class="pe-frames-list">
-            <button
-              v-for="(frame, index) in project.frames"
-              :key="frame.id"
-              type="button"
-              class="pe-frame-item"
-              :class="{
-                active: currentFrameIndex === index,
-                dragging: draggingFrameIndex === index,
-                'drag-over': dragOverFrameIndex === index,
-              }"
-              draggable="true"
-              @click="handleSelectFrame(index)"
-              @dragstart="handleStartFrameDrag(index, $event)"
-              @dragover.prevent="handleDragOverFrame(index, $event)"
-              @dragleave="dragOverFrameIndex = null"
-              @drop.prevent="handleDropFrame(index)"
-              @dragend="handleEndFrameDrag"
-            >
-              <canvas :ref="(el) => setFrameThumbRef(frame.id, el)" width="96" height="48" />
-              <span
-                >{{ t('common.pxm_editor_frame_prefix') }} {{ index + 1 }}
-                {{ t('common.pxm_editor_frame_unit') }}</span
+          <section class="pe-tool-section pe-tool-section--selection">
+            <h2>{{ t('common.pxm_editor_selection') }}</h2>
+            <div class="pe-tool-grid pe-tool-grid--three">
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :class="{ active: activeTool === 'select' }"
+                :title="t('common.pxm_editor_selection')"
+                :aria-label="t('common.pxm_editor_selection')"
+                @click="handleSelectTool('select')"
               >
-            </button>
-          </div>
-        </section>
-
-        <div class="pe-panel pe-frame-settings-bar">
-          <div class="pe-control-row">
-            <label>{{ t('common.pxm_editor_interval') }}</label>
-            <input
-              v-model="frameDelayInput"
-              type="number"
-              min="20"
-              max="5000"
-              step="10"
-              @blur="handleCommitFrameDelay"
-              @change="handleCommitFrameDelay"
-              @keydown.enter="handleCommitFrameDelay"
-            />
-            <span>ms</span>
-          </div>
-        </div>
-
-        <div class="pe-canvas-layer-row">
-          <div class="pe-panel pe-canvas-stage">
-            <div class="pe-canvas-coordinate">
-              <span v-if="hoverPoint">({{ hoverPoint.x }}, {{ hoverPoint.y }})</span>
-              <span v-else>&nbsp;</span>
+                <Sparkles :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :class="{ active: activeTool === 'move' }"
+                :title="t('common.pxm_editor_move')"
+                :aria-label="t('common.pxm_editor_move')"
+                @click="handleSelectTool('move')"
+              >
+                <Move :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :class="{ active: activeTool === 'magic' }"
+                :title="t('common.pxm_editor_magic')"
+                :aria-label="t('common.pxm_editor_magic')"
+                @click="handleSelectTool('magic')"
+              >
+                <WandSparkles :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :title="t('common.pxm_editor_copy')"
+                :aria-label="t('common.pxm_editor_copy')"
+                @click="handleCopySelection(false)"
+              >
+                <Copy :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :title="t('common.pxm_editor_cut')"
+                :aria-label="t('common.pxm_editor_cut')"
+                @click="handleCopySelection(true)"
+              >
+                <Scissors :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool pe-icon-tool--danger"
+                :title="t('common.pxm_editor_erase')"
+                :aria-label="t('common.pxm_editor_erase')"
+                @click="handleDeleteSelection"
+              >
+                <Eraser :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :title="t('common.pxm_editor_rotate_cw')"
+                :aria-label="t('common.pxm_editor_rotate_cw')"
+                @click="handleTransformSelection('rotate-cw')"
+              >
+                <RotateCw :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :title="t('common.pxm_editor_rotate_ccw')"
+                :aria-label="t('common.pxm_editor_rotate_ccw')"
+                @click="handleTransformSelection('rotate-ccw')"
+              >
+                <RotateCcw :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :title="t('common.pxm_editor_flip_x')"
+                :aria-label="t('common.pxm_editor_flip_x')"
+                @click="handleTransformSelection('flip-h')"
+              >
+                <FlipHorizontal2 :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :title="t('common.pxm_editor_flip_y')"
+                :aria-label="t('common.pxm_editor_flip_y')"
+                @click="handleTransformSelection('flip-v')"
+              >
+                <FlipVertical2 :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :title="t('common.pxm_editor_undo')"
+                :aria-label="t('common.pxm_editor_undo')"
+                @click="handleUndo"
+              >
+                <Undo2 :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool"
+                :title="t('common.pxm_editor_redo')"
+                :aria-label="t('common.pxm_editor_redo')"
+                @click="handleRedo"
+              >
+                <Redo2 :size="18" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="pe-icon-tool pe-icon-tool--danger"
+                :title="t('common.pxm_editor_clear_layer')"
+                :aria-label="t('common.pxm_editor_clear_layer')"
+                @click="handleClearLayer"
+              >
+                <Trash2 :size="18" aria-hidden="true" />
+              </button>
             </div>
+          </section>
+
+          <section class="pe-tool-section pe-tool-section--onion">
+            <h2>{{ t('common.pxm_editor_onion') }}</h2>
+            <label class="pe-switch-row">
+              <input v-model="onion.enabled" type="checkbox" @change="renderAll" />
+              <span>{{ t('common.pxm_editor_show_adjacent') }}</span>
+            </label>
+            <div class="pe-control-row">
+              <label>{{ t('common.pxm_editor_color_title') }}</label>
+              <select v-model="onion.colorMode" @change="renderAll">
+                <option value="real">{{ t('common.pxm_editor_real_color') }}</option>
+                <option value="tint">{{ t('common.pxm_editor_tint_color') }}</option>
+              </select>
+            </div>
+            <div class="pe-control-row">
+              <label>{{ t('common.pxm_editor_prev_opacity') }}</label>
+              <input
+                v-model.number="onion.prevOpacity"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                @input="renderAll"
+              />
+              <span>{{ Math.round(onion.prevOpacity * 100) }}%</span>
+            </div>
+            <div class="pe-control-row">
+              <label>{{ t('common.pxm_editor_next_opacity') }}</label>
+              <input
+                v-model.number="onion.nextOpacity"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                @input="renderAll"
+              />
+              <span>{{ Math.round(onion.nextOpacity * 100) }}%</span>
+            </div>
+          </section>
+
+          <section class="pe-tool-section pe-tool-section--text">
+            <h2>{{ t('common.pxm_editor_text') }}</h2>
+            <textarea v-model="textTool.text" rows="3" />
+            <div class="pe-control-row pe-text-options">
+              <label>{{ t('common.pxm_editor_tool_font_size') }}</label>
+              <select v-model.number="textTool.size">
+                <option :value="8">8 px</option>
+                <option :value="10">10 px</option>
+                <option :value="12">12 px</option>
+              </select>
+              <label>{{ t('common.pxm_editor_tool_width_mode') }}</label>
+              <select v-model="textTool.widthMode">
+                <option value="monospaced">{{ t('common.pxm_editor_equal_width') }}</option>
+                <option value="proportional">{{ t('common.pxm_editor_proportional') }}</option>
+              </select>
+            </div>
+            <div class="pe-button-row pe-button-row--three">
+              <button type="button" class="pe-secondary" @click="handleStampText(0)">
+                {{ t('common.pxm_editor_left') }}
+              </button>
+              <button type="button" class="pe-secondary" @click="handleStampText(1)">
+                {{ t('common.pxm_editor_center') }}
+              </button>
+              <button type="button" class="pe-secondary" @click="handleStampText(2)">
+                {{ t('common.pxm_editor_right') }}
+              </button>
+            </div>
+          </section>
+
+          <footer class="pe-tools-footer">
+            <section class="pe-tool-section pe-export-settings">
+              <h2>{{ t('common.pxm_editor_export') }}</h2>
+              <div class="pe-control-row">
+                <label>{{ t('common.pxm_editor_scale_label') }}</label>
+                <select v-model.number="exportScale">
+                  <option :value="1">1x</option>
+                  <option :value="4">4x</option>
+                  <option :value="8">8x</option>
+                  <option :value="16">16x</option>
+                  <option :value="20">20x</option>
+                </select>
+              </div>
+            </section>
+
+            <section class="pe-tool-section pe-theme-settings">
+              <h2>{{ t('common.pxm_editor_theme') }}</h2>
+              <ThemeSwitcher />
+            </section>
+          </footer>
+        </aside>
+
+        <section class="pe-panel pe-canvas-panel">
+          <div class="pe-canvas-meta">
+            <span>{{ t('common.pxm_editor_canvas') }} W {{ project.width }}, H {{ project.height }}</span>
+            <strong>{{ t('common.pxm_editor_zoom') }} {{ Math.round(overviewZoom * 100) }}%</strong>
+            <span v-if="hoverPoint">({{ hoverPoint.x }}, {{ hoverPoint.y }})</span>
+          </div>
+          <div class="pe-canvas-viewport">
             <canvas
               ref="editorCanvasRef"
               width="960"
@@ -540,108 +476,176 @@
               @pointerleave="handlePointerLeave"
             />
           </div>
-          <section class="pe-panel pe-layers-panel">
-            <div class="pe-panel-title-row">
-              <h2>{{ t('common.pxm_editor_layers') }}</h2>
+        </section>
+
+        <section class="pe-panel pe-layers-panel">
+          <div class="pe-panel-title-row">
+            <h2>{{ t('common.pxm_editor_layers') }}</h2>
+            <button
+              type="button"
+              class="pe-primary pe-small"
+              :disabled="currentFrame.layers.length >= 4"
+              @click="handleAddLayer"
+            >
+              {{ t('common.pxm_editor_add') }}
+            </button>
+          </div>
+          <div class="pe-layer-list">
+            <div
+              v-for="(layer, index) in currentFrame.layers"
+              :key="layer.id"
+              role="button"
+              tabindex="0"
+              class="pe-layer-item"
+              :class="{ active: activeLayer === index }"
+              @click="handleSelectLayer(index)"
+            >
+              <input
+                v-model="layer.visible"
+                type="checkbox"
+                @click.stop
+                @change="handleUpdateLayerSettings"
+              />
+              <span>{{ layer.name }}</span>
+              <input
+                v-model.number="layer.opacity"
+                type="range"
+                min="0.1"
+                max="1"
+                step="0.05"
+                @click.stop
+                @input="handleUpdateLayerSettings"
+              />
               <button
                 type="button"
-                class="pe-primary pe-small"
-                :disabled="currentFrame.layers.length >= 4"
-                @click="handleAddLayer"
+                class="pe-danger-outline pe-mini"
+                :disabled="currentFrame.layers.length <= 2"
+                @click.stop="handleDeleteLayer(index)"
               >
-                {{ t('common.pxm_editor_add') }}
+                {{ t('common.pxm_editor_delete_layer') }}
               </button>
             </div>
-            <div class="pe-layer-list">
-              <div
-                v-for="(layer, index) in currentFrame.layers"
-                :key="layer.id"
-                role="button"
-                tabindex="0"
-                class="pe-layer-item"
-                :class="{ active: activeLayer === index }"
-                @click="handleSelectLayer(index)"
-              >
+          </div>
+          <div class="pe-canvas-overview">
+            <div ref="overviewScrollRef" class="pe-overview-scroll">
+              <canvas
+                :ref="setOverviewCanvasRef"
+                :width="overviewCanvasSize"
+                :height="overviewCanvasSize"
+                :style="{
+                  width: `${overviewCanvasSize}px`,
+                  height: `${overviewCanvasSize}px`,
+                }"
+                @pointerdown="handleJumpViewportFromOverview"
+                @pointermove="handleOverviewPointerMove"
+                @pointerleave="handleOverviewPointerLeave"
+              />
+            </div>
+            <div class="pe-overview-actions">
+              <label class="pe-overview-zoom-control">
+                <span>{{ t('common.pxm_editor_zoom') }} {{ overviewZoom.toFixed(2) }}x</span>
                 <input
-                  v-model="layer.visible"
-                  type="checkbox"
-                  @click.stop
-                  @change="handleUpdateLayerSettings"
-                />
-                <span>{{ layer.name }}</span>
-                <input
-                  v-model.number="layer.opacity"
                   type="range"
-                  min="0.1"
-                  max="1"
-                  step="0.05"
-                  @click.stop
-                  @input="handleUpdateLayerSettings"
+                  min="1"
+                  max="16"
+                  step="0.25"
+                  :value="overviewZoom"
+                  @input="handleSetOverviewZoom($event.target.value)"
                 />
-                <button
-                  type="button"
-                  class="pe-danger-outline pe-mini"
-                  :disabled="currentFrame.layers.length <= 2"
-                  @click.stop="handleDeleteLayer(index)"
-                >
-                  {{ t('common.pxm_editor_delete_layer') }}
+              </label>
+              <el-button type="button" class="pe-secondary" @click="handleSaveOverviewPng">
+                {{ t('common.pxm_editor_overview_save') }}
+              </el-button>
+              <span v-if="hoverOverviewPoint" class="pe-overview-coordinate"
+                >({{ hoverOverviewPoint.x }}, {{ hoverOverviewPoint.y }})</span
+              >
+              <span v-else class="pe-overview-coordinate">&nbsp;</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="pe-frames-area">
+          <section class="pe-panel pe-frames-panel">
+            <div class="pe-frame-strip-head">
+              <div class="pe-panel-title-row">
+                <h2>{{ t('common.pxm_editor_frames') }}</h2>
+                <button type="button" class="pe-primary pe-small" @click="handleAddFrame">
+                  {{ t('common.pxm_editor_add') }}
                 </button>
               </div>
+              <div class="pe-button-row">
+                <button type="button" class="pe-secondary" @click="handleDuplicateFrame">
+                  {{ t('common.pxm_editor_duplicate') }}
+                </button>
+                <button type="button" class="pe-danger-outline" @click="handleDeleteFrame">
+                  {{ t('common.pxm_editor_delete') }}
+                </button>
+              </div>
+              <button type="button" class="pe-danger-outline pe-wide" @click="handleDeleteAllFrames">
+                {{ t('common.pxm_editor_delete_all') }}
+              </button>
             </div>
-            <div class="pe-canvas-overview">
-              <div ref="overviewScrollRef" class="pe-overview-scroll">
-                <canvas
-                  :ref="setOverviewCanvasRef"
-                  :width="overviewCanvasSize"
-                  :height="overviewCanvasSize"
-                  :style="{
-                    width: `${overviewCanvasSize}px`,
-                    height: `${overviewCanvasSize}px`,
-                  }"
-                  @pointerdown="handleJumpViewportFromOverview"
-                  @pointermove="handleOverviewPointerMove"
-                  @pointerleave="handleOverviewPointerLeave"
-                />
-              </div>
-              <div class="pe-overview-actions">
-                <label class="pe-overview-zoom-control">
-                  <span>{{ t('common.pxm_editor_zoom') }} {{ overviewZoom.toFixed(2) }}x</span>
-                  <input
-                    type="range"
-                    min="1"
-                    max="16"
-                    step="0.25"
-                    :value="overviewZoom"
-                    @input="handleSetOverviewZoom($event.target.value)"
-                  />
-                </label>
-                <el-button type="button" class="pe-secondary" @click="handleSaveOverviewPng">
-                  {{ t('common.pxm_editor_overview_save') }}
-                </el-button>
-                <span v-if="hoverOverviewPoint" class="pe-overview-coordinate"
-                  >({{ hoverOverviewPoint.x }}, {{ hoverOverviewPoint.y }})</span
+            <div class="pe-frames-list">
+              <button
+                v-for="(frame, index) in project.frames"
+                :key="frame.id"
+                type="button"
+                class="pe-frame-item"
+                :class="{
+                  active: currentFrameIndex === index,
+                  dragging: draggingFrameIndex === index,
+                  'drag-over': dragOverFrameIndex === index,
+                }"
+                draggable="true"
+                @click="handleSelectFrame(index)"
+                @dragstart="handleStartFrameDrag(index, $event)"
+                @dragover.prevent="handleDragOverFrame(index, $event)"
+                @dragleave="dragOverFrameIndex = null"
+                @drop.prevent="handleDropFrame(index)"
+                @dragend="handleEndFrameDrag"
+              >
+                <canvas :ref="(el) => setFrameThumbRef(frame.id, el)" width="96" height="48" />
+                <span
+                  >{{ t('common.pxm_editor_frame_prefix') }} {{ index + 1 }}
+                  {{ t('common.pxm_editor_frame_unit') }}</span
                 >
-                <span v-else class="pe-overview-coordinate">&nbsp;</span>
-              </div>
+              </button>
             </div>
           </section>
-        </div>
 
-        <section class="pe-panel pe-preview-panel">
-          <div class="pe-panel-title-row">
-            <h2>{{ t('common.pxm_editor_led_preview') }}</h2>
+          <div class="pe-panel pe-frame-settings-bar">
+            <div class="pe-control-row">
+              <label>{{ t('common.pxm_editor_interval') }}</label>
+              <input
+                v-model="frameDelayInput"
+                type="number"
+                min="20"
+                max="5000"
+                step="10"
+                @blur="handleCommitFrameDelay"
+                @change="handleCommitFrameDelay"
+                @keydown.enter="handleCommitFrameDelay"
+              />
+              <span>ms</span>
+            </div>
           </div>
-          <button type="button" class="pe-secondary pe-preview-play-btn" @click="handleTogglePreview">
-            {{
-              previewPlaying
-                ? t('common.pxm_editor_stop_play')
-                : t('common.pxm_editor_play_all_frames')
-            }}
-          </button>
-          <canvas ref="previewCanvasRef" width="480" height="240" />
+
+          <section class="pe-panel pe-preview-panel">
+            <div class="pe-panel-title-row">
+              <h2>{{ t('common.pxm_editor_led_preview') }}</h2>
+            </div>
+            <button type="button" class="pe-secondary pe-preview-play-btn" @click="handleTogglePreview">
+              {{
+                previewPlaying
+                  ? t('common.pxm_editor_stop_play')
+                  : t('common.pxm_editor_play_all_frames')
+              }}
+            </button>
+            <canvas ref="previewCanvasRef" width="480" height="240" />
+          </section>
         </section>
-      </section>
-    </div>
+      </div>
+    </main>
   </div>
 
   <div v-if="importDialog.open" class="pe-modal-backdrop">
