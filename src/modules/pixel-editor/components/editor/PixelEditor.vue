@@ -480,47 +480,14 @@
         <section class="pe-panel pe-canvas-panel">
           <div class="pe-canvas-meta">
             <span>{{ t('common.pxm_editor_canvas') }} W {{ project.width }}, H {{ project.height }}</span>
+              <output aria-live="polite">{{ canvasZoom }}%</output>
             <div
               class="pe-canvas-zoom"
               role="group"
               :aria-label="t('common.pxm_editor_zoom')"
             >
-              <button
-                type="button"
-                :disabled="canvasZoom <= CANVAS_ZOOM_MIN"
-                :title="t('common.pxm_editor_zoom_out')"
-                :aria-label="t('common.pxm_editor_zoom_out')"
-                @click="handleAdjustCanvasZoom(-CANVAS_ZOOM_STEP)"
-              >
-                <Minus
-                  :size="16"
-                  aria-hidden="true"
-                />
-              </button>
-              <input
-                :value="canvasZoom"
-                type="range"
-                :min="CANVAS_ZOOM_MIN"
-                :max="CANVAS_ZOOM_MAX"
-                :step="CANVAS_ZOOM_STEP"
-                :aria-label="t('common.pxm_editor_zoom')"
-                @input="handleCanvasZoomInput"
-              >
-              <button
-                type="button"
-                :disabled="canvasZoom >= CANVAS_ZOOM_MAX"
-                :title="t('common.pxm_editor_zoom_in')"
-                :aria-label="t('common.pxm_editor_zoom_in')"
-                @click="handleAdjustCanvasZoom(CANVAS_ZOOM_STEP)"
-              >
-                <Plus
-                  :size="16"
-                  aria-hidden="true"
-                />
-              </button>
-              <output aria-live="polite">{{ canvasZoom }}%</output>
             </div>
-            <span v-if="hoverPoint">({{ hoverPoint.x }}, {{ hoverPoint.y }})</span>
+            <span v-if="hoverPoint">(X:{{ hoverPoint.x }}, Y:{{ hoverPoint.y }})</span>
           </div>
           <div
             ref="canvasViewportRef"
