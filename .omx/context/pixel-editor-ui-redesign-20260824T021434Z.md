@@ -1,0 +1,37 @@
+# Pixel Editor UI Redesign — Interview Context
+
+- Task statement: Plan a UI redesign of the existing pixel editor so it visually matches the supplied editor screenshot, while preserving current behavior; also clarify the role of the linked Creator Center page and existing image-upload implementation.
+- Desired outcome: A controllable, section-by-section modification plan before implementation.
+- Stated solution: Reorganize the current editor into the reference desktop editor UI without changing functionality.
+- Probable intent: Improve visual consistency and usability while reducing regression risk in a feature-complete editor.
+- Known facts/evidence:
+  - `/pixel-editor` directly renders `src/modules/pixel-editor/components/editor/PixelEditor.vue`.
+  - Current editor behavior and most UI markup are concentrated in that file; active styling comes from `src/modules/pixel-editor/styles/index.scss`.
+  - The supplied screenshot is an editor workspace with a top action bar, left tools, center canvas, right layers, and bottom frames.
+  - The linked page is a separate Creator Center works dashboard with sidebar navigation, upload/create actions, filters, and work cards.
+  - Static image upload already exists on the works page and editor image import/crop exists inside the pixel editor.
+- Constraints:
+  - Preserve drawing, selection, frames, layers, onion skin, text, import/export, save, and device-preview behavior.
+  - Do not break canvas refs, coordinate mapping, pointer handlers, import crop refs, or save-before-preview flow.
+  - This turn must present a two-sided steelman and ask exactly one decisive question before judgment or detailed planning.
+- Unknowns/open questions:
+  - Which reference governs the editor redesign: the supplied editor screenshot, the linked Creator Center dashboard, or a defined split between them?
+  - Whether desktop-only fidelity is sufficient or responsive/mobile behavior is required.
+  - Whether "功能不变" allows changing labels, grouping, visibility, or progressive disclosure.
+- Decision-boundary unknowns: Primary visual source of truth is unresolved and materially changes information architecture and scope.
+- Likely codebase touchpoints:
+  - `src/modules/pixel-editor/components/editor/PixelEditor.vue`
+  - `src/modules/pixel-editor/styles/index.scss`
+  - Potentially existing split components under `components/editor-nav` and `components/editor-workspace`, but they are not the active route path.
+- Relevant repo docs/rules inspected:
+  - `AGENTS.md`
+  - `README.md`
+  - `src/modules/pixel-editor/THEME.md`
+  - `src/modules/pixel-editor/THEME-FIX.md`
+  - `docs/static-image-upload.md`
+  - `docs/edit-work-feature.md`
+  - `docs/plans/2026-08-20-save-before-device-preview-design.md`
+- Terminology conflicts:
+  - "如图的 UI" points to the attached editor screenshot.
+  - The supplied URL points to a different works-dashboard page, not the editor shown in the screenshot.
+- Prompt-safe initial-context summary status: not_needed
