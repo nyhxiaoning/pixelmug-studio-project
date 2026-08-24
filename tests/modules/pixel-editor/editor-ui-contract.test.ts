@@ -264,6 +264,7 @@ test('keeps Canvas zoom bounded, accessible, and isolated to its viewport', () =
     '.pe-layers-panel',
     '.pe-frame-panel',
   ].map((selector) => extractCssBlock(editorStyles, selector))
+  const editorGridStyle = extractCssBlock(editorStyles, '.pe-editor-grid')
   const overviewControl = editorSource.match(
     /<div class="pe-canvas-overview">[\s\S]*?<\/section>/
   )?.[0]
@@ -308,6 +309,7 @@ test('keeps Canvas zoom bounded, accessible, and isolated to its viewport', () =
   assert.match(viewportStyle, /align-items:\s*safe center/)
   assert.match(viewportStyle, /justify-content:\s*safe center/)
   assert.match(viewportStyle, /overflow:\s*auto/)
+  assert.match(editorGridStyle, /grid-template-rows:\s*526px auto/)
   assert.match(canvasStyle, /flex:\s*0 0 auto/)
   assert.match(canvasStyle, /max-width:\s*none/)
   assert.doesNotMatch(canvasStyle, /width:\s*min\(/)

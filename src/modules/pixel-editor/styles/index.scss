@@ -430,6 +430,7 @@
 .pe-editor-grid {
   display: grid;
   grid-template-columns: var(--pe-side-panel-width) minmax(520px, 1fr) var(--pe-side-panel-width);
+  grid-template-rows: 526px auto;
   grid-template-areas:
     "tools canvas layers"
     "tools frames frames";
