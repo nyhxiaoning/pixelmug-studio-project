@@ -713,90 +713,115 @@
                 >
               </button>
             </div>
-            <section class="pe-preview-panel">
-              <h3>{{ t('common.pxm_editor_led_preview') }}</h3>
-              <canvas
-                ref="previewCanvasRef"
-                width="480"
-                height="240"
-              />
-            </section>
           </div>
         </section>
       </div>
     </main>
-  </div>
 
-  <div v-if="importDialog.open" class="pe-modal-backdrop">
-    <section class="pe-modal">
+    <section
+      v-if="previewPlaying"
+      class="pe-local-preview-popover"
+      aria-live="polite"
+    >
       <div class="pe-panel-title-row">
-        <h2>{{ t('common.pxm_editor_import_image_pixelated') }}</h2>
-        <button type="button" class="pe-secondary" @click="handleCloseImportDialog">
-          {{ t('common.pxm_common_cancel') }}
+        <strong>{{ t('common.pxm_editor_led_preview') }}</strong>
+        <button
+          type="button"
+          class="pe-local-preview-close"
+          :title="t('common.pxm_editor_stop_play')"
+          :aria-label="t('common.pxm_editor_stop_play')"
+          @click="handleTogglePreview"
+        >
+          ×
         </button>
       </div>
-      <div class="pe-import-grid">
-        <div class="pe-import-crop-area">
-          <div class="pe-import-label-row">
-            <span>{{ t('common.pxm_editor_import_crop') }}</span>
-            <span>{{ t('common.pxm_editor_import_drag') }}</span>
-          </div>
-          <canvas
-            ref="importCropCanvasRef"
-            width="512"
-            height="256"
-            @pointerdown="handleImportPointerDown"
-            @pointermove="handleImportPointerMove"
-            @pointerup="handleImportPointerUp"
-            @pointercancel="handleImportPointerUp"
-            @wheel.prevent="handleImportWheel"
-          />
-          <div class="pe-control-row">
-            <label>{{ t('common.pxm_editor_import_zoom') }}</label>
-            <input
-              v-model.number="importDialog.zoom"
-              type="range"
-              min="0.5"
-              max="4"
-              step="0.05"
-              @input="renderImportPreview"
-            />
-            <span class="pe-zoom-value">{{ Number(importDialog.zoom || 1).toFixed(2) }}x</span>
-          </div>
-        </div>
-        <div class="pe-import-controls">
-          <div class="pe-import-preview">
-            <div class="pe-import-label-row">
-              <span>{{ t('common.pxm_editor_import_pixel_preview') }}</span>
-              <span>{{ t('common.pxm_editor_pixel_preview') }}</span>
-            </div>
-            <canvas ref="importCanvasRef" width="256" height="128" />
-          </div>
-          <div class="pe-control-row">
-            <label>{{ t('common.pxm_editor_import_fit') }}</label>
-            <select v-model="importDialog.fit" @change="handleResetImportCrop">
-              <option value="contain">{{ t('common.pxm_editor_fit_contain') }}</option>
-              <option value="cover">{{ t('common.pxm_editor_fit_cover') }}</option>
-              <option value="stretch">{{ t('common.pxm_editor_fit_stretch') }}</option>
-            </select>
-          </div>
-          <div class="pe-control-row">
-            <label>{{ t('common.pxm_editor_import_dither') }}</label>
-            <select v-model="importDialog.dither" @change="renderImportPreview">
-              <option value="none">{{ t('common.pxm_editor_import_none') }}</option>
-              <option value="ordered">{{ t('common.pxm_editor_import_ordered') }}</option>
-              <option value="floyd">{{ t('common.pxm_editor_import_floyd') }}</option>
-            </select>
-          </div>
-          <button type="button" class="pe-primary pe-wide" @click="handleApplyImportToLayer">
-            {{ t('common.pxm_editor_import_apply') }}
-          </button>
-          <p class="pe-import-hint">
-            {{ t('common.pxm_editor_import_hint') }}
-          </p>
-        </div>
-      </div>
+      <canvas
+        ref="previewCanvasRef"
+        width="480"
+        height="240"
+      />
     </section>
+
+    <div
+      v-if="importDialog.open"
+      class="pe-modal-backdrop"
+      @click.self="handleCloseImportDialog"
+    >
+      <section
+        class="pe-modal"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="t('common.pxm_editor_import_image_pixelated')"
+      >
+        <div class="pe-panel-title-row">
+          <h2>{{ t('common.pxm_editor_import_image_pixelated') }}</h2>
+          <button type="button" class="pe-secondary" @click="handleCloseImportDialog">
+            {{ t('common.pxm_common_cancel') }}
+          </button>
+        </div>
+        <div class="pe-import-grid">
+          <div class="pe-import-crop-area">
+            <div class="pe-import-label-row">
+              <span>{{ t('common.pxm_editor_import_crop') }}</span>
+              <span>{{ t('common.pxm_editor_import_drag') }}</span>
+            </div>
+            <canvas
+              ref="importCropCanvasRef"
+              width="512"
+              height="256"
+              @pointerdown="handleImportPointerDown"
+              @pointermove="handleImportPointerMove"
+              @pointerup="handleImportPointerUp"
+              @pointercancel="handleImportPointerUp"
+              @wheel.prevent="handleImportWheel"
+            />
+            <div class="pe-control-row">
+              <label>{{ t('common.pxm_editor_import_zoom') }}</label>
+              <input
+                v-model.number="importDialog.zoom"
+                type="range"
+                min="0.5"
+                max="4"
+                step="0.05"
+                @input="renderImportPreview"
+              />
+              <span class="pe-zoom-value">{{ Number(importDialog.zoom || 1).toFixed(2) }}x</span>
+            </div>
+          </div>
+          <div class="pe-import-controls">
+            <div class="pe-import-preview">
+              <div class="pe-import-label-row">
+                <span>{{ t('common.pxm_editor_import_pixel_preview') }}</span>
+                <span>{{ t('common.pxm_editor_pixel_preview') }}</span>
+              </div>
+              <canvas ref="importCanvasRef" width="256" height="128" />
+            </div>
+            <div class="pe-control-row">
+              <label>{{ t('common.pxm_editor_import_fit') }}</label>
+              <select v-model="importDialog.fit" @change="handleResetImportCrop">
+                <option value="contain">{{ t('common.pxm_editor_fit_contain') }}</option>
+                <option value="cover">{{ t('common.pxm_editor_fit_cover') }}</option>
+                <option value="stretch">{{ t('common.pxm_editor_fit_stretch') }}</option>
+              </select>
+            </div>
+            <div class="pe-control-row">
+              <label>{{ t('common.pxm_editor_import_dither') }}</label>
+              <select v-model="importDialog.dither" @change="renderImportPreview">
+                <option value="none">{{ t('common.pxm_editor_import_none') }}</option>
+                <option value="ordered">{{ t('common.pxm_editor_import_ordered') }}</option>
+                <option value="floyd">{{ t('common.pxm_editor_import_floyd') }}</option>
+              </select>
+            </div>
+            <button type="button" class="pe-primary pe-wide" @click="handleApplyImportToLayer">
+              {{ t('common.pxm_editor_import_apply') }}
+            </button>
+            <p class="pe-import-hint">
+              {{ t('common.pxm_editor_import_hint') }}
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -3550,7 +3575,7 @@ function handleTogglePreview(): void {
     index += 1
     previewTimer.value = window.setTimeout(tick, delay)
   }
-  tick()
+  nextTick(tick)
 }
 
 // Persistence

@@ -204,3 +204,95 @@ test('defines layer visibility and duplication feedback in every supported local
   }
   assert.match(localeSources[2], /pxm_editor_copy_suffix\s*:/)
 })
+
+test('keeps the import dialog semantics and every crop interaction binding', () => {
+  const modalStart = editorSource.indexOf('v-if="importDialog.open"')
+  const modalEnd = editorSource.indexOf('</template>', modalStart)
+  const modalBlock = editorSource.slice(modalStart, modalEnd)
+
+  assert.ok(modalStart >= 0)
+  assert.ok(modalEnd > modalStart)
+  assert.match(modalBlock, /class="pe-modal-backdrop"/)
+  assert.match(modalBlock, /@click\.self="handleCloseImportDialog"/)
+  assert.match(modalBlock, /role="dialog"/)
+  assert.match(modalBlock, /aria-modal="true"/)
+  assert.match(modalBlock, /:aria-label="t\('common\.pxm_editor_import_image_pixelated'\)"/)
+  assert.match(modalBlock, /ref="importCropCanvasRef"/)
+  assert.match(modalBlock, /@pointerdown="handleImportPointerDown"/)
+  assert.match(modalBlock, /@pointermove="handleImportPointerMove"/)
+  assert.match(modalBlock, /@pointerup="handleImportPointerUp"/)
+  assert.match(modalBlock, /@pointercancel="handleImportPointerUp"/)
+  assert.match(modalBlock, /@wheel\.prevent="handleImportWheel"/)
+  assert.match(modalBlock, /v-model\.number="importDialog\.zoom"/)
+  assert.match(modalBlock, /v-model="importDialog\.fit"/)
+  assert.match(modalBlock, /v-model="importDialog\.dither"/)
+  assert.match(modalBlock, /ref="importCanvasRef"/)
+  assert.match(modalBlock, /@click="handleCloseImportDialog"/)
+  assert.match(modalBlock, /@click="handleApplyImportToLayer"/)
+})
+
+test('separates device preview from the on-demand local animation preview', () => {
+  const navStart = editorSource.indexOf('<header class="pe-editor-nav">')
+  const navEnd = editorSource.indexOf('</header>', navStart)
+  const navBlock = editorSource.slice(navStart, navEnd)
+  const frameStart = editorSource.indexOf('<section class="pe-panel pe-frame-panel">')
+  const frameEnd = editorSource.indexOf('</main>', frameStart)
+  const frameBlock = editorSource.slice(frameStart, frameEnd)
+  const previewStart = editorSource.indexOf('v-if="previewPlaying"')
+  const previewEnd = editorSource.indexOf('</section>', previewStart)
+  const previewBlock = editorSource.slice(previewStart, previewEnd)
+  const toggleHandler = editorSource.match(
+    /function handleTogglePreview\(\): void \{[\s\S]*?\n\}/
+  )?.[0]
+
+  assert.ok(navStart >= 0 && navEnd > navStart)
+  assert.match(navBlock, /@click\.stop="sendWorkToDevice"/)
+  assert.doesNotMatch(navBlock, /handleTogglePreview/)
+  assert.ok(frameStart >= 0 && frameEnd > frameStart)
+  assert.match(frameBlock, /@click="handleTogglePreview"/)
+  assert.doesNotMatch(frameBlock, /sendWorkToDevice/)
+  assert.ok(previewStart >= 0 && previewEnd > previewStart)
+  assert.match(previewBlock, /class="pe-local-preview-popover"/)
+  assert.match(previewBlock, /aria-live="polite"/)
+  assert.match(previewBlock, /@click="handleTogglePreview"/)
+  assert.match(previewBlock, /ref="previewCanvasRef"/)
+  assert.match(previewBlock, /width="480"/)
+  assert.match(previewBlock, /height="240"/)
+  assert.equal(editorSource.match(/ref="previewCanvasRef"/g)?.length, 1)
+  assert.ok(toggleHandler)
+  assert.match(toggleHandler, /previewPlaying\.value = true/)
+  assert.match(toggleHandler, /nextTick\(tick\)/)
+})
+
+test('styles the import modal and local preview as reference overlays', () => {
+  const backdropStyle = editorStyles.match(/\.pe-modal-backdrop\s*\{[\s\S]*?\n\}/)?.[0]
+  const modalStyle = editorStyles.match(/\.pe-modal\s*\{[\s\S]*?\n\}/)?.[0]
+  const popoverStyle = editorStyles.match(/\.pe-local-preview-popover\s*\{[\s\S]*?\n\}/)?.[0]
+  const previewCanvasStyle = editorStyles.match(
+    /\.pe-local-preview-popover canvas\s*\{[\s\S]*?\n\}/
+  )?.[0]
+
+  assert.ok(backdropStyle)
+  assert.match(backdropStyle, /z-index:\s*40/)
+  assert.match(backdropStyle, /background:\s*var\(--pe-modal-backdrop\)/)
+  assert.match(editorStyles, /--pe-modal-backdrop:\s*rgba\(/)
+  assert.ok(modalStyle)
+  assert.match(modalStyle, /width:\s*min\(980px, calc\(100vw - 40px\)\)/)
+  assert.match(modalStyle, /background:\s*var\(--pe-panel\)/)
+  assert.match(modalStyle, /border:\s*1px solid var\(--pe-line\)/)
+  assert.match(modalStyle, /border-radius:\s*var\(--pe-panel-radius\)/)
+  assert.match(modalStyle, /box-shadow:\s*var\(--pe-modal-shadow\)/)
+  assert.ok(popoverStyle)
+  assert.match(popoverStyle, /position:\s*fixed/)
+  assert.match(popoverStyle, /right:\s*14px/)
+  assert.match(popoverStyle, /bottom:\s*14px/)
+  assert.match(popoverStyle, /z-index:\s*30/)
+  assert.match(popoverStyle, /width:\s*min\(420px, calc\(100vw - 28px\)\)/)
+  assert.match(popoverStyle, /background:\s*var\(--pe-panel\)/)
+  assert.match(popoverStyle, /border:\s*1px solid var\(--pe-line\)/)
+  assert.match(popoverStyle, /border-radius:\s*var\(--pe-panel-radius\)/)
+  assert.match(popoverStyle, /box-shadow:\s*var\(--pe-modal-shadow\)/)
+  assert.ok(previewCanvasStyle)
+  assert.match(previewCanvasStyle, /aspect-ratio:\s*2\s*\/\s*1/)
+  assert.match(previewCanvasStyle, /image-rendering:\s*pixelated/)
+})
