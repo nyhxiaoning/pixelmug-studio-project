@@ -167,22 +167,30 @@
 
     <div class="pe-workspace">
       <aside class="pe-panel pe-tools-panel">
-        <section>
+        <section class="pe-tool-section pe-tool-section--drawing">
           <h2>{{ t('common.pxm_editor_tools') }}</h2>
-          <div class="pe-tool-grid" role="toolbar">
+          <div
+            class="pe-tool-grid pe-tool-grid--five"
+            role="toolbar"
+          >
             <button
               v-for="tool in drawingTools"
               :key="tool.id"
               type="button"
-              class="pe-tool"
+              class="pe-icon-tool"
               :class="{ active: activeTool === tool.id }"
               :title="tool.label"
+              :aria-label="tool.label"
               @click="handleSelectTool(tool.id)"
             >
-              {{ tool.label }}
+              <component
+                :is="toolIcon(tool.id)"
+                :size="18"
+                aria-hidden="true"
+              />
             </button>
           </div>
-          <div class="pe-control-row">
+          <div class="pe-control-row pe-color-row">
             <label>{{ t('common.pxm_editor_color') }}</label>
             <input v-model="currentColor" type="color" />
             <input v-model="currentColor" class="pe-hex-input" maxlength="7" />
@@ -199,17 +207,25 @@
               @click="currentColor = color"
             />
           </div>
+        </section>
+
+        <section class="pe-tool-section pe-tool-section--shapes">
+          <h2>{{ t('common.pxm_editor_shapes') }}</h2>
           <button
             type="button"
-            class="pe-tool pe-wide-tool pe-gap-top"
+            class="pe-icon-tool pe-wide-tool"
             :class="{ active: activeTool === 'shape' }"
             :title="t('common.pxm_editor_shapes')"
+            :aria-label="t('common.pxm_editor_shapes')"
             @click="handleSelectTool('shape')"
           >
-            {{ t('common.pxm_editor_shapes') }}
+            <Grid2X2
+              :size="18"
+              aria-hidden="true"
+            />
+            <span>{{ t('common.pxm_editor_shapes') }}</span>
           </button>
           <div class="pe-control-row pe-shape-row">
-            <label>{{ t('common.pxm_editor_shapes') }}</label>
             <select v-model="shapeType">
               <option value="rectangle">{{ t('common.pxm_editor_rectangle') }}</option>
               <option value="square">{{ t('common.pxm_editor_square') }}</option>
@@ -223,78 +239,135 @@
               <option value="outline">{{ t('common.pxm_editor_hollow') }}</option>
             </select>
           </div>
-          <button
-            type="button"
-            class="pe-tool pe-wide-tool pe-gap-top"
-            :class="{ active: activeTool === 'select' }"
-            :title="t('common.pxm_editor_selection')"
-            @click="handleSelectTool('select')"
-          >
-            {{ t('common.pxm_editor_selection') }}
-          </button>
-          <div class="pe-button-row">
-            <button type="button" class="pe-secondary" @click="handleCopySelection(false)">
-              {{ t('common.pxm_editor_copy') }}
-            </button>
-            <button type="button" class="pe-secondary" @click="handleCopySelection(true)">
-              {{ t('common.pxm_editor_cut') }}
-            </button>
-          </div>
-          <div class="pe-button-row">
-            <button type="button" class="pe-danger-outline" @click="handleDeleteSelection">
-              {{ t('common.pxm_editor_erase') }}
-            </button>
-            <button
-              type="button"
-              class="pe-secondary"
-              :class="{ active: activeTool === 'move' }"
-              @click="handleSelectTool('move')"
-            >
-              {{ t('common.pxm_editor_move') }}
-            </button>
-          </div>
-          <button
-            type="button"
-            class="pe-secondary pe-wide"
-            :class="{ active: activeTool === 'magic' }"
-            @click="handleSelectTool('magic')"
-          >
-            {{ t('common.pxm_editor_magic') }}
-          </button>
-          <div class="pe-button-row">
-            <button type="button" class="pe-secondary" @click="handleTransformSelection('rotate-cw')">
-              {{ t('common.pxm_editor_rotate_cw') }}
-            </button>
-            <button
-              type="button"
-              class="pe-secondary"
-              @click="handleTransformSelection('rotate-ccw')"
-            >
-              {{ t('common.pxm_editor_rotate_ccw') }}
-            </button>
-          </div>
-          <div class="pe-button-row">
-            <button type="button" class="pe-secondary" @click="handleTransformSelection('flip-h')">
-              {{ t('common.pxm_editor_flip_x') }}
-            </button>
-            <button type="button" class="pe-secondary" @click="handleTransformSelection('flip-v')">
-              {{ t('common.pxm_editor_flip_y') }}
-            </button>
-          </div>
-          <div class="pe-button-row">
-            <button type="button" class="pe-secondary" @click="handleUndo">
-              {{ t('common.pxm_editor_undo') }}
-            </button>
-            <button type="button" class="pe-secondary" @click="handleRedo">
-              {{ t('common.pxm_editor_redo') }}
-            </button>
-          </div>
-          <button type="button" class="pe-danger-outline pe-wide" @click="handleClearLayer">
-            {{ t('common.pxm_editor_clear_layer') }}
-          </button>
         </section>
 
-        <section>
+        <section class="pe-tool-section pe-tool-section--selection">
+          <h2>{{ t('common.pxm_editor_selection') }}</h2>
+          <div class="pe-tool-grid pe-tool-grid--three">
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :class="{ active: activeTool === 'select' }"
+              :title="t('common.pxm_editor_selection')"
+              :aria-label="t('common.pxm_editor_selection')"
+              @click="handleSelectTool('select')"
+            >
+              <Sparkles :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :class="{ active: activeTool === 'move' }"
+              :title="t('common.pxm_editor_move')"
+              :aria-label="t('common.pxm_editor_move')"
+              @click="handleSelectTool('move')"
+            >
+              <Move :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :class="{ active: activeTool === 'magic' }"
+              :title="t('common.pxm_editor_magic')"
+              :aria-label="t('common.pxm_editor_magic')"
+              @click="handleSelectTool('magic')"
+            >
+              <WandSparkles :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :title="t('common.pxm_editor_copy')"
+              :aria-label="t('common.pxm_editor_copy')"
+              @click="handleCopySelection(false)"
+            >
+              <Copy :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :title="t('common.pxm_editor_cut')"
+              :aria-label="t('common.pxm_editor_cut')"
+              @click="handleCopySelection(true)"
+            >
+              <Scissors :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool pe-icon-tool--danger"
+              :title="t('common.pxm_editor_erase')"
+              :aria-label="t('common.pxm_editor_erase')"
+              @click="handleDeleteSelection"
+            >
+              <Eraser :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :title="t('common.pxm_editor_rotate_cw')"
+              :aria-label="t('common.pxm_editor_rotate_cw')"
+              @click="handleTransformSelection('rotate-cw')"
+            >
+              <RotateCw :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :title="t('common.pxm_editor_rotate_ccw')"
+              :aria-label="t('common.pxm_editor_rotate_ccw')"
+              @click="handleTransformSelection('rotate-ccw')"
+            >
+              <RotateCcw :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :title="t('common.pxm_editor_flip_x')"
+              :aria-label="t('common.pxm_editor_flip_x')"
+              @click="handleTransformSelection('flip-h')"
+            >
+              <FlipHorizontal2 :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :title="t('common.pxm_editor_flip_y')"
+              :aria-label="t('common.pxm_editor_flip_y')"
+              @click="handleTransformSelection('flip-v')"
+            >
+              <FlipVertical2 :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :title="t('common.pxm_editor_undo')"
+              :aria-label="t('common.pxm_editor_undo')"
+              @click="handleUndo"
+            >
+              <Undo2 :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool"
+              :title="t('common.pxm_editor_redo')"
+              :aria-label="t('common.pxm_editor_redo')"
+              @click="handleRedo"
+            >
+              <Redo2 :size="18" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="pe-icon-tool pe-icon-tool--danger"
+              :title="t('common.pxm_editor_clear_layer')"
+              :aria-label="t('common.pxm_editor_clear_layer')"
+              @click="handleClearLayer"
+            >
+              <Trash2 :size="18" aria-hidden="true" />
+            </button>
+          </div>
+        </section>
+
+        <section class="pe-tool-section pe-tool-section--onion">
           <h2>{{ t('common.pxm_editor_onion') }}</h2>
           <label class="pe-switch-row">
             <input v-model="onion.enabled" type="checkbox" @change="renderAll" />
@@ -333,10 +406,10 @@
           </div>
         </section>
 
-        <section>
+        <section class="pe-tool-section pe-tool-section--text">
           <h2>{{ t('common.pxm_editor_text') }}</h2>
           <textarea v-model="textTool.text" rows="3" />
-          <div class="pe-control-row">
+          <div class="pe-control-row pe-text-options">
             <label>{{ t('common.pxm_editor_tool_font_size') }}</label>
             <select v-model.number="textTool.size">
               <option :value="8">8 px</option>
@@ -349,7 +422,7 @@
               <option value="proportional">{{ t('common.pxm_editor_proportional') }}</option>
             </select>
           </div>
-          <div class="pe-button-row">
+          <div class="pe-button-row pe-button-row--three">
             <button type="button" class="pe-secondary" @click="handleStampText(0)">
               {{ t('common.pxm_editor_left') }}
             </button>
@@ -362,24 +435,26 @@
           </div>
         </section>
 
-        <section>
-          <h2>{{ t('common.pxm_editor_export') }}</h2>
-          <div class="pe-control-row">
-            <label>{{ t('common.pxm_editor_scale_label') }}</label>
-            <select v-model.number="exportScale">
-              <option :value="1">1x</option>
-              <option :value="4">4x</option>
-              <option :value="8">8x</option>
-              <option :value="16">16x</option>
-              <option :value="20">20x</option>
-            </select>
-          </div>
-        </section>
+        <footer class="pe-tools-footer">
+          <section class="pe-tool-section pe-export-settings">
+            <h2>{{ t('common.pxm_editor_export') }}</h2>
+            <div class="pe-control-row">
+              <label>{{ t('common.pxm_editor_scale_label') }}</label>
+              <select v-model.number="exportScale">
+                <option :value="1">1x</option>
+                <option :value="4">4x</option>
+                <option :value="8">8x</option>
+                <option :value="16">16x</option>
+                <option :value="20">20x</option>
+              </select>
+            </div>
+          </section>
 
-        <section class="pe-theme-settings">
-          <h2>{{ t('common.pxm_editor_theme') }}</h2>
-          <ThemeSwitcher />
-        </section>
+          <section class="pe-tool-section pe-theme-settings">
+            <h2>{{ t('common.pxm_editor_theme') }}</h2>
+            <ThemeSwitcher />
+          </section>
+        </footer>
       </aside>
 
       <section class="pe-editor-panel">
@@ -644,9 +719,28 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import type { Ref, CanvasHTMLAttributes } from 'vue'
+import type { Component, Ref, CanvasHTMLAttributes } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  Brush,
+  Copy,
+  Eraser,
+  FlipHorizontal2,
+  FlipVertical2,
+  Grid2X2,
+  Move,
+  PaintBucket,
+  Pipette,
+  Redo2,
+  RotateCcw,
+  RotateCw,
+  Scissors,
+  Sparkles,
+  Trash2,
+  Undo2,
+  WandSparkles,
+} from 'lucide-vue-next'
 
 // i18n
 import { useAppI18n } from '@@/composables/useI18n'
@@ -970,6 +1064,21 @@ const currentLayer = computed(() => {
 const drawingTools = computed(() => {
   return tools.value.filter((tool) => !['shape', 'select'].includes(tool.id))
 })
+
+const toolIcons: Record<string, Component> = {
+  pencil: Brush,
+  eraser: Eraser,
+  fill: PaintBucket,
+  eyedropper: Pipette,
+  shape: Grid2X2,
+  select: Sparkles,
+  move: Move,
+  magic: WandSparkles,
+}
+
+function toolIcon(toolId: string): Component {
+  return toolIcons[toolId] || Brush
+}
 
 const overviewCanvasSize = computed<number>(() => {
   return CANVAS_WIDTH * overviewZoom.value

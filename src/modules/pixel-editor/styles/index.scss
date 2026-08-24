@@ -395,7 +395,7 @@
 /* ==================== Workspace ==================== */
 .pe-workspace {
   display: grid;
-  grid-template-columns: 280px minmax(520px, 1fr);
+  grid-template-columns: var(--pe-side-panel-width) minmax(520px, 1fr);
   gap: 14px;
   align-items: start;
   padding: var(--pe-shell-gap);
@@ -404,18 +404,72 @@
 .pe-tools-panel {
   position: sticky;
   top: calc(var(--pe-nav-height) + var(--pe-shell-gap));
+  width: var(--pe-side-panel-width);
+  height: calc(100vh - var(--pe-nav-height) - (var(--pe-shell-gap) * 2));
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
-.pe-tools-panel section + section {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid var(--pe-line);
+.pe-tool-section {
+  padding: 10px;
+}
+
+.pe-tool-section + .pe-tool-section,
+.pe-tools-footer {
+  border-top: 1px solid var(--pe-reference-border);
+}
+
+.pe-tools-footer .pe-tool-section:first-child {
+  border-top: 0;
+}
+
+.pe-tool-section h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
 }
 
 .pe-tool-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.pe-tool-grid--five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.pe-tool-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pe-icon-tool {
+  min-width: 0;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0;
+  background: var(--pe-reference-control);
+}
+
+.pe-theme-host[data-theme="dark"] .pe-icon-tool {
+  background: var(--pe-panel-2);
+}
+
+.pe-icon-tool.active {
+  background: var(--pe-reference-selected);
+  border-color: var(--pe-primary);
+  color: var(--pe-primary-dark);
+}
+
+.pe-theme-host[data-theme="dark"] .pe-icon-tool.active {
+  background: var(--pe-active-bg);
+  color: var(--pe-text);
+}
+
+.pe-icon-tool--danger {
+  color: var(--pe-danger-text);
 }
 
 .pe-tool {
@@ -442,7 +496,7 @@
 
 .pe-shape-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .pe-control-row {
@@ -494,6 +548,15 @@
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 10px;
+}
+
+.pe-button-row--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pe-text-options {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
 }
 
 .pe-switch-row {
