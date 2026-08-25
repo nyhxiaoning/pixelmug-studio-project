@@ -726,7 +726,7 @@ test('keeps every animation-frame interaction in the reference bottom panel', ()
   assert.match(editorSource, /@dragleave="dragOverFrameIndex = null"/)
   assert.match(editorSource, /@drop\.prevent="handleDropFrame\(index\)"/)
   assert.match(editorSource, /@dragend="handleEndFrameDrag"/)
-  assert.match(editorSource, /ref="previewCanvasRef"/)
+  assert.match(editorSource, /ref="editorCanvasRef"[\s\S]*?:aria-busy="previewPlaying"/)
   assert.match(editorStyles, /\.pe-frame-panel\s*\{[\s\S]*grid-area:\s*frames/)
   assert.match(editorStyles, /grid-template-columns:\s*162px minmax\(0, 1fr\)/)
 })
@@ -767,19 +767,39 @@ test('keeps the import dialog semantics and every crop interaction binding', () 
   assert.match(modalBlock, /@click="handleApplyImportToLayer"/)
 })
 
-test('separates device preview from the on-demand local animation preview', () => {
+test('plays one animation cycle inside the editor canvas and restores frame one', () => {
   const navStart = editorSource.indexOf('<header class="pe-editor-nav">')
   const navEnd = editorSource.indexOf('</header>', navStart)
   const navBlock = editorSource.slice(navStart, navEnd)
   const frameStart = editorSource.indexOf('<section class="pe-panel pe-frame-panel">')
   const frameEnd = editorSource.indexOf('</main>', frameStart)
   const frameBlock = editorSource.slice(frameStart, frameEnd)
-  const previewStart = editorSource.indexOf('v-if="previewPlaying"')
-  const previewEnd = editorSource.indexOf('</section>', previewStart)
-  const previewBlock = editorSource.slice(previewStart, previewEnd)
-  const toggleHandler = editorSource.match(
-    /function handleTogglePreview\(\): void \{[\s\S]*?\n\}/
-  )?.[0]
+  const playbackButton = extractStartTags(editorSource, 'button').find((candidate) =>
+    /@click="handleTogglePreview"/.test(candidate)
+  )
+  const editorCanvasTag = extractStartTags(editorSource, 'canvas').find((candidate) =>
+    /ref="editorCanvasRef"/.test(candidate)
+  )
+  const canvasViewportTag = extractStartTags(editorSource, 'div').find((candidate) =>
+    /ref="canvasViewportRef"/.test(candidate)
+  )
+  const renderPlayback = extractBraceBlock(
+    editorSource,
+    'function renderPlaybackFrame(pixels: (string | null)[]): void'
+  )
+  const finishPlayback = extractBraceBlock(editorSource, 'function finishPreviewPlayback(): void')
+  const togglePlayback = extractBraceBlock(editorSource, 'function handleTogglePreview(): void')
+  const renderAll = extractBraceBlock(editorSource, 'function renderAll(): void')
+  const mountedSetup = extractBraceBlock(editorSource, 'onMounted(() =>')
+  const unmountCleanup = extractBraceBlock(editorSource, 'onBeforeUnmount(() =>')
+  const playbackCanvasStyle = extractCssBlock(
+    editorStyles,
+    '.pe-canvas-viewport canvas.is-preview-playing'
+  )
+  const playbackViewportStyle = extractCssBlock(
+    editorStyles,
+    '.pe-canvas-viewport.is-preview-playing'
+  )
 
   assert.ok(navStart >= 0 && navEnd > navStart)
   assert.match(navBlock, /@click\.stop="sendWorkToDevice"/)
@@ -787,17 +807,63 @@ test('separates device preview from the on-demand local animation preview', () =
   assert.ok(frameStart >= 0 && frameEnd > frameStart)
   assert.match(frameBlock, /@click="handleTogglePreview"/)
   assert.doesNotMatch(frameBlock, /sendWorkToDevice/)
-  assert.ok(previewStart >= 0 && previewEnd > previewStart)
-  assert.match(previewBlock, /class="pe-local-preview-popover"/)
-  assert.match(previewBlock, /aria-live="polite"/)
-  assert.match(previewBlock, /@click="handleTogglePreview"/)
-  assert.match(previewBlock, /ref="previewCanvasRef"/)
-  assert.match(previewBlock, /width="480"/)
-  assert.match(previewBlock, /height="240"/)
-  assert.equal(editorSource.match(/ref="previewCanvasRef"/g)?.length, 1)
-  assert.ok(toggleHandler)
-  assert.match(toggleHandler, /previewPlaying\.value = true/)
-  assert.match(toggleHandler, /nextTick\(tick\)/)
+  assert.ok(playbackButton)
+  assert.match(playbackButton, /:disabled="previewPlaying"/)
+  assert.match(playbackButton, /:title="t\('common\.pxm_editor_play_all_frames'\)"/)
+  assert.match(playbackButton, /:aria-label="t\('common\.pxm_editor_play_all_frames'\)"/)
+  assert.doesNotMatch(playbackButton, /pxm_editor_stop_play/)
+  assert.ok(editorCanvasTag)
+  assert.ok(canvasViewportTag)
+  assert.match(canvasViewportTag, /:class="\{ 'is-preview-playing': previewPlaying \}"/)
+  assert.match(editorCanvasTag, /:class="\{ 'is-preview-playing': previewPlaying \}"/)
+  assert.match(editorCanvasTag, /:aria-busy="previewPlaying"/)
+  assert.doesNotMatch(editorSource, /pe-local-preview-popover|previewCanvasRef|renderPreview/)
+  assert.doesNotMatch(editorStyles, /pe-local-preview-popover|pe-local-preview-close/)
+  assert.match(renderPlayback, /const canvas = editorCanvasRef\.value/)
+  assert.match(renderPlayback, /ctx\.clearRect\(0, 0, canvas\.width, canvas\.height\)/)
+  assert.match(renderPlayback, /ctx\.fillStyle = '#05070b'/)
+  assert.match(renderPlayback, /drawNonEmptyPixels\(ctx, pixels, WIDTH, HEIGHT\)/)
+  assert.match(renderAll, /if \(!previewPlaying\.value\) renderEditor\(\)/)
+  assert.match(finishPlayback, /if \(previewTimer\.value !== null\) clearTimeout\(previewTimer\.value\)/)
+  assert.match(finishPlayback, /previewTimer\.value = null/)
+  assert.match(finishPlayback, /previewPlaying\.value = false/)
+  assert.match(finishPlayback, /currentFrameIndex\.value = 0/)
+  assert.match(finishPlayback, /activeLayer\.value = Math\.min/)
+  assert.match(finishPlayback, /renderAll\(\)/)
+  assert.match(
+    finishPlayback,
+    /nextTick\(\(\) => \{\s*if \(!editorMounted\.value\) return\s*centerOverviewOnViewport\(\)\s*\}\)/
+  )
+  assert.match(togglePlayback, /if \(previewPlaying\.value\) return/)
+  assert.doesNotMatch(
+    togglePlayback,
+    /if \(previewPlaying\.value\) \{\s*finishPreviewPlayback\(\)/
+  )
+  assert.match(togglePlayback, /let index = 0/)
+  assert.match(
+    togglePlayback,
+    /const playbackFrames = project\.value\.frames\.map\(\(frame\) => \(\{\s*delay: frame\.delay,\s*pixels: compositeFrame\(frame\),\s*\}\)\)/
+  )
+  assert.match(togglePlayback, /const frame = playbackFrames\[index\]/)
+  assert.match(togglePlayback, /renderPlaybackFrame\(frame\.pixels\)/)
+  assert.match(togglePlayback, /index >= playbackFrames\.length - 1/)
+  assert.doesNotMatch(togglePlayback, /const frame = project\.value\.frames\[index\]/)
+  assert.doesNotMatch(togglePlayback, /currentFrameIndex\.value\s*=/)
+  assert.match(
+    togglePlayback,
+    /previewTimer\.value = window\.setTimeout\(\(\) => \{[\s\S]*?if \(index >= playbackFrames\.length - 1\) \{[\s\S]*?finishPreviewPlayback\(\)[\s\S]*?return[\s\S]*?\}[\s\S]*?index \+= 1[\s\S]*?tick\(\)[\s\S]*?\}, frame\.delay\)/
+  )
+  assert.match(unmountCleanup, /if \(previewTimer\.value !== null\)/)
+  assert.match(mountedSetup, /editorMounted\.value = true/)
+  assert.match(
+    unmountCleanup,
+    /editorMounted\.value = false\s*previewPlaying\.value = false/
+  )
+  assert.match(unmountCleanup, /window\.clearTimeout\(previewTimer\.value\)/)
+  assert.match(unmountCleanup, /previewTimer\.value = null/)
+  assert.match(playbackCanvasStyle, /pointer-events:\s*none/)
+  assert.match(playbackCanvasStyle, /cursor:\s*progress/)
+  assert.match(playbackViewportStyle, /cursor:\s*progress/)
 })
 
 test('keeps the desktop editor grid at explicit responsive breakpoints', () => {
@@ -841,7 +907,6 @@ test('gives every icon-only editor button an accessible name', () => {
     'pe-layer-visibility',
     'pe-layer-action',
     'pe-frame-action',
-    'pe-local-preview-close',
   ]) {
     for (const tag of buttonTagsByClass(className)) {
       assert.match(tag, /(?:^|\s):?title=/, `${className} needs a localized title`)
@@ -875,13 +940,9 @@ test('uses a real layer selection button without nesting interactive row semanti
   assert.match(layerSelectTags[0], /@click="handleSelectLayer\(index\)"/)
 })
 
-test('styles the import modal and local preview as reference overlays', () => {
+test('styles the import modal as the remaining reference overlay', () => {
   const backdropStyle = editorStyles.match(/\.pe-modal-backdrop\s*\{[\s\S]*?\n\}/)?.[0]
   const modalStyle = editorStyles.match(/\.pe-modal\s*\{[\s\S]*?\n\}/)?.[0]
-  const popoverStyle = editorStyles.match(/\.pe-local-preview-popover\s*\{[\s\S]*?\n\}/)?.[0]
-  const previewCanvasStyle = editorStyles.match(
-    /\.pe-local-preview-popover canvas\s*\{[\s\S]*?\n\}/
-  )?.[0]
 
   assert.ok(backdropStyle)
   assert.match(backdropStyle, /z-index:\s*40/)
@@ -893,17 +954,5 @@ test('styles the import modal and local preview as reference overlays', () => {
   assert.match(modalStyle, /border:\s*1px solid var\(--pe-line\)/)
   assert.match(modalStyle, /border-radius:\s*var\(--pe-panel-radius\)/)
   assert.match(modalStyle, /box-shadow:\s*var\(--pe-modal-shadow\)/)
-  assert.ok(popoverStyle)
-  assert.match(popoverStyle, /position:\s*fixed/)
-  assert.match(popoverStyle, /right:\s*14px/)
-  assert.match(popoverStyle, /bottom:\s*14px/)
-  assert.match(popoverStyle, /z-index:\s*30/)
-  assert.match(popoverStyle, /width:\s*min\(420px, calc\(100vw - 28px\)\)/)
-  assert.match(popoverStyle, /background:\s*var\(--pe-panel\)/)
-  assert.match(popoverStyle, /border:\s*1px solid var\(--pe-line\)/)
-  assert.match(popoverStyle, /border-radius:\s*var\(--pe-panel-radius\)/)
-  assert.match(popoverStyle, /box-shadow:\s*var\(--pe-modal-shadow\)/)
-  assert.ok(previewCanvasStyle)
-  assert.match(previewCanvasStyle, /aspect-ratio:\s*2\s*\/\s*1/)
-  assert.match(previewCanvasStyle, /image-rendering:\s*pixelated/)
+  assert.doesNotMatch(editorStyles, /pe-local-preview-popover|pe-local-preview-close/)
 })

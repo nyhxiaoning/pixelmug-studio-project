@@ -476,9 +476,12 @@
           <div
             ref="canvasViewportRef"
             class="pe-canvas-viewport"
+            :class="{ 'is-preview-playing': previewPlaying }"
           >
             <canvas
               ref="editorCanvasRef"
+              :class="{ 'is-preview-playing': previewPlaying }"
+              :aria-busy="previewPlaying"
               :style="canvasZoomStyle"
               :width="EDITOR_CANVAS_WIDTH"
               :height="EDITOR_CANVAS_HEIGHT"
@@ -629,8 +632,9 @@
               <button
                 type="button"
                 class="pe-frame-action"
-                :title="previewPlaying ? t('common.pxm_editor_stop_play') : t('common.pxm_editor_play_all_frames')"
-                :aria-label="previewPlaying ? t('common.pxm_editor_stop_play') : t('common.pxm_editor_play_all_frames')"
+                :disabled="previewPlaying"
+                :title="t('common.pxm_editor_play_all_frames')"
+                :aria-label="t('common.pxm_editor_play_all_frames')"
                 @click="handleTogglePreview"
               >
                 <Play
@@ -730,30 +734,6 @@
         </section>
       </div>
     </main>
-
-    <section
-      v-if="previewPlaying"
-      class="pe-local-preview-popover"
-      aria-live="polite"
-    >
-      <div class="pe-panel-title-row">
-        <strong>{{ t('common.pxm_editor_led_preview') }}</strong>
-        <button
-          type="button"
-          class="pe-local-preview-close"
-          :title="t('common.pxm_editor_stop_play')"
-          :aria-label="t('common.pxm_editor_stop_play')"
-          @click="handleTogglePreview"
-        >
-          ×
-        </button>
-      </div>
-      <canvas
-        ref="previewCanvasRef"
-        width="480"
-        height="240"
-      />
-    </section>
 
     <div
       v-if="importDialog.open"
@@ -1012,7 +992,6 @@ const editorCanvasRef = ref<HTMLCanvasElement | null>(null)
 const canvasViewportRef = ref<HTMLDivElement | null>(null)
 const overviewScrollRef = ref<HTMLDivElement | null>(null)
 const overviewCanvasRef = ref<HTMLCanvasElement | null>(null)
-const previewCanvasRef = ref<HTMLCanvasElement | null>(null)
 const importCropCanvasRef = ref<HTMLCanvasElement | null>(null)
 const importCanvasRef = ref<HTMLCanvasElement | null>(null)
 
@@ -1167,6 +1146,7 @@ const saving = ref<boolean>(false)
 // Preview playback
 const previewPlaying = ref<boolean>(false)
 const previewTimer = ref<number | null>(null)
+const editorMounted = ref<boolean>(false)
 
 // Keyboard handler reference
 const keydownHandler = ref<((event: KeyboardEvent) => void) | null>(null)
@@ -1377,19 +1357,6 @@ function pixelsToCanvasPixels(
     }
   }
   return canvasPixels
-}
-
-function mixWithWhite(hex: string, amount: number): string {
-  const value = normalizeHex(hex)
-  const raw = value.slice(1)
-  const r = parseInt(raw.slice(0, 2), 16)
-  const g = parseInt(raw.slice(2, 4), 16)
-  const b = parseInt(raw.slice(4, 6), 16)
-  const mix = (channel: number): string =>
-    Math.round(channel * (1 - amount) + 255 * amount)
-      .toString(16)
-      .padStart(2, '0')
-  return `#${mix(r)}${mix(g)}${mix(b)}`
 }
 
 // Helper drawing functions
@@ -2626,11 +2593,8 @@ function handleDeleteFrame(): void {
 }
 
 function handleDeleteAllFrames(): void {
+  if (previewPlaying.value) finishPreviewPlayback()
   snapshot()
-  if (previewPlaying.value) {
-    clearTimeout(previewTimer.value)
-    previewPlaying.value = false
-  }
   project.value.frames = [makeFrame()]
   currentFrameIndex.value = 0
   activeLayer.value = 0
@@ -3122,7 +3086,6 @@ function renderInteractiveEdit(): void {
   schedule(() => {
     interactiveRenderPending.value = false
     if (view.value !== 'editor') return
-    renderPreview(compositeFrame(currentFrame.value))
     renderOverview()
   })
 }
@@ -3133,8 +3096,7 @@ function renderAll(): void {
     return
   }
   if (!editorCanvasRef.value) return
-  renderEditor()
-  renderPreview(compositeFrame(currentFrame.value))
+  if (!previewPlaying.value) renderEditor()
   nextTick(renderFrameThumbs)
   nextTick(renderOverview)
 }
@@ -3242,54 +3204,15 @@ function renderEditor(): void {
   }
 }
 
-function renderPreview(pixels: (string | null)[]): void {
-  const canvas = previewCanvasRef.value
+function renderPlaybackFrame(pixels: (string | null)[]): void {
+  const canvas = editorCanvasRef.value
   if (!canvas) return
   const ctx = canvas.getContext('2d')
   if (!ctx) return
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   ctx.fillStyle = '#05070b'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
-  const cw = canvas.width / WIDTH
-  const ch = canvas.height / HEIGHT
-  const gap = Math.max(1, Math.floor(Math.min(cw, ch) * 0.08))
-
-  for (let y = 0; y < HEIGHT; y += 1) {
-    for (let x = 0; x < WIDTH; x += 1) {
-      const color = pixels[y * WIDTH + x]
-      const px = x * cw
-      const py = y * ch
-      const innerX = px + gap
-      const innerY = py + gap
-      const innerW = Math.max(1, cw - gap * 2)
-      const innerH = Math.max(1, ch - gap * 2)
-
-      ctx.fillStyle = '#101520'
-      ctx.fillRect(px, py, cw, ch)
-
-      if (isEmptyPixel(color)) {
-        ctx.fillStyle = '#070a10'
-        ctx.fillRect(innerX, innerY, innerW, innerH)
-        continue
-      }
-
-      ctx.fillStyle = color
-      ctx.fillRect(innerX, innerY, innerW, innerH)
-
-      const centerX = px + cw / 2
-      const centerY = py + ch / 2
-      const glowRadius = Math.min(innerW, innerH) * 0.48
-      const glowColor = mixWithWhite(color, 0.52)
-      const glow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius)
-      glow.addColorStop(0, glowColor)
-      glow.addColorStop(0.74, mixWithWhite(color, 0.28))
-      glow.addColorStop(1, 'rgba(255,255,255,0)')
-      ctx.fillStyle = glow
-      ctx.beginPath()
-      ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2)
-      ctx.fill()
-    }
-  }
+  drawNonEmptyPixels(ctx, pixels, WIDTH, HEIGHT)
 }
 
 // Layer operations
@@ -3623,27 +3546,41 @@ function handleExportGif(): void {
 }
 
 // Preview
+function finishPreviewPlayback(): void {
+  if (previewTimer.value !== null) clearTimeout(previewTimer.value)
+  previewTimer.value = null
+  previewPlaying.value = false
+  currentFrameIndex.value = 0
+  activeLayer.value = Math.min(activeLayer.value, (currentFrame.value?.layers.length || 1) - 1)
+  renderAll()
+  nextTick(() => {
+    if (!editorMounted.value) return
+    centerOverviewOnViewport()
+  })
+}
+
 function handleTogglePreview(): void {
-  if (previewPlaying.value) {
-    clearTimeout(previewTimer.value)
-    previewPlaying.value = false
-    renderPreview(compositeFrame(currentFrame.value))
-    return
-  }
+  if (previewPlaying.value) return
+  if (!project.value.frames.length) return
+  const playbackFrames = project.value.frames.map((frame) => ({
+    delay: frame.delay,
+    pixels: compositeFrame(frame),
+  }))
   previewPlaying.value = true
   let index = 0
-  let played = 0
   const tick = () => {
     if (!previewPlaying.value) return
-    renderPreview(compositeFrame(project.value.frames[index]))
-    const delay = project.value.frames[index].delay
-    played += 1
-    if (played >= project.value.frames.length) {
-      previewPlaying.value = false
-      return
-    }
-    index += 1
-    previewTimer.value = window.setTimeout(tick, delay)
+    const frame = playbackFrames[index]
+    renderPlaybackFrame(frame.pixels)
+    previewTimer.value = window.setTimeout(() => {
+      if (!previewPlaying.value) return
+      if (index >= playbackFrames.length - 1) {
+        finishPreviewPlayback()
+        return
+      }
+      index += 1
+      tick()
+    }, frame.delay)
   }
   nextTick(tick)
 }
@@ -3709,6 +3646,7 @@ function formatTime(ts: number): string {
 
 // Lifecycle hooks
 onMounted(() => {
+  editorMounted.value = true
   applyTheme()
   syncFrameDelayInput()
   keydownHandler.value = handleKeydown
@@ -3739,6 +3677,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  editorMounted.value = false
+  previewPlaying.value = false
   // 离开页面前尝试一次静默保存
   doSilentSave().catch(() => {})
   if (keydownHandler.value) {
@@ -3748,6 +3688,10 @@ onBeforeUnmount(() => {
   if (autoSaveTimer.value) {
     window.clearInterval(autoSaveTimer.value)
     autoSaveTimer.value = null
+  }
+  if (previewTimer.value !== null) {
+    window.clearTimeout(previewTimer.value)
+    previewTimer.value = null
   }
 })
 

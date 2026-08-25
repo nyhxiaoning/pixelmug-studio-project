@@ -788,6 +788,15 @@
   cursor: grab;
 }
 
+.pe-canvas-viewport canvas.is-preview-playing {
+  pointer-events: none;
+  cursor: progress;
+}
+
+.pe-canvas-viewport.is-preview-playing {
+  cursor: progress;
+}
+
 .pe-layers-panel {
   grid-area: layers;
   width: var(--pe-side-panel-width);
@@ -1132,44 +1141,6 @@
   border: 1px solid var(--pe-line);
   border-radius: var(--pe-panel-radius);
   box-shadow: var(--pe-modal-shadow);
-}
-
-.pe-local-preview-popover {
-  position: fixed;
-  right: 14px;
-  bottom: 14px;
-  z-index: 30;
-  width: min(420px, calc(100vw - 28px));
-  padding: 12px;
-  background: var(--pe-panel);
-  border: 1px solid var(--pe-line);
-  border-radius: var(--pe-panel-radius);
-  box-shadow: var(--pe-modal-shadow);
-}
-
-.pe-local-preview-close {
-  width: 30px;
-  height: 30px;
-  display: inline-grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--pe-line);
-  border-radius: 6px;
-  background: var(--pe-panel-2);
-  color: var(--pe-text);
-  font-size: 20px;
-  line-height: 1;
-}
-
-.pe-local-preview-popover canvas {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 2 / 1;
-  display: block;
-  margin-top: 10px;
-  background: var(--pe-canvas-bg);
-  border-radius: 6px;
-  image-rendering: pixelated;
 }
 
 .pe-import-grid {
