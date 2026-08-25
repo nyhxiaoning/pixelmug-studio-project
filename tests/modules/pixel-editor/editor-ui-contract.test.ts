@@ -661,7 +661,52 @@ test('renders compact layer rows with percent opacity and safe duplication', () 
   assert.match(duplicateHandler, /layers\.splice\(index \+ 1, 0, copy\)/)
   assert.match(duplicateHandler, /activeLayer\.value = index \+ 1/)
   assert.match(duplicateHandler, /touchProject\(t\('common\.pxm_editor_layer_duplicated'\)\)/)
-  assert.match(editorStyles, /grid-template-columns:\s*28px minmax\(0, 1fr\) 80px 28px 28px/)
+  assert.match(editorStyles, /grid-template-columns:\s*24px minmax\(0, 1fr\) 58px 24px 24px/)
+})
+
+test('prioritizes one-line layer titles with compact controls', () => {
+  const layerItemStyle = extractCssBlock(editorStyles, '.pe-layer-item')
+  const layerSelectStyle = extractCssBlock(editorStyles, '.pe-app-shell .pe-layer-select')
+  const layerOpacityStyle = extractCssBlock(editorStyles, '.pe-layer-opacity')
+  const layerOpacityInputStyle = extractCssBlock(editorStyles, '.pe-layer-opacity input')
+  const layerActionStyle = extractCssBlock(
+    editorStyles,
+    '.pe-app-shell .pe-layer-visibility,'
+  )
+  const layerIconStyle = extractCssBlock(editorStyles, '.pe-layer-visibility svg,')
+  const layerDangerStyle = extractCssBlock(
+    editorStyles,
+    '.pe-app-shell .pe-layer-action--danger',
+  )
+  const layerTitleStyle = extractCssBlock(
+    editorStyles,
+    '.pe-layers-panel .pe-panel-title-row h2,'
+  )
+
+  assert.match(
+    layerItemStyle,
+    /grid-template-columns:\s*24px minmax\(0,\s*1fr\) 58px 24px 24px\s*;/,
+  )
+  assert.match(layerItemStyle, /gap:\s*4px/)
+  assert.match(layerSelectStyle, /font-size:\s*12px/)
+  assert.match(layerSelectStyle, /white-space:\s*nowrap/)
+  assert.match(layerSelectStyle, /overflow:\s*hidden/)
+  assert.match(layerSelectStyle, /text-overflow:\s*ellipsis/)
+  assert.match(layerOpacityStyle, /width:\s*58px/)
+  assert.match(layerOpacityStyle, /font-size:\s*12px/)
+  assert.match(layerOpacityInputStyle, /height:\s*28px/)
+  assert.match(layerActionStyle, /width:\s*24px/)
+  assert.match(layerActionStyle, /height:\s*24px/)
+  assert.match(layerActionStyle, /padding:\s*0/)
+  assert.match(layerIconStyle, /width:\s*14px/)
+  assert.match(layerIconStyle, /height:\s*14px/)
+  assert.match(layerDangerStyle, /color:\s*var\(--pe-danger\)/)
+  assert.match(layerTitleStyle, /font-size:\s*12px/)
+  assert.match(editorSource, /class="pe-layer-select"[\s\S]*?:title="layer\.name"/)
+  assert.match(editorSource, /class="pe-layer-select"[\s\S]*?:aria-label="layer\.name"/)
+  assert.match(editorSource, /@click="handleSelectLayer\(index\)"/)
+  assert.match(editorSource, /@click\.stop="handleDuplicateLayer\(index\)"/)
+  assert.match(editorSource, /@click\.stop="handleDeleteLayer\(index\)"/)
 })
 
 test('keeps every animation-frame interaction in the reference bottom panel', () => {

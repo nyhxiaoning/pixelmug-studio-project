@@ -796,6 +796,11 @@
   overflow: auto;
 }
 
+.pe-layers-panel .pe-panel-title-row h2,
+.pe-layers-panel .pe-panel-title-row button {
+  font-size: 12px;
+}
+
 .pe-canvas-overview {
   margin-top: 14px;
   display: grid;
@@ -870,8 +875,8 @@
 
 .pe-layer-item {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 80px 28px 28px;
-  gap: 6px;
+  grid-template-columns: 24px minmax(0, 1fr) 58px 24px 24px;
+  gap: 4px;
   align-items: center;
   min-height: 40px;
   padding: 5px 6px;
@@ -885,7 +890,7 @@
   background: var(--pe-active-soft);
 }
 
-.pe-layer-select {
+.pe-app-shell .pe-layer-select {
   width: 100%;
   min-width: 0;
   overflow: hidden;
@@ -896,7 +901,7 @@
   text-overflow: ellipsis;
   text-align: left;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -905,7 +910,7 @@
 }
 
 .pe-layer-opacity {
-  width: 80px;
+  width: 58px;
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -918,14 +923,15 @@
 .pe-layer-opacity input {
   width: 100%;
   min-width: 0;
-  padding: 4px 3px;
+  height: 28px;
+  padding: 2px 3px;
   text-align: right;
 }
 
-.pe-layer-visibility,
-.pe-layer-action {
-  width: 28px;
-  height: 28px;
+.pe-app-shell .pe-layer-visibility,
+.pe-app-shell .pe-layer-action {
+  width: 24px;
+  height: 24px;
   display: inline-grid;
   place-items: center;
   padding: 0;
@@ -935,12 +941,18 @@
   color: var(--pe-text);
 }
 
+.pe-layer-visibility svg,
+.pe-layer-action svg {
+  width: 14px;
+  height: 14px;
+}
+
 .pe-layer-visibility:hover,
 .pe-layer-action:hover:not(:disabled) {
   background: var(--pe-control-bg);
 }
 
-.pe-layer-action--danger {
+.pe-app-shell .pe-layer-action--danger {
   color: var(--pe-danger);
 }
 
