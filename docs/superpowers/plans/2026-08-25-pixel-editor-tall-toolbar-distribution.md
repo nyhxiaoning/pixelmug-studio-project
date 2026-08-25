@@ -2,16 +2,17 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Distribute the existing left-toolbar groups across taller screens while preserving every current control size and the existing compact and short-height behaviors.
+**Goal:** Distribute the existing left-toolbar groups across taller screens, add comfortable heading padding in tall mode, and preserve every current control size plus the existing compact and short-height behaviors.
 
-**Architecture:** Add one height-gated SCSS rule at `min-height: 800px`. The toolbar becomes a column flex container whose direct children are distributed with `space-between`; no template, component state, or control sizing changes are required. Source contracts lock the breakpoint, flex behavior, existing group order, and compact/short-height rules.
+**Architecture:** Add one height-gated SCSS rule at `min-height: 800px`. The toolbar becomes a column flex container whose direct children are distributed with `space-between`, and its group headings receive `4px` block padding; no template, component state, or control sizing changes are required. Source contracts lock the breakpoint, allowed selectors/declarations, existing group order, and compact/short-height rules.
 
 **Tech Stack:** Vue 3 template, SCSS media queries, Node.js `node:test`, Vite QA build
 
 ## Global Constraints
 
 - Use `@media (min-height: 800px)` exactly.
-- Do not change button, icon, input, select, textarea, typography, section padding, or internal row-gap sizes.
+- Do not change button, icon, input, select, textarea, font, section padding, or internal row-gap sizes.
+- In tall mode only, set every group heading to `padding-block: 4px`.
 - Preserve the existing `@media (max-height: 699px)` toolbar scrolling fallback.
 - Preserve all six group markers and their order.
 - Do not add JavaScript or runtime viewport listeners.
@@ -38,6 +39,7 @@ test('distributes toolbar groups only when the viewport is tall', () => {
   const toolbarStyle = extractCssBlock(editorStyles, '.pe-tools-panel')
   const tallViewportStyle = extractCssBlock(editorStyles, '@media (min-height: 800px)')
   const tallToolbarStyle = tallViewportStyle.match(/\.pe-tools-panel\s*\{([^}]*)\}/s)?.[1] ?? ''
+  const tallHeadingStyle = extractCssBlock(tallViewportStyle, '.pe-tools-panel .pe-tool-section h2')
   const shortViewportStyle = extractCssBlock(editorStyles, '@media (max-height: 699px)')
 
   assert.doesNotMatch(toolbarStyle, /display:\s*flex|justify-content:\s*space-between/)
@@ -45,10 +47,11 @@ test('distributes toolbar groups only when the viewport is tall', () => {
     tallViewportStyle,
     /\.pe-tools-panel\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*justify-content:\s*space-between/s
   )
-  assert.doesNotMatch(
-    tallToolbarStyle,
-    /(?:min-)?height\s*:|padding\s*:|gap\s*:|font-size\s*:|grid-template|overflow\s*:/
+  assert.deepEqual(
+    [...tallToolbarStyle.matchAll(/([\w-]+)\s*:\s*([^;]+);/g)].map(([, property, value]) => [property, value.trim()]),
+    [['display', 'flex'], ['flex-direction', 'column'], ['justify-content', 'space-between']]
   )
+  assert.match(tallHeadingStyle, /padding-block:\s*4px\s*;/)
   assert.match(shortViewportStyle, /\.pe-tools-panel\s*\{[^}]*overflow-y:\s*auto/s)
 })
 ```
@@ -73,6 +76,10 @@ Add before the short-height fallback:
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+  }
+
+  .pe-tools-panel .pe-tool-section h2 {
+    padding-block: 4px;
   }
 }
 ```
@@ -105,6 +112,7 @@ At widths of `1440px`, measure heights `700`, `754`, `900`, and `1080px`:
 - `900` and `1080`: computed display is `flex`, direction is `column`, and justification is `space-between`.
 - At tall heights, first group top aligns with the toolbar content top and footer bottom aligns with toolbar bottom.
 - Intermediate gaps are non-negative and substantially uniform.
+- Every group heading computes to `4px` top and bottom padding at `900px` and `1080px`, and `0px` at `700px` and `754px`.
 - A representative icon button remains `32px` minimum height with a `15 × 15px` SVG; representative input/select/textarea remain `28px` high.
 - Document scroll behavior remains unchanged at each breakpoint.
 
