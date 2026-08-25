@@ -975,11 +975,13 @@
   gap: 6px;
 }
 
-.pe-frame-action {
+.pe-app-shell .pe-frame-action {
   width: 34px;
   height: 34px;
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
   padding: 0;
   border: 1px solid var(--pe-line);
   border-radius: 7px;
@@ -987,9 +989,18 @@
   color: var(--pe-text);
 }
 
+.pe-frame-action > svg {
+  display: block;
+  flex: 0 0 auto;
+}
+
 .pe-frame-action:hover:not(:disabled) {
   border-color: var(--pe-primary);
   background: var(--pe-active-soft);
+}
+
+.pe-app-shell .pe-frame-action--danger {
+  color: var(--pe-danger);
 }
 
 .pe-frame-action--danger,
@@ -999,12 +1010,15 @@
 
 .pe-frame-delay {
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
   gap: 6px;
   color: var(--pe-muted);
   font-size: 12px;
 }
 
 .pe-frame-delay-input {
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;

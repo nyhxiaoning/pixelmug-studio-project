@@ -449,6 +449,42 @@ test('fills the desktop editor viewport while preserving local overflow owners',
   assert.match(shortHeightStyle, /\.pe-frame-panel\s*\{[^}]*overflow:\s*visible/s)
 })
 
+test('aligns the frame interval and action icons without changing behavior', () => {
+  const frameDelayStyle = extractCssBlock(editorStyles, '.pe-frame-delay {')
+  const frameDelayInputStyle = extractCssBlock(editorStyles, '.pe-frame-delay-input {')
+  const frameActionStyle = extractCssBlock(editorStyles, '.pe-app-shell .pe-frame-action {')
+  const frameActionIconStyle = extractCssBlock(editorStyles, '.pe-frame-action > svg {')
+  const frameDangerActionStyle = extractCssBlock(editorStyles, '.pe-app-shell .pe-frame-action--danger {')
+  const frameControls = editorSource.match(
+    /<div class="pe-frame-controls">[\s\S]*?<div class="pe-frame-content">/
+  )?.[0]
+
+  assert.match(frameDelayStyle, /grid-template-columns:\s*auto minmax\(0,\s*1fr\)\s*;/)
+  assert.match(frameDelayStyle, /align-items:\s*center/)
+  assert.match(frameDelayInputStyle, /min-width:\s*0/)
+  assert.match(frameDelayInputStyle, /align-items:\s*center/)
+  assert.match(frameActionStyle, /display:\s*inline-flex/)
+  assert.match(frameActionStyle, /align-items:\s*center/)
+  assert.match(frameActionStyle, /justify-content:\s*center/)
+  assert.match(frameActionStyle, /line-height:\s*0/)
+  assert.match(frameActionStyle, /padding:\s*0/)
+  assert.match(frameActionStyle, /color:\s*var\(--pe-text\)/)
+  assert.doesNotMatch(frameActionStyle, /transform|translate|position\s*:\s*relative|(?:^|[;{])\s*(?:top|bottom)\s*:/)
+  assert.match(frameActionIconStyle, /display:\s*block/)
+  assert.match(frameActionIconStyle, /flex:\s*0 0 auto/)
+  assert.doesNotMatch(frameActionIconStyle, /transform|translate|position\s*:\s*relative|(?:^|[;{])\s*(?:top|bottom)\s*:/)
+  assert.match(frameDangerActionStyle, /color:\s*var\(--pe-danger\)/)
+  assert.doesNotMatch(editorStyles, /(?:^|\n)\s*svg\s*\{/)
+  assert.doesNotMatch(editorStyles, /(?:^|\n)\.pe-frame-action\s*\{/)
+  assert.ok(frameControls)
+  assert.match(frameControls, /@click="handleTogglePreview"/)
+  assert.match(frameControls, /@click="handleAddFrame"/)
+  assert.match(frameControls, /@click="handleDuplicateFrame"/)
+  assert.match(frameControls, /@click="handleDeleteFrame"/)
+  assert.match(frameControls, /:disabled="project\.frames\.length <= 1"/)
+  assert.equal(frameControls.match(/class="pe-frame-action(?: pe-frame-action--danger)?"/g)?.length, 4)
+})
+
 test('shows complete frame thumbnails in a full-width horizontal strip', () => {
   const frameContentStyle = extractCssBlock(editorStyles, '.pe-frame-content')
   const framesListStyle = extractCssBlock(editorStyles, '.pe-frames-list')
