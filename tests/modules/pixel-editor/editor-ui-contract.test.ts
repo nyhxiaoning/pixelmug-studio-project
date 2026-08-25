@@ -396,7 +396,7 @@ test('keeps Canvas zoom bounded, accessible, and isolated to its viewport', () =
   assert.match(viewportStyle, /overflow:\s*auto/)
   assert.match(
     editorGridStyle,
-    /grid-template-rows:\s*minmax\(0,\s*1fr\) clamp\(144px,\s*22vh,\s*170px\)/
+    /grid-template-rows:\s*minmax\(0,\s*1fr\) clamp\(160px,\s*22vh,\s*170px\)/
   )
   assert.match(canvasStyle, /flex:\s*0 0 auto/)
   assert.match(canvasStyle, /max-width:\s*none/)
@@ -433,7 +433,7 @@ test('fills the desktop editor viewport while preserving local overflow owners',
   assert.match(editorGridStyle, /min-height:\s*0/)
   assert.match(
     editorGridStyle,
-    /grid-template-rows:\s*minmax\(0,\s*1fr\) clamp\(144px,\s*22vh,\s*170px\)/
+    /grid-template-rows:\s*minmax\(0,\s*1fr\) clamp\(160px,\s*22vh,\s*170px\)/
   )
   assert.match(canvasPanelStyle, /min-height:\s*0/)
   assert.match(layersPanelStyle, /min-height:\s*0/)
@@ -447,6 +447,32 @@ test('fills the desktop editor viewport while preserving local overflow owners',
   assert.match(shortHeightStyle, /\.pe-editor-grid\s*\{[^}]*height:\s*auto[^}]*grid-template-rows:\s*526px auto/s)
   assert.match(shortHeightStyle, /\.pe-canvas-panel,\s*\.pe-layers-panel\s*\{[^}]*min-height:\s*526px/s)
   assert.match(shortHeightStyle, /\.pe-frame-panel\s*\{[^}]*overflow:\s*visible/s)
+})
+
+test('shows complete frame thumbnails in a full-width horizontal strip', () => {
+  const frameContentStyle = extractCssBlock(editorStyles, '.pe-frame-content')
+  const framesListStyle = extractCssBlock(editorStyles, '.pe-frames-list')
+  const frameItemStyle = extractCssBlock(editorStyles, '.pe-frame-item')
+  const frameCanvasStyle = extractCssBlock(editorStyles, '.pe-frame-item canvas')
+  const frameCanvasTag = editorSource.match(
+    /<canvas\s+[^>]*:ref="\(el\) => setFrameThumbRef\(frame\.id, el\)"[^>]*>/
+  )?.[0]
+
+  assert.match(frameContentStyle, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s*;/)
+  assert.doesNotMatch(frameContentStyle, /minmax\(180px,\s*240px\)/)
+  assert.match(framesListStyle, /overflow-x:\s*auto/)
+  assert.match(framesListStyle, /overflow-y:\s*hidden/)
+  assert.match(frameItemStyle, /flex:\s*0 0 186px/)
+  assert.match(frameItemStyle, /grid-template-rows:\s*auto auto/)
+  assert.doesNotMatch(frameItemStyle, /grid-template-rows:[^;]*74px/)
+  assert.match(frameCanvasStyle, /display:\s*block/)
+  assert.match(frameCanvasStyle, /width:\s*100%/)
+  assert.match(frameCanvasStyle, /height:\s*auto/)
+  assert.match(frameCanvasStyle, /aspect-ratio:\s*2\s*\/\s*1/)
+  assert.doesNotMatch(frameCanvasStyle, /object-fit:\s*cover/)
+  assert.ok(frameCanvasTag)
+  assert.match(frameCanvasTag, /width="96"/)
+  assert.match(frameCanvasTag, /height="48"/)
 })
 
 test('contains Canvas wheel gestures and preserves the pointer anchor', () => {

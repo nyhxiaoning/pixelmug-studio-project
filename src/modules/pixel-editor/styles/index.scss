@@ -435,7 +435,7 @@
   height: 100%;
   min-height: 0;
   grid-template-columns: var(--pe-side-panel-width) minmax(520px, 1fr) var(--pe-side-panel-width);
-  grid-template-rows: minmax(0, 1fr) clamp(144px, 22vh, 170px);
+  grid-template-rows: minmax(0, 1fr) clamp(160px, 22vh, 170px);
   grid-template-areas:
     "tools canvas layers"
     "tools frames frames";
@@ -1027,7 +1027,7 @@
 .pe-frame-content {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   align-items: start;
 }
@@ -1044,7 +1044,7 @@
 .pe-frame-item {
   flex: 0 0 186px;
   display: grid;
-  grid-template-rows: 74px auto;
+  grid-template-rows: auto auto;
   align-items: center;
   justify-items: stretch;
   gap: 8px;
@@ -1069,8 +1069,10 @@
 }
 
 .pe-frame-item canvas {
+  display: block;
   width: 100%;
-  height: 74px;
+  height: auto;
+  aspect-ratio: 2 / 1;
   image-rendering: pixelated;
   background: #000;
   border-radius: 6px;
