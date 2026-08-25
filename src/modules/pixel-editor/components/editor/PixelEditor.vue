@@ -209,20 +209,59 @@
                 />
               </button>
             </div>
-            <div class="pe-control-row pe-color-row">
+            <div
+              ref="colorControlRef"
+              class="pe-control-row pe-color-row"
+            >
+              <label for="pe-current-color-value">{{ t('common.pxm_editor_color') }}</label>
               <input
+                id="pe-current-color-value"
                 v-model="currentColor"
                 class="pe-hex-input"
                 maxlength="7"
-                :aria-label="t('common.pxm_editor_color')"
               >
-              <input
-                v-model="currentColor"
+              <button
+                ref="colorSwatchButtonRef"
+                type="button"
                 class="pe-color-swatch"
-                type="color"
+                :style="{ backgroundColor: normalizeHex(currentColor) }"
+                aria-haspopup="dialog"
+                :aria-expanded="colorPickerOpen"
+                aria-controls="pe-color-popover"
                 :aria-label="t('common.pxm_editor_color')"
-              >
+                @click="handleToggleColorPicker"
+              />
             </div>
+            <Teleport to="body">
+              <div
+                v-if="colorPickerOpen"
+                id="pe-color-popover"
+                ref="colorPopoverRef"
+                class="pe-theme-host pe-color-popover"
+                :data-theme="theme"
+                role="dialog"
+                :aria-label="t('common.pxm_editor_color')"
+                :style="colorPopoverStyle"
+              >
+                <div class="pe-color-popover-header">
+                  <strong>{{ t('common.pxm_editor_color') }}</strong>
+                  <button
+                    type="button"
+                    class="pe-color-popover-close"
+                    :aria-label="t('common.pxm_editor_close_color_picker')"
+                    @click="handleCloseColorPicker()"
+                  >
+                    ×
+                  </button>
+                </div>
+                <ElColorPickerPanel
+                  v-model="currentColor"
+                  color-format="hex"
+                  :show-alpha="false"
+                  :border="false"
+                />
+              </div>
+            </Teleport>
           </section>
 
           <section class="pe-tool-section pe-tool-section--shapes">
@@ -831,7 +870,7 @@
 import { ref, computed, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Component, Ref, CanvasHTMLAttributes } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElColorPickerPanel, ElMessage, ElMessageBox } from 'element-plus'
 import {
   Brush,
   Copy,
@@ -1098,6 +1137,11 @@ const tools = ref<Tool[]>([
 // Drawing state
 const activeTool = ref<string>('pencil')
 const currentColor = ref<string>('#ffccaa')
+const colorPickerOpen = ref<boolean>(false)
+const colorControlRef = ref<HTMLDivElement | null>(null)
+const colorPopoverRef = ref<HTMLDivElement | null>(null)
+const colorSwatchButtonRef = ref<HTMLButtonElement | null>(null)
+const colorPopoverStyle = reactive({ top: '0px', left: '0px' })
 const shapeType = ref<string>('rectangle')
 const shapeFill = ref<string>('filled')
 const onion = reactive<OnionConfig>({
@@ -2393,6 +2437,47 @@ function handleExportProjectGif(
   })
 }
 
+function positionColorPopover(): void {
+  const trigger = colorSwatchButtonRef.value
+  const popover = colorPopoverRef.value
+  if (!trigger || !popover) return
+
+  const triggerRect = trigger.getBoundingClientRect()
+  const popoverRect = popover.getBoundingClientRect()
+  const viewportGap = 8
+  const preferredLeft = triggerRect.right - popoverRect.width
+  const left = Math.min(
+    window.innerWidth - popoverRect.width - viewportGap,
+    Math.max(viewportGap, preferredLeft)
+  )
+  const below = triggerRect.bottom + 6
+  const top =
+    below + popoverRect.height <= window.innerHeight - viewportGap
+      ? below
+      : Math.max(viewportGap, triggerRect.top - popoverRect.height - 6)
+
+  colorPopoverStyle.left = `${left}px`
+  colorPopoverStyle.top = `${top}px`
+}
+
+function handleToggleColorPicker(): void {
+  colorPickerOpen.value = !colorPickerOpen.value
+  if (colorPickerOpen.value) nextTick(positionColorPopover)
+}
+
+function handleCloseColorPicker(restoreFocus = true): void {
+  if (!colorPickerOpen.value) return
+  colorPickerOpen.value = false
+  if (restoreFocus) nextTick(() => colorSwatchButtonRef.value?.focus())
+}
+
+function handleColorPickerOutsidePointer(event: PointerEvent): void {
+  if (!colorPickerOpen.value || !(event.target instanceof Node)) return
+  if (colorControlRef.value?.contains(event.target)) return
+  if (colorPopoverRef.value?.contains(event.target)) return
+  handleCloseColorPicker(false)
+}
+
 function handleSelectTool(tool: string): void {
   activeTool.value = tool
   if (tool !== 'select') {
@@ -2424,8 +2509,14 @@ function isTypingTarget(target: EventTarget | null): boolean {
 }
 
 function handleKeydown(event: KeyboardEvent): void {
-  if (view.value !== 'editor' || isTypingTarget(event.target)) return
+  if (view.value !== 'editor') return
   const key = event.key.toLowerCase()
+  if (key === 'escape' && colorPickerOpen.value) {
+    event.preventDefault()
+    handleCloseColorPicker()
+    return
+  }
+  if (isTypingTarget(event.target)) return
   if (key === 'escape') {
     if (
       activeSelection.value ||
@@ -3660,6 +3751,7 @@ onMounted(() => {
   syncFrameDelayInput()
   keydownHandler.value = handleKeydown
   window.addEventListener('keydown', keydownHandler.value)
+  document.addEventListener('pointerdown', handleColorPickerOutsidePointer)
   persistNow()
   nextTick(renderAll)
 
@@ -3693,6 +3785,7 @@ onBeforeUnmount(() => {
   if (keydownHandler.value) {
     window.removeEventListener('keydown', keydownHandler.value)
   }
+  document.removeEventListener('pointerdown', handleColorPickerOutsidePointer)
   // 清理定时器
   if (autoSaveTimer.value) {
     window.clearInterval(autoSaveTimer.value)

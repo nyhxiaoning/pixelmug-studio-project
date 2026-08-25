@@ -137,6 +137,7 @@ export default {
   pxm_editor_picker: 'スポイト',
   pxm_editor_gradient_tool: 'グラデーション',
   pxm_editor_color: '色',
+  pxm_editor_close_color_picker: 'カラーピッカーを閉じる',
   pxm_editor_color_title: '色を選択',
   pxm_editor_shapes: '図形',
   pxm_editor_rectangle: '長方形',

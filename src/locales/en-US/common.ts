@@ -152,6 +152,7 @@ export default {
   pxm_editor_picker: 'Picker',
   pxm_editor_gradient_tool: 'Gradient tool',
   pxm_editor_color: 'Color',
+  pxm_editor_close_color_picker: 'Close color picker',
   pxm_editor_color_title: 'Select color',
   pxm_editor_shapes: 'Shapes',
   pxm_editor_rectangle: 'Rectangle',

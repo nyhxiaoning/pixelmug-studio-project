@@ -272,22 +272,19 @@ test('keeps the left toolbar compact without removing its existing groups', () =
 
 test('shows the drawing color value and swatch in one compact row', () => {
   const colorRow = editorSource.match(
-    /<div\s+class="pe-control-row pe-color-row">[\s\S]*?<\/div>/
+    /<div[\s\S]*?class="pe-control-row pe-color-row"\s*>[\s\S]*?<\/div>\s*<Teleport/
   )?.[0]
 
   assert.ok(colorRow)
+  const labelIndex = colorRow.indexOf('<label')
   const hexIndex = colorRow.indexOf('class="pe-hex-input"')
   const swatchIndex = colorRow.indexOf('class="pe-color-swatch"')
 
-  assert.ok(hexIndex >= 0 && swatchIndex > hexIndex)
-  assert.equal((colorRow.match(/v-model="currentColor"/g) || []).length, 2)
+  assert.ok(labelIndex >= 0 && hexIndex > labelIndex && swatchIndex > hexIndex)
+  assert.equal((colorRow.match(/v-model="currentColor"/g) || []).length, 1)
   assert.match(colorRow, /class="pe-hex-input"[\s\S]*maxlength="7"/)
-  assert.match(colorRow, /class="pe-color-swatch"[\s\S]*type="color"/)
-  assert.equal(
-    (colorRow.match(/:aria-label="t\('common\.pxm_editor_color'\)"/g) || []).length,
-    2
-  )
-  assert.doesNotMatch(colorRow, /<label/)
+  assert.match(colorRow, /type="button"[\s\S]*class="pe-color-swatch"/)
+  assert.match(colorRow, /<label[\s\S]*common\.pxm_editor_color/)
 
   const rowStyle = extractCssBlock(editorStyles, '.pe-color-row')
   const hexStyle = extractCssBlock(editorStyles, '.pe-color-row .pe-hex-input')
@@ -300,6 +297,85 @@ test('shows the drawing color value and swatch in one compact row', () => {
   assert.match(swatchStyle, /width:\s*24px/)
   assert.match(swatchStyle, /height:\s*24px/)
   assert.match(swatchStyle, /flex:\s*0 0 24px/)
+})
+
+test('keeps the color label and closes the controlled picker safely', () => {
+  const colorRow = editorSource.match(
+    /<div[\s\S]*?class="pe-control-row pe-color-row"[\s\S]*?<\/div>\s*<Teleport/
+  )?.[0]
+
+  assert.ok(colorRow)
+  assert.ok(colorRow.indexOf('<label') < colorRow.indexOf('class="pe-hex-input"'))
+  assert.ok(colorRow.indexOf('class="pe-hex-input"') < colorRow.indexOf('class="pe-color-swatch"'))
+  assert.match(colorRow, /ref="colorSwatchButtonRef"/)
+  assert.match(colorRow, /aria-haspopup="dialog"/)
+  assert.match(colorRow, /:aria-expanded="colorPickerOpen"/)
+  assert.match(editorSource, /<Teleport to="body">/)
+  assert.match(editorSource, /<ElColorPickerPanel\s+[\s\S]*v-model="currentColor"/)
+  assert.match(editorSource, /color-format="hex"/)
+  assert.match(editorSource, /:show-alpha="false"/)
+  assert.match(editorSource, /class="pe-color-popover-close"[\s\S]*@click="handleCloseColorPicker\(\)"/)
+  assert.match(editorSource, /role="dialog"/)
+  assert.match(editorSource, /@click="handleToggleColorPicker"/)
+  assert.match(editorSource, /document\.addEventListener\('pointerdown', handleColorPickerOutsidePointer\)/)
+  assert.match(editorSource, /document\.removeEventListener\('pointerdown', handleColorPickerOutsidePointer\)/)
+  assert.match(editorSource, /key === 'escape' && colorPickerOpen\.value/)
+  assert.match(editorSource, /colorSwatchButtonRef\.value\?\.focus\(\)/)
+
+  const keydownBlock = extractBraceBlock(editorSource, 'function handleKeydown')
+  const pickerEscapeIndex = keydownBlock.indexOf("key === 'escape' && colorPickerOpen.value")
+  const typingGuardIndex = keydownBlock.indexOf('if (isTypingTarget(event.target)) return')
+  assert.ok(pickerEscapeIndex >= 0 && pickerEscapeIndex < typingGuardIndex)
+
+  const outsidePointerBlock = extractBraceBlock(
+    editorSource,
+    'function handleColorPickerOutsidePointer'
+  )
+  const outsideGuardIndex = outsidePointerBlock.indexOf(
+    'if (!colorPickerOpen.value || !(event.target instanceof Node)) return'
+  )
+  const controlGuardIndex = outsidePointerBlock.indexOf(
+    'if (colorControlRef.value?.contains(event.target)) return'
+  )
+  const popoverGuardIndex = outsidePointerBlock.indexOf(
+    'if (colorPopoverRef.value?.contains(event.target)) return'
+  )
+  const outsideCloseIndex = outsidePointerBlock.indexOf('handleCloseColorPicker(false)')
+  assert.ok(
+    outsideGuardIndex >= 0 &&
+      outsideGuardIndex < controlGuardIndex &&
+      controlGuardIndex < popoverGuardIndex &&
+      popoverGuardIndex < outsideCloseIndex
+  )
+
+  const positionBlock = extractBraceBlock(editorSource, 'function positionColorPopover')
+  assert.match(positionBlock, /const triggerRect = trigger\.getBoundingClientRect\(\)/)
+  assert.match(positionBlock, /const popoverRect = popover\.getBoundingClientRect\(\)/)
+  assert.match(positionBlock, /const viewportGap = 8/)
+  assert.match(
+    positionBlock,
+    /Math\.min\(\s*window\.innerWidth - popoverRect\.width - viewportGap,[\s\S]*Math\.max\(viewportGap, preferredLeft\)/
+  )
+  assert.match(positionBlock, /const below = triggerRect\.bottom \+ 6/)
+  assert.match(
+    positionBlock,
+    /below \+ popoverRect\.height <= window\.innerHeight - viewportGap/
+  )
+  assert.match(
+    positionBlock,
+    /Math\.max\(viewportGap, triggerRect\.top - popoverRect\.height - 6\)/
+  )
+
+  const closeBlock = extractBraceBlock(editorSource, 'function handleCloseColorPicker')
+  assert.match(closeBlock, /colorPickerOpen\.value = false/)
+  assert.match(
+    closeBlock,
+    /if \(restoreFocus\) nextTick\(\(\) => colorSwatchButtonRef\.value\?\.focus\(\)\)/
+  )
+
+  for (const source of localeSources) {
+    assert.match(source, /pxm_editor_close_color_picker:/)
+  }
 })
 
 test('distributes toolbar groups only when the viewport is tall', () => {

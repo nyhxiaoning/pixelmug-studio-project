@@ -153,6 +153,7 @@ export default {
   pxm_editor_picker: '吸色',
   pxm_editor_gradient_tool: '渐变工具',
   pxm_editor_color: '颜色',
+  pxm_editor_close_color_picker: '关闭颜色选择器',
   pxm_editor_color_title: '选择颜色',
   pxm_editor_shapes: '绘制形状',
   pxm_editor_rectangle: '矩形',
