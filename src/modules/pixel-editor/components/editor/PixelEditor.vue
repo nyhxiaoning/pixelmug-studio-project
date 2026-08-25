@@ -210,9 +210,18 @@
               </button>
             </div>
             <div class="pe-control-row pe-color-row">
-              <label>{{ t('common.pxm_editor_color') }}</label>
-              <input v-model="currentColor" type="color" />
-              <input v-model="currentColor" class="pe-hex-input" maxlength="7" />
+              <input
+                v-model="currentColor"
+                class="pe-hex-input"
+                maxlength="7"
+                :aria-label="t('common.pxm_editor_color')"
+              >
+              <input
+                v-model="currentColor"
+                class="pe-color-swatch"
+                type="color"
+                :aria-label="t('common.pxm_editor_color')"
+              >
             </div>
           </section>
 

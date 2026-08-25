@@ -270,6 +270,38 @@ test('keeps the left toolbar compact without removing its existing groups', () =
   assert.deepEqual(groupIndexes, [...groupIndexes].sort((left, right) => left - right))
 })
 
+test('shows the drawing color value and swatch in one compact row', () => {
+  const colorRow = editorSource.match(
+    /<div\s+class="pe-control-row pe-color-row">[\s\S]*?<\/div>/
+  )?.[0]
+
+  assert.ok(colorRow)
+  const hexIndex = colorRow.indexOf('class="pe-hex-input"')
+  const swatchIndex = colorRow.indexOf('class="pe-color-swatch"')
+
+  assert.ok(hexIndex >= 0 && swatchIndex > hexIndex)
+  assert.equal((colorRow.match(/v-model="currentColor"/g) || []).length, 2)
+  assert.match(colorRow, /class="pe-hex-input"[\s\S]*maxlength="7"/)
+  assert.match(colorRow, /class="pe-color-swatch"[\s\S]*type="color"/)
+  assert.equal(
+    (colorRow.match(/:aria-label="t\('common\.pxm_editor_color'\)"/g) || []).length,
+    2
+  )
+  assert.doesNotMatch(colorRow, /<label/)
+
+  const rowStyle = extractCssBlock(editorStyles, '.pe-color-row')
+  const hexStyle = extractCssBlock(editorStyles, '.pe-color-row .pe-hex-input')
+  const swatchStyle = extractCssBlock(editorStyles, '.pe-color-row .pe-color-swatch')
+
+  assert.match(rowStyle, /display:\s*flex/)
+  assert.match(rowStyle, /flex-wrap:\s*nowrap/)
+  assert.match(hexStyle, /flex:\s*1 1 auto/)
+  assert.match(hexStyle, /width:\s*auto/)
+  assert.match(swatchStyle, /width:\s*24px/)
+  assert.match(swatchStyle, /height:\s*24px/)
+  assert.match(swatchStyle, /flex:\s*0 0 24px/)
+})
+
 test('distributes toolbar groups only when the viewport is tall', () => {
   const toolbarStyle = extractCssBlock(editorStyles, '.pe-tools-panel')
   const tallViewportStyle = extractCssBlock(editorStyles, '@media (min-height: 800px)')
