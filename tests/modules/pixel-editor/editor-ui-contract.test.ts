@@ -270,6 +270,50 @@ test('keeps the left toolbar compact without removing its existing groups', () =
   assert.deepEqual(groupIndexes, [...groupIndexes].sort((left, right) => left - right))
 })
 
+test('distributes toolbar groups only when the viewport is tall', () => {
+  const toolbarStyle = extractCssBlock(editorStyles, '.pe-tools-panel')
+  const tallViewportStyle = extractCssBlock(editorStyles, '@media (min-height: 800px)')
+  const tallViewportBody = tallViewportStyle.slice(
+    tallViewportStyle.indexOf('{') + 1,
+    tallViewportStyle.lastIndexOf('}')
+  )
+  const tallToolbarStyle = tallViewportStyle.match(/\.pe-tools-panel\s*\{([^}]*)\}/s)?.[1] ?? ''
+  const tallHeadingStyle = extractCssBlock(
+    tallViewportStyle,
+    '.pe-tools-panel .pe-tool-section h2'
+  )
+  const tallHeadingDeclarations = tallHeadingStyle
+    .slice(tallHeadingStyle.indexOf('{') + 1, tallHeadingStyle.lastIndexOf('}'))
+  const tallSelectors = [...tallViewportBody.matchAll(/(?:^|\})\s*([^@{}][^{}]*?)\s*\{/g)].map(
+    ([, selector]) => selector.trim().replace(/\s+/g, ' ')
+  )
+  const shortViewportStyle = extractCssBlock(editorStyles, '@media (max-height: 699px)')
+
+  assert.equal(editorStyles.match(/@media\s*\(min-height:\s*800px\)/g)?.length, 1)
+  assert.doesNotMatch(toolbarStyle, /display:\s*flex|justify-content:\s*space-between/)
+  assert.deepEqual(
+    [...tallToolbarStyle.matchAll(/([\w-]+)\s*:\s*([^;]+);/g)].map(
+      ([, property, value]) => [property, value.trim()]
+    ),
+    [
+      ['display', 'flex'],
+      ['flex-direction', 'column'],
+      ['justify-content', 'space-between'],
+    ]
+  )
+  assert.deepEqual(
+    [...tallHeadingDeclarations.matchAll(/([\w-]+)\s*:\s*([^;]+);/g)].map(
+      ([, property, value]) => [property, value.trim()]
+    ),
+    [['padding-block', '4px']]
+  )
+  assert.deepEqual(tallSelectors, [
+    '.pe-tools-panel',
+    '.pe-tools-panel .pe-tool-section h2',
+  ])
+  assert.match(shortViewportStyle, /\.pe-tools-panel\s*\{[^}]*overflow-y:\s*auto/s)
+})
+
 test('keeps pixel text alignment buttons compact and behaviorally unchanged', () => {
   const textAlignmentButtonStyle = extractCssBlock(
     editorStyles,

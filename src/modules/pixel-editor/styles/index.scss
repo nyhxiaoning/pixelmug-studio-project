@@ -1224,6 +1224,18 @@
 }
 
 /* ==================== Responsive ==================== */
+@media (min-height: 800px) {
+  .pe-tools-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .pe-tools-panel .pe-tool-section h2 {
+    padding-block: 4px;
+  }
+}
+
 @media (max-height: 699px) {
   .pe-editor-scroll {
     height: auto;
