@@ -346,7 +346,6 @@
       >
         <el-table
           :data="sortedWorkList"
-          stripe
           style="width: 100%"
           @row-click="handleRowClick"
           v-loading="loadingMore"

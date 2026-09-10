@@ -78,7 +78,6 @@
         <div v-else class="publish-table-wrap">
           <el-table
             :data="tableData"
-            stripe
             style="width: 100%"
             v-loading="loadingMore"
             element-loading-text="Loading..."
