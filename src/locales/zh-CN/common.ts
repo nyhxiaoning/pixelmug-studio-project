@@ -269,7 +269,7 @@ export default {
   pxm_editor_import_ordered: '有序抖动',
   pxm_editor_import_floyd: 'Floyd-Steinberg',
   pxm_editor_import_apply: '应用到当前图层',
-  pxm_editor_import_hint: '静态 PNG 会保留原始 RGB 颜色；小于 256 x 256 的图片不会自动放大。完整显示保留全图，铺满裁剪保留比例但可能裁掉边缘，拉伸会改变比例。',
+  pxm_editor_import_hint: '静态 PNG 会保留原始 RGB 颜色；完整显示保留全图，铺满裁剪保留比例但可能裁掉边缘，拉伸会改变比例。',
   pxm_editor_pixel_preview: '32 x 16',
   pxm_editor_fit_contain: '完整显示',
   pxm_editor_fit_cover: '铺满裁剪',

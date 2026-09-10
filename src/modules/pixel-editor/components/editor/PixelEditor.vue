@@ -751,7 +751,7 @@
         <div class="pe-import-grid">
           <div class="pe-import-crop-area">
             <div class="pe-import-label-row">
-              <span>{{ t('common.pxm_editor_import_crop') }}</span>
+              <span>{{ t('common.pxm_editor_import_crop') }} · 2:1</span>
               <span>{{ t('common.pxm_editor_import_drag') }}</span>
             </div>
             <canvas
@@ -764,24 +764,13 @@
               @pointercancel="handleImportPointerUp"
               @wheel.prevent="handleImportWheel"
             />
-            <div class="pe-control-row">
-              <label>{{ t('common.pxm_editor_import_zoom') }}</label>
-              <input
-                v-model.number="importDialog.zoom"
-                type="range"
-                min="0.5"
-                max="4"
-                step="0.05"
-                @input="renderImportPreview"
-              />
-              <span class="pe-zoom-value">{{ Number(importDialog.zoom || 1).toFixed(2) }}x</span>
-            </div>
+       
           </div>
           <div class="pe-import-controls">
             <div class="pe-import-preview">
               <div class="pe-import-label-row">
                 <span>{{ t('common.pxm_editor_import_pixel_preview') }}</span>
-                <span>{{ t('common.pxm_editor_pixel_preview') }}</span>
+                <span>32 × 16</span>
               </div>
               <canvas ref="importCanvasRef" width="256" height="128" />
             </div>
@@ -790,15 +779,6 @@
               <select v-model="importDialog.fit" @change="handleResetImportCrop">
                 <option value="contain">{{ t('common.pxm_editor_fit_contain') }}</option>
                 <option value="cover">{{ t('common.pxm_editor_fit_cover') }}</option>
-                <option value="stretch">{{ t('common.pxm_editor_fit_stretch') }}</option>
-              </select>
-            </div>
-            <div class="pe-control-row">
-              <label>{{ t('common.pxm_editor_import_dither') }}</label>
-              <select v-model="importDialog.dither" @change="renderImportPreview">
-                <option value="none">{{ t('common.pxm_editor_import_none') }}</option>
-                <option value="ordered">{{ t('common.pxm_editor_import_ordered') }}</option>
-                <option value="floyd">{{ t('common.pxm_editor_import_floyd') }}</option>
               </select>
             </div>
             <button type="button" class="pe-primary pe-wide" @click="handleApplyImportToLayer">
@@ -811,6 +791,7 @@
         </div>
       </section>
     </div>
+
   </div>
 </template>
 
@@ -1152,7 +1133,7 @@ const editorMounted = ref<boolean>(false)
 // Keyboard handler reference
 const keydownHandler = ref<((event: KeyboardEvent) => void) | null>(null)
 
-// Import dialog
+// Kept for compatibility with legacy import helpers; active static imports use the direct path.
 const importDialog = reactive<ImportDialogState>({
   open: false,
   image: null,
@@ -3367,11 +3348,17 @@ async function handleLoadStaticImage(event: Event): Promise<void> {
   const file = target.files?.[0]
   target.value = ''
   if (!file) return
-  importDialog.image = await imageFromFile(file)
-  importDialog.open = true
-  handleResetImportCrop(false)
-  await nextTick()
-  renderImportPreview()
+  try {
+    importDialog.image = await imageFromFile(file)
+    const ratio = importDialog.image.width / Math.max(1, importDialog.image.height)
+    importDialog.fit = Math.abs(ratio - 1) < 0.1 || Math.abs(ratio - 2) < 0.15 ? 'contain' : 'cover'
+    importDialog.open = true
+    handleResetImportCrop(false)
+    await nextTick()
+    renderImportPreview()
+  } catch (error) {
+    status.value = (error as Error).message
+  }
 }
 
 function handleResetImportCrop(render: boolean = true): void {
@@ -3534,19 +3521,21 @@ function handleCloseImportDialog(): void {
 }
 
 function handleApplyImportToLayer(): void {
-  if (!currentLayer.value) return
+  const layer = currentLayer.value
+  if (!layer || !importDialog.image) return
   snapshot()
   const pixels = renderImageToPixels(importDialog.image, {
     ...importDialog,
-    outputWidth: CANVAS_WIDTH,
-    outputHeight: CANVAS_HEIGHT,
+    outputWidth: WIDTH,
+    outputHeight: HEIGHT,
     allowUpscale: false,
     preserveColors: true,
   })
-  currentViewportX.value = DEFAULT_VIEWPORT_X
-  currentViewportY.value = DEFAULT_VIEWPORT_Y
-  currentLayer.value.canvasPixels = pixelsToCanvasPixels(pixels, CANVAS_WIDTH, CANVAS_HEIGHT)
-  refreshLayerVisibleFromCanvas(currentLayer.value, currentViewportX.value, currentViewportY.value)
+  const viewportX = currentViewportX.value
+  const viewportY = currentViewportY.value
+  layer.pixels = pixels
+  layer.canvasPixels = localPixelsToCanvasPixels(pixels, viewportX, viewportY)
+  refreshLayerVisibleFromCanvas(layer, viewportX, viewportY)
   handleCloseImportDialog()
   touchProject(t('common.pxm_editor_import_image_pixelated'))
 }
@@ -3658,17 +3647,13 @@ function getProjectForExport(
 }
 
 // File input click handlers
-function handleStaticFileInputClick(): void {
-  staticFileInputRef.value?.click()
-}
-
 function handleGifFileInputClick(): void {
   gifFileInputRef.value?.click()
 }
 
 function handleImportCommand(command: 'static' | 'animated'): void {
   if (command === 'static') {
-    handleStaticFileInputClick()
+    staticFileInputRef.value?.click()
     return
   }
   handleGifFileInputClick()

@@ -811,30 +811,40 @@ test('defines layer visibility and duplication feedback in every supported local
   assert.match(localeSources[2], /pxm_editor_copy_suffix\s*:/)
 })
 
-test('keeps the import dialog semantics and every crop interaction binding', () => {
-  const modalStart = editorSource.indexOf('v-if="importDialog.open"')
-  const modalEnd = editorSource.indexOf('</template>', modalStart)
-  const modalBlock = editorSource.slice(modalStart, modalEnd)
+test('crops static images at a 2:1 ratio before pixelizing to 32x16', () => {
+  assert.match(editorSource, /v-if="importDialog\.open"/)
+  assert.match(editorSource, /<span>\{\{ t\('common\.pxm_editor_import_crop'\) \}\} · 2:1<\/span>/)
+  assert.match(editorSource, /<option value="contain">/)
+  assert.match(editorSource, /<option value="cover">/)
+  assert.doesNotMatch(editorSource, /<option value="stretch">/)
+  assert.doesNotMatch(editorSource, /handleStaticFileInputClick/)
 
-  assert.ok(modalStart >= 0)
-  assert.ok(modalEnd > modalStart)
-  assert.match(modalBlock, /class="pe-modal-backdrop"/)
-  assert.match(modalBlock, /@click\.self="handleCloseImportDialog"/)
-  assert.match(modalBlock, /role="dialog"/)
-  assert.match(modalBlock, /aria-modal="true"/)
-  assert.match(modalBlock, /:aria-label="t\('common\.pxm_editor_import_image_pixelated'\)"/)
-  assert.match(modalBlock, /ref="importCropCanvasRef"/)
-  assert.match(modalBlock, /@pointerdown="handleImportPointerDown"/)
-  assert.match(modalBlock, /@pointermove="handleImportPointerMove"/)
-  assert.match(modalBlock, /@pointerup="handleImportPointerUp"/)
-  assert.match(modalBlock, /@pointercancel="handleImportPointerUp"/)
-  assert.match(modalBlock, /@wheel\.prevent="handleImportWheel"/)
-  assert.match(modalBlock, /v-model\.number="importDialog\.zoom"/)
-  assert.match(modalBlock, /v-model="importDialog\.fit"/)
-  assert.match(modalBlock, /v-model="importDialog\.dither"/)
-  assert.match(modalBlock, /ref="importCanvasRef"/)
-  assert.match(modalBlock, /@click="handleCloseImportDialog"/)
-  assert.match(modalBlock, /@click="handleApplyImportToLayer"/)
+  const loadBlock = editorSource.slice(
+    editorSource.indexOf('async function handleLoadStaticImage'),
+    editorSource.indexOf('function handleResetImportCrop')
+  )
+  assert.match(loadBlock, /await imageFromFile\(file\)/)
+  assert.match(loadBlock, /importDialog\.open\s*=\s*true/)
+  assert.match(loadBlock, /Math\.abs\(ratio - 2\) < 0\.15/)
+
+  const applyBlock = editorSource.slice(
+    editorSource.indexOf('function handleApplyImportToLayer'),
+    editorSource.indexOf('async function handleLoadGifImage')
+  )
+  assert.match(applyBlock, /outputWidth:\s*WIDTH/)
+  assert.match(applyBlock, /outputHeight:\s*HEIGHT/)
+  assert.match(
+    applyBlock,
+    /layer\.canvasPixels\s*=\s*localPixelsToCanvasPixels\(pixels, viewportX, viewportY\)/
+  )
+  assert.match(applyBlock, /refreshLayerVisibleFromCanvas\(/)
+
+  const commandBlock = editorSource.slice(
+    editorSource.indexOf('function handleImportCommand'),
+    editorSource.indexOf('function handleExportCommand')
+  )
+  assert.match(commandBlock, /staticFileInputRef\.value\?\.click\(\)/)
+  assert.doesNotMatch(commandBlock, /handleStaticFileInputClick/)
 })
 
 test('plays one animation cycle inside the editor canvas and restores frame one', () => {

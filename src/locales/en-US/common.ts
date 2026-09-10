@@ -268,7 +268,7 @@ export default {
   pxm_editor_import_ordered: 'Ordered',
   pxm_editor_import_floyd: 'Floyd-Steinberg',
   pxm_editor_import_apply: 'Apply to current layer',
-  pxm_editor_import_hint: 'Static PNG keeps original RGB colors. Images under 256 x 256 are not upscaled. "Full" keeps the whole image, "Cover" keeps aspect ratio but may crop edges, "Stretch" changes aspect ratio.',
+  pxm_editor_import_hint: 'Static PNG keeps original RGB colors. "Full" keeps the whole image, "Cover" keeps aspect ratio but may crop edges, "Stretch" changes aspect ratio.',
   pxm_editor_pixel_preview: '32 x 16',
   pxm_editor_fit_contain: 'Full',
   pxm_editor_fit_cover: 'Cover',
