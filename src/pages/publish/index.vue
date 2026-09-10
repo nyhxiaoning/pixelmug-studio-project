@@ -154,6 +154,14 @@
                     <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
                       {{ $t('common.pxm_publish_apply') }}
                     </el-button>
+                    <el-button
+                      size="small"
+                      type="danger"
+                      pxm_action_delete
+                      @click="handleDeleteRejected(row)"
+                    >
+                      {{ $t('common.pxm_action_delete') }}
+                    </el-button>
                   </template>
                   <!-- 已下架：重新发布 + 删除 -->
                   <template v-if="row.status === 'offline'">
@@ -346,7 +354,12 @@ import {
   submitWorkUpdateApi,
   submitWorkApi,
 } from '@/api/publish'
-import { pageReleasesApi, pageReleaseCandidatesApi, pageTagWorksApi } from '@/api/works'
+import {
+  deleteWorkApi,
+  pageReleasesApi,
+  pageReleaseCandidatesApi,
+  pageTagWorksApi,
+} from '@/api/works'
 
 const { t } = useAppI18n()
 
@@ -790,6 +803,27 @@ const handleWithdraw = (row) => {
 const handleDelete = (row) => {
   ElMessageBox.confirm(
     t('common.pxm_publish_confirm_delete'),
+    t('common.pxm_publish_confirm_title'),
+    {
+      type: 'error',
+      confirmButtonText: t('common.pxm_common_confirm'),
+      cancelButtonText: t('common.pxm_common_cancel'),
+    }
+  )
+    .then(() => {
+      return removeFromReleasesApi(row.id)
+    })
+    .then(() => {
+      ElMessage.success(t('common.pxm_delete_success'))
+      resetTableData()
+    })
+    .catch(() => {})
+}
+
+/** j. 已驳回 - 删除作品 */
+const handleDeleteRejected = (row) => {
+  ElMessageBox.confirm(
+    t('common.pxm_publish_confirm_delete_rejected'),
     t('common.pxm_publish_confirm_title'),
     {
       type: 'error',

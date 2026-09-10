@@ -867,6 +867,28 @@ test('uploads static images from the same contain-fitted pixels used by the edit
   )
 })
 
+test('allows rejected publish items to be deleted', () => {
+  const publishSource = readFileSync(
+    new URL('../../../src/pages/publish/index.vue', import.meta.url),
+    'utf8'
+  )
+
+  const rejectedBlock = publishSource.slice(
+    publishSource.indexOf("row.status === 'rejected'"),
+    publishSource.indexOf("row.status === 'offline'")
+  )
+  assert.match(rejectedBlock, /pxm_action_delete/)
+  assert.match(rejectedBlock, /@click="handleDeleteRejected\(row\)"/)
+
+  const handlerBlock = publishSource.slice(
+    publishSource.indexOf('const handleDeleteRejected'),
+    publishSource.indexOf('/** 搜索防抖')
+  )
+  assert.match(handlerBlock, /pxm_publish_confirm_delete_rejected/)
+  assert.match(handlerBlock, /deleteWorkApi\(row\.id\)/)
+  assert.match(handlerBlock, /resetTableData\(\)/)
+})
+
 test('plays one animation cycle inside the editor canvas and restores frame one', () => {
   const navStart = editorSource.indexOf('<header class="pe-editor-nav">')
   const navEnd = editorSource.indexOf('</header>', navStart)

@@ -129,6 +129,7 @@ export default {
   pxm_publish_confirm_withdraw: 'Withdraw this review request?',
   pxm_publish_confirm_publish: 'Submit this work for publishing review?',
   pxm_publish_confirm_delete: 'Delete this offline work? This cannot be undone.',
+  pxm_publish_confirm_delete_rejected: 'Delete this rejected work? This cannot be undone.',
   pxm_publish_action_failed: 'Action failed. Refresh and try again.',
   pxm_publish_incomplete: 'This work cannot be submitted yet. Complete the information and try again.',
 

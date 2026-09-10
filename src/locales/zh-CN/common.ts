@@ -130,6 +130,7 @@ export default {
   pxm_publish_confirm_withdraw: '确认撤回该作品的审核申请吗？',
   pxm_publish_confirm_publish: '确认提交该作品进行发布审核吗？',
   pxm_publish_confirm_delete: '确认删除该下架作品吗？删除后不可恢复。',
+  pxm_publish_confirm_delete_rejected: '确认删除该驳回作品吗？删除后不可恢复。',
   pxm_publish_action_failed: '操作失败，请刷新后重试。',
   pxm_publish_incomplete: '作品暂不可提交，请完善信息后重试',
 

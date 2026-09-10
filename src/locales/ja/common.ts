@@ -118,6 +118,7 @@ export default {
   pxm_publish_confirm_withdraw: 'この審査申請を取り下げますか？',
   pxm_publish_confirm_publish: 'この作品を公開審査に提出しますか？',
   pxm_publish_confirm_delete: 'この非公開作品を削除しますか？元に戻せません。',
+  pxm_publish_confirm_delete_rejected: 'この却下された作品を削除しますか？元に戻せません。',
   pxm_publish_action_failed: '操作できませんでした。更新して再試行してください。',
   pxm_publish_incomplete: 'この作品はまだ提出できません。情報を整えて再試行してください。',
 
