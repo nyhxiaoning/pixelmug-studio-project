@@ -886,7 +886,8 @@ const handleStaticImageUpload = async (file: File) => {
   }
 
   // Step 3: 上传静态图 + JSON 数据
-  const uploadResult = await uploadStaticImageWithJson(file, projectData)
+  // 上传文件、封面和编辑 JSON 均使用同一份 contain 后的 32×16 像素点，避免原图再次被水平拉伸。
+  const uploadResult = await uploadStaticImageWithJson(file, projectData, pixels)
 
   console.log('Upload result:', uploadResult)
 

@@ -847,6 +847,26 @@ test('crops static images at a 2:1 ratio before pixelizing to 32x16', () => {
   assert.doesNotMatch(commandBlock, /handleStaticFileInputClick/)
 })
 
+test('uploads static images from the same contain-fitted pixels used by the editor', () => {
+  const worksSource = readFileSync(
+    new URL('../../../src/pages/works/index.vue', import.meta.url),
+    'utf8'
+  )
+  const uploadSource = readFileSync(
+    new URL('../../../src/lib/images/uploadFile.ts', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(worksSource, /uploadStaticImageWithJson\(file, projectData, pixels\)/)
+  assert.match(uploadSource, /pixels:\s*ReadonlyArray<string \| null \| undefined>/)
+  assert.match(uploadSource, /const rgb565Blob = colorsToBlob\(normalizedPixels\)/)
+  assert.match(uploadSource, /convertHexArrayToPng\(\s*normalizedPixels/)
+  assert.doesNotMatch(
+    uploadSource,
+    /uploadStaticImageWithJson[\s\S]*?convertImageToRGB565\(file/
+  )
+})
+
 test('plays one animation cycle inside the editor canvas and restores frame one', () => {
   const navStart = editorSource.indexOf('<header class="pe-editor-nav">')
   const navEnd = editorSource.indexOf('</header>', navStart)

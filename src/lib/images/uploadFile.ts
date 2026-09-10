@@ -309,7 +309,8 @@ export const uploadStaticImage = (file: File): Promise<AddArtifactParam> => {
 
 export const uploadStaticImageWithJson = async (
   file: File,
-  projectData: object
+  projectData: object,
+  pixels: ReadonlyArray<string | null | undefined>
 ): Promise<{
   coverUrl: string
   binFileUrl: string
@@ -319,15 +320,21 @@ export const uploadStaticImageWithJson = async (
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     try {
-      // Step 1: 上传原始图片作为封面
-      await uploadFile(file, sanitizeFileName(file.name), 'COVER_IMAGE')
-
-      // Step 2: 转换为 RGB565 二进制数据
-      const rgb565Blob = await convertImageToRGB565(file, UploadFileEnum.STATIC_BIN)
+      // 使用已经完成 contain/crop 的像素点生成上传文件。
+      // 不能再次从原图 drawImage 到 32×16，否则会把原图强制拉伸。
+      const normalizedPixels = Array.from(
+        { length: WIDTH * HEIGHT },
+        (_, index) => pixels[index] || null
+      )
+      const rgb565Blob = colorsToBlob(normalizedPixels)
       const binUploadRes = await uploadFile(rgb565Blob, binFileName, 'STATIC_BIN')
 
-      // Step 3: 转换为 PNG 预览图
-      const pngBlob = await convertRgb565BlobToPng(rgb565Blob, defaultImageSize.width, defaultImageSize.height)
+      // PNG 封面与 BIN、编辑器 JSON 共用同一份像素数据，保证显示比例和存储一致。
+      const pngBlob = await convertHexArrayToPng(
+        normalizedPixels,
+        defaultImageSize.width,
+        defaultImageSize.height
+      )
       const pngUploadRes = await uploadFile(pngBlob, sanitizeFileName(file.name), 'STATIC_BIN')
 
       // Step 4: 校验项目数据中的像素数据
