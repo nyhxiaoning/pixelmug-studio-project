@@ -119,13 +119,14 @@
                 <div class="publish-actions">
                   <!-- 无状态/默认：提交发布 -->
                   <template v-if="!row.status || row.status === 'draft'">
-                    <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
+                    <el-button link type="primary" size="small" pxm_publish_apply @click="singlePublish(row)">
                       {{ $t('common.pxm_publish_apply') }}
                     </el-button>
                   </template>
                   <!-- 审核中：撤回发布 -->
                   <template v-if="row.status === 'reviewing'">
                     <el-button
+                      link
                       size="small"
                       type="danger"
                       pxm_publish_withdraw
@@ -136,10 +137,11 @@
                   </template>
                   <!-- 已发布：发布更新 + 下架 -->
                   <template v-if="row.status === 'published'">
-                    <el-button v-if="row.contentConsistent" size="small" pxm_publish_update @click="handleUpdate(row)">
+                    <el-button v-if="row.contentConsistent" link size="small" pxm_publish_update @click="handleUpdate(row)">
                       {{ $t('common.pxm_publish_update') }}
                     </el-button>
                     <el-button
+                      link
                       size="small"
                       type="warning"
                       pxm_publish_unPublish
@@ -150,10 +152,11 @@
                   </template>
                   <!-- 已驳回：重新发布 -->
                   <template v-if="row.status === 'rejected'">
-                    <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
+                    <el-button link type="primary" size="small" pxm_publish_apply @click="singlePublish(row)">
                       {{ $t('common.pxm_publish_apply') }}
                     </el-button>
                     <el-button
+                      link
                       size="small"
                       type="danger"
                       pxm_action_delete
@@ -164,10 +167,11 @@
                   </template>
                   <!-- 已下架：重新发布 + 删除 -->
                   <template v-if="row.status === 'offline'">
-                    <el-button size="small" pxm_publish_apply @click="singlePublish(row)">
+                    <el-button link type="primary" size="small" pxm_publish_apply @click="singlePublish(row)">
                       {{ $t('common.pxm_publish_apply') }}
                     </el-button>
                     <el-button
+                      link
                       size="small"
                       type="danger"
                       pxm_action_delete
