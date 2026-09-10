@@ -172,17 +172,15 @@ test('groups existing tools in the live reference order', () => {
   const selectionIndex = editorSource.indexOf('pe-tool-section--selection')
   const onionIndex = editorSource.indexOf('pe-tool-section--onion')
   const textIndex = editorSource.indexOf('pe-tool-section--text')
-  const footerIndex = editorSource.indexOf('pe-tools-footer')
 
   assert.ok(toolsIndex >= 0)
   assert.ok(toolsIndex < shapesIndex)
   assert.ok(shapesIndex < selectionIndex)
   assert.ok(selectionIndex < onionIndex)
   assert.ok(onionIndex < textIndex)
-  assert.ok(textIndex < footerIndex)
+  assert.equal(editorSource.includes('pe-tools-footer'), false)
+  assert.equal(editorSource.includes('pe-export-settings'), false)
   assert.match(editorSource, /<component\s+:is="toolIcon\(tool\.id\)"/)
-  assert.match(editorSource, /class="pe-tools-footer"[\s\S]*v-model\.number="exportScale"/)
-  assert.match(editorSource, /class="pe-tools-footer"[\s\S]*<ThemeSwitcher/)
   assert.match(editorSource, /@click="handleCopySelection\(false\)"/)
   assert.match(editorSource, /@click="handleCopySelection\(true\)"/)
   assert.match(editorSource, /@click="handleDeleteSelection"/)
@@ -233,26 +231,25 @@ test('keeps the left toolbar compact without removing its existing groups', () =
     'pe-tool-section--selection',
     'pe-tool-section--onion',
     'pe-tool-section--text',
-    'pe-tools-footer',
   ]
 
   assert.match(toolbarStyle, /font-size:\s*12px/)
   assert.match(toolbarStyle, /overflow:\s*hidden/)
   assert.match(toolbarTypographyStyle, /font-size:\s*12px/)
   assert.doesNotMatch(toolbarTypographyStyle, /font-weight\s*:/)
-  assert.match(toolbarSectionStyle, /padding:\s*3px 8px/)
-  assert.match(toolbarHeadingStyle, /margin-bottom:\s*3px/)
+  assert.match(toolbarSectionStyle, /padding:\s*clamp\(4px, 1vh, 10px\) 8px/)
+  assert.match(toolbarHeadingStyle, /margin-bottom:\s*clamp\(3px, 0\.7vh, 7px\)/)
   assert.match(toolbarHeadingStyle, /line-height:\s*1\.2/)
   assert.doesNotMatch(toolbarHeadingStyle, /font-weight\s*:/)
-  assert.match(toolbarControlRowStyle, /gap:\s*5px/)
-  assert.match(toolbarControlRowStyle, /margin-top:\s*4px/)
-  assert.match(toolbarGridStyle, /gap:\s*4px/)
-  assert.match(toolbarButtonRowStyle, /gap:\s*5px/)
-  assert.match(toolbarButtonRowStyle, /margin-top:\s*4px/)
-  assert.match(toolbarInputStyle, /height:\s*28px/)
-  assert.match(toolbarInputStyle, /min-height:\s*28px/)
-  assert.match(toolbarInputStyle, /padding:\s*4px 6px/)
-  assert.match(toolbarIconStyle, /min-height:\s*32px/)
+  assert.match(toolbarControlRowStyle, /gap:\s*clamp\(4px, 0\.7vh, 7px\)/)
+  assert.match(toolbarControlRowStyle, /margin-top:\s*clamp\(4px, 0\.85vh, 8px\)/)
+  assert.match(toolbarGridStyle, /gap:\s*clamp\(4px, 0\.7vh, 7px\)/)
+  assert.match(toolbarButtonRowStyle, /gap:\s*clamp\(4px, 0\.7vh, 7px\)/)
+  assert.match(toolbarButtonRowStyle, /margin-top:\s*clamp\(4px, 0\.85vh, 8px\)/)
+  assert.match(toolbarInputStyle, /height:\s*clamp\(28px, 3\.4vh, 30px\)/)
+  assert.match(toolbarInputStyle, /min-height:\s*clamp\(28px, 3\.4vh, 30px\)/)
+  assert.match(toolbarInputStyle, /padding:\s*5px 6px/)
+  assert.match(toolbarIconStyle, /min-height:\s*clamp\(30px, 4vh, 34px\)/)
   assert.match(toolbarSvgStyle, /width:\s*15px/)
   assert.match(toolbarSvgStyle, /height:\s*15px/)
   assert.match(selectionGridStyle, /grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/)
@@ -263,7 +260,7 @@ test('keeps the left toolbar compact without removing its existing groups', () =
   assert.match(textStyle, /overflow-x:\s*auto/)
   assert.match(textStyle, /overflow-y:\s*hidden/)
   assert.match(textStyle, /resize:\s*none/)
-  assert.match(shortViewportStyle, /\.pe-tools-panel\s*\{[^}]*overflow-y:\s*auto/s)
+  assert.match(shortViewportStyle, /\.pe-tools-panel\s*\{[^}]*overflow:\s*hidden/s)
 
   const groupIndexes = groupMarkers.map((marker) => editorSource.indexOf(marker))
   assert.ok(groupIndexes.every((index) => index >= 0))
@@ -378,48 +375,13 @@ test('keeps the color label and closes the controlled picker safely', () => {
   }
 })
 
-test('distributes toolbar groups only when the viewport is tall', () => {
+test('keeps toolbar groups in normal flow at every viewport height', () => {
   const toolbarStyle = extractCssBlock(editorStyles, '.pe-tools-panel')
-  const tallViewportStyle = extractCssBlock(editorStyles, '@media (min-height: 800px)')
-  const tallViewportBody = tallViewportStyle.slice(
-    tallViewportStyle.indexOf('{') + 1,
-    tallViewportStyle.lastIndexOf('}')
-  )
-  const tallToolbarStyle = tallViewportStyle.match(/\.pe-tools-panel\s*\{([^}]*)\}/s)?.[1] ?? ''
-  const tallHeadingStyle = extractCssBlock(
-    tallViewportStyle,
-    '.pe-tools-panel .pe-tool-section h2'
-  )
-  const tallHeadingDeclarations = tallHeadingStyle
-    .slice(tallHeadingStyle.indexOf('{') + 1, tallHeadingStyle.lastIndexOf('}'))
-  const tallSelectors = [...tallViewportBody.matchAll(/(?:^|\})\s*([^@{}][^{}]*?)\s*\{/g)].map(
-    ([, selector]) => selector.trim().replace(/\s+/g, ' ')
-  )
   const shortViewportStyle = extractCssBlock(editorStyles, '@media (max-height: 699px)')
 
-  assert.equal(editorStyles.match(/@media\s*\(min-height:\s*800px\)/g)?.length, 1)
+  assert.equal(editorStyles.match(/@media\s*\(min-height:\s*800px\)/g)?.length ?? 0, 0)
   assert.doesNotMatch(toolbarStyle, /display:\s*flex|justify-content:\s*space-between/)
-  assert.deepEqual(
-    [...tallToolbarStyle.matchAll(/([\w-]+)\s*:\s*([^;]+);/g)].map(
-      ([, property, value]) => [property, value.trim()]
-    ),
-    [
-      ['display', 'flex'],
-      ['flex-direction', 'column'],
-      ['justify-content', 'space-between'],
-    ]
-  )
-  assert.deepEqual(
-    [...tallHeadingDeclarations.matchAll(/([\w-]+)\s*:\s*([^;]+);/g)].map(
-      ([, property, value]) => [property, value.trim()]
-    ),
-    [['padding-block', '4px']]
-  )
-  assert.deepEqual(tallSelectors, [
-    '.pe-tools-panel',
-    '.pe-tools-panel .pe-tool-section h2',
-  ])
-  assert.match(shortViewportStyle, /\.pe-tools-panel\s*\{[^}]*overflow-y:\s*auto/s)
+  assert.match(shortViewportStyle, /\.pe-tools-panel\s*\{[^}]*overflow:\s*hidden/s)
 })
 
 test('keeps pixel text alignment buttons compact and behaviorally unchanged', () => {

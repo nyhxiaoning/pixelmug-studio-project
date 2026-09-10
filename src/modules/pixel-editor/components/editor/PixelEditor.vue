@@ -490,23 +490,6 @@
             </div>
           </section>
 
-          <footer class="pe-tools-footer">
-            <section class="pe-tool-section pe-export-settings">
-              <h2>{{ t('common.pxm_editor_export') }}</h2>
-              <div class="pe-control-row">
-                <label>{{ t('common.pxm_editor_scale_label') }}</label>
-                <select v-model.number="exportScale">
-                  <option :value="1">1x</option>
-                  <option :value="4">4x</option>
-                  <option :value="8">8x</option>
-                  <option :value="16">16x</option>
-                  <option :value="20">20x</option>
-                </select>
-              </div>
-            </section>
-
-         
-          </footer>
         </aside>
 
         <section class="pe-panel pe-canvas-panel">
@@ -635,42 +618,7 @@
               </button>
             </div>
           </div>
-          <div class="pe-canvas-overview">
-            <div ref="overviewScrollRef" class="pe-overview-scroll">
-              <canvas
-                :ref="setOverviewCanvasRef"
-                :width="overviewCanvasSize"
-                :height="overviewCanvasSize"
-                :style="{
-                  width: `${overviewCanvasSize}px`,
-                  height: `${overviewCanvasSize}px`,
-                }"
-                @pointerdown="handleJumpViewportFromOverview"
-                @pointermove="handleOverviewPointerMove"
-                @pointerleave="handleOverviewPointerLeave"
-              />
-            </div>
-            <div class="pe-overview-actions">
-              <label class="pe-overview-zoom-control">
-                <span>{{ t('common.pxm_editor_zoom') }} {{ overviewZoom.toFixed(2) }}x</span>
-                <input
-                  type="range"
-                  min="1"
-                  max="16"
-                  step="0.25"
-                  :value="overviewZoom"
-                  @input="handleSetOverviewZoom($event.target.value)"
-                />
-              </label>
-              <el-button class="pe-secondary" @click="handleSaveOverviewPng">
-                {{ t('common.pxm_editor_overview_save') }}
-              </el-button>
-              <span v-if="hoverOverviewPoint" class="pe-overview-coordinate"
-                >({{ hoverOverviewPoint.x }}, {{ hoverOverviewPoint.y }})</span
-              >
-              <span v-else class="pe-overview-coordinate">&nbsp;</span>
-            </div>
-          </div>
+
         </section>
 
         <section class="pe-panel pe-frame-panel">

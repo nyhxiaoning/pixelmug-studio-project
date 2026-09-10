@@ -455,7 +455,7 @@
 }
 
 .pe-tools-panel .pe-tool-section {
-  padding: 3px 8px;
+  padding: clamp(4px, 1vh, 10px) 8px;
 }
 
 .pe-tools-panel .pe-tool-section h2,
@@ -469,7 +469,7 @@
 }
 
 .pe-tools-panel .pe-tool-section h2 {
-  margin-bottom: 3px;
+  margin-bottom: clamp(3px, 0.7vh, 7px);
   line-height: 1.2;
 }
 
@@ -477,13 +477,8 @@
   padding: 10px;
 }
 
-.pe-tool-section + .pe-tool-section,
-.pe-tools-footer {
+.pe-tool-section + .pe-tool-section {
   border-top: 1px solid var(--pe-reference-border);
-}
-
-.pe-tools-footer .pe-tool-section:first-child {
-  border-top: 0;
 }
 
 .pe-tool-section h2 {
@@ -516,7 +511,7 @@
 }
 
 .pe-tools-panel .pe-icon-tool {
-  min-height: 32px;
+  min-height: clamp(30px, 4vh, 34px);
 }
 
 .pe-tools-panel .pe-icon-tool svg {
@@ -709,31 +704,31 @@
 }
 
 .pe-tools-panel .pe-control-row {
-  gap: 5px;
-  margin-top: 4px;
+  gap: clamp(4px, 0.7vh, 7px);
+  margin-top: clamp(4px, 0.85vh, 8px);
 }
 
 .pe-tools-panel .pe-tool-grid {
-  gap: 4px;
+  gap: clamp(4px, 0.7vh, 7px);
 }
 
 .pe-tools-panel .pe-button-row {
-  gap: 5px;
-  margin-top: 4px;
+  gap: clamp(4px, 0.7vh, 7px);
+  margin-top: clamp(4px, 0.85vh, 8px);
 }
 
 .pe-tools-panel input:not([type="range"]):not([type="color"]),
 .pe-tools-panel select,
 .pe-tools-panel textarea {
-  height: 28px;
-  min-height: 28px;
-  padding: 4px 6px;
+  height: clamp(28px, 3.4vh, 30px);
+  min-height: clamp(28px, 3.4vh, 30px);
+  padding: 5px 6px;
 }
 
 .pe-tool-section--text textarea {
-  height: 28px;
-  min-height: 28px;
-  max-height: 28px;
+  height: clamp(28px, 3.4vh, 30px);
+  min-height: clamp(28px, 3.4vh, 30px);
+  max-height: clamp(28px, 3.4vh, 30px);
   resize: none;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1276,18 +1271,6 @@
 }
 
 /* ==================== Responsive ==================== */
-@media (min-height: 800px) {
-  .pe-tools-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .pe-tools-panel .pe-tool-section h2 {
-    padding-block: 4px;
-  }
-}
-
 @media (max-height: 699px) {
   .pe-editor-scroll {
     height: auto;
@@ -1309,7 +1292,7 @@
   }
 
   .pe-tools-panel {
-    overflow-y: auto;
+    overflow: hidden;
   }
 }
 
