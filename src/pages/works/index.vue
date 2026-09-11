@@ -1262,6 +1262,15 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.works-list .row-name > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .works-list .row-preview {
