@@ -137,7 +137,7 @@
                   </template>
                   <!-- 已发布：发布更新 + 下架 -->
                   <template v-if="row.status === 'published'">
-                    <el-button v-if="row.contentConsistent" link size="small" pxm_publish_update @click="handleUpdate(row)">
+                    <el-button v-if="!row.contentConsistent" link size="small" pxm_publish_update @click="handleUpdate(row)">
                       {{ $t('common.pxm_publish_update') }}
                     </el-button>
                     <el-button
