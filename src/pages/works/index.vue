@@ -766,7 +766,7 @@ const handleFileUpload = async (e: Event) => {
           layers: [
             {
               id: `layer_${Date.now()}_${Math.random()}`,
-              name: 'Layer 1',
+              name: t('common.pxm_editor_layer_one'),
               visible: true,
               opacity: 1,
               pixels: pixels,
@@ -871,7 +871,7 @@ const handleStaticImageUpload = async (file: File) => {
         layers: [
           {
             id: `layer_${Date.now()}`,
-            name: 'Layer 1',
+            name: t('common.pxm_editor_layer_one'),
             visible: true,
             opacity: 1,
             pixels: pixels,

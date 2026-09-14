@@ -462,7 +462,10 @@ function toTableRow(api) {
     lastSubmit: formatDate(api.submittedTime || api.createTime),
     lastUpdate: formatDate(api.updateTime),
     status: api.status || api.publishStatus ? (api.status || api.publishStatus).toLowerCase() : '',
-    rejectReason: api.rejectReason || '',
+    hasWork: api.hasWork,
+    contentConsistent: api.contentConsistent ?? api.contentConsitent,
+    tagCode: api.tagCode,
+    rejectReason: api.rejectReason || api.rejectedReason || '',
     coverUrl: api.coverUrl || '',
   }
 }
@@ -628,7 +631,7 @@ const singlePublish = (row) => {
     }
   )
     .then(() => {
-      return submitWorkApi(row.id)
+      return submitWorkApi(row.id, { tagCode: row.tagCode })
     })
     .then(() => {
       ElMessage.success(t('common.pxm_publish_apply'))

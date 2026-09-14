@@ -893,6 +893,28 @@ test('allows rejected publish items to be deleted', () => {
   assert.match(handlerBlock, /resetTableData\(\)/)
 })
 
+test('preserves publish row fields required by publish actions', () => {
+  const publishSource = readFileSync(
+    new URL('../../../src/pages/publish/index.vue', import.meta.url),
+    'utf8'
+  )
+
+  const rowMapper = publishSource.slice(
+    publishSource.indexOf('function toTableRow(api)'),
+    publishSource.indexOf('// 主表格列表')
+  )
+  assert.match(rowMapper, /hasWork:\s*api\.hasWork/)
+  assert.match(rowMapper, /contentConsistent:\s*api\.contentConsistent\s*\?\?\s*api\.contentConsitent/)
+  assert.match(rowMapper, /tagCode:\s*api\.tagCode/)
+
+  const singlePublishBlock = publishSource.slice(
+    publishSource.indexOf('const singlePublish'),
+    publishSource.indexOf('/** f. 已上架')
+  )
+  assert.match(singlePublishBlock, /return submitWorkApi\(row\.id,\s*\{\s*tagCode:\s*row\.tagCode\s*\}\)/)
+  assert.doesNotMatch(singlePublishBlock, /console\.log\(|return;\s*\n\s*alert\(/)
+})
+
 test('plays one animation cycle inside the editor canvas and restores frame one', () => {
   const navStart = editorSource.indexOf('<header class="pe-editor-nav">')
   const navEnd = editorSource.indexOf('</header>', navStart)

@@ -77,8 +77,11 @@ export interface CreatorWorkVO {
   preview?: string
   publishStatus: "REJECTED" | "OFFLINE" |  "REVIEWING" | "PUBLISHED",
   status?:   "REJECTED" | "OFFLINE" |  "REVIEWING" | "PUBLISHED",
+  hasWork?: boolean
+  contentConsitent?: boolean
   workVersion?: string
   contentConsistent?: boolean
+  tagCode?: string
   submittedTime?: number
   remark?: string
   rejectedReason?: string
@@ -297,7 +300,6 @@ export function getWorkUploadTokenApi(role: FileRole, fileName?: string, fileSiz
     data: { role, fileName, fileSize },
   })
 }
-
 
 
 
