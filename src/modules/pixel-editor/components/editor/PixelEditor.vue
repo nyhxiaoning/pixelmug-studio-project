@@ -2588,7 +2588,9 @@ function handleCommitFrameDelay(): void {
   const current = Number(currentFrame.value.delay)
   const fallback = Number.isFinite(current) ? current : 120
   const delay = Math.max(20, Math.min(5000, Number.isFinite(parsed) ? parsed : fallback))
-  currentFrame.value.delay = delay
+  project.value.frames.forEach((frame) => {
+    frame.delay = delay
+  })
   frameDelayInput.value = String(delay)
   touchProject(t('common.pxm_editor_frame_interval_updated'))
 }

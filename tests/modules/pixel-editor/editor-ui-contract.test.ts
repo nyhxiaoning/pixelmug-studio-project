@@ -789,6 +789,10 @@ test('keeps every animation-frame interaction in the reference bottom panel', ()
   assert.match(editorSource, /@blur="handleCommitFrameDelay"/)
   assert.match(editorSource, /@change="handleCommitFrameDelay"/)
   assert.match(editorSource, /@keydown\.enter="handleCommitFrameDelay"/)
+  assert.match(
+    editorSource,
+    /function handleCommitFrameDelay\(\): void \{[\s\S]*?project\.value\.frames\.forEach\(\(frame\) => \{\s*frame\.delay = delay\s*\}\)/
+  )
   assert.match(editorSource, /:ref="\(el\) => setFrameThumbRef\(frame\.id, el\)"/)
   assert.match(editorSource, /@click="handleSelectFrame\(index\)"/)
   assert.match(editorSource, /@dragstart="handleStartFrameDrag\(index, \$event\)"/)
