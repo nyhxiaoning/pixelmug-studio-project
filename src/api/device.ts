@@ -56,6 +56,20 @@ export function pageDevicesApi(params: CreatorDevicePageRequest) {
   })
 }
 
+
+/**
+ * 设置某一个设备选中或取消选中状态
+ * @param id 
+ * @returns 
+ */
+export function setSelectedDevicesApi(id:string, data: { selected: boolean }) {
+  return request({
+    url: `/creator/select/${id}`,
+    method: "post",
+    data,
+  })
+}
+
 /**
  * 查询所有我的设备（不分页）
  * GET /creator/devices?pageNumber=1&pageSize=999

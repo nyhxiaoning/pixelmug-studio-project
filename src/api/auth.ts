@@ -40,6 +40,17 @@ export function sendLoginCodeApi(account: any) {
   })
 }
 
+export function sendLoginCodeApiNew(account: any) {
+  const isEmail = account?.includes("@")
+  return request<void>({
+    url: "/creator/auth/account/code",
+    method: "post",
+    data: {
+      account: account
+    }
+  })
+}
+
 
 
 export function authLoginIn(account: any) {
@@ -54,6 +65,23 @@ export function authLoginIn(account: any) {
       password: account?.password,
       code: account?.code,
       phone: isEmail ? undefined : account?.username,
+      // verifyType: isEmail ? 2 : 1,
+      // codeType: 0
+    }
+  })
+}
+
+export function authLoginInNew(account: any) {
+  // const isEmail = account?.username?.includes("@")
+  return request<void>({
+    url: "/creator/auth/account/login",
+    method: "post",
+    data: {
+      loginType: account?.code ? "CODE" : "PASSWORD",// PASSWORD CODE
+      account: account.account,
+      password: '',
+      code: account?.code,
+      // phone: isEmail ? undefined : account?.username,
       // verifyType: isEmail ? 2 : 1,
       // codeType: 0
     }

@@ -3,7 +3,7 @@ import { ElMessage } from "element-plus"
 import { ArrowDown, ChatDotRound, Lock, User } from "@element-plus/icons-vue"
 import { computed, defineComponent, onBeforeUnmount, reactive, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { sendLoginCodeApi, authLoginIn } from "@/api/auth"
+import { sendLoginCodeApi, authLoginIn, sendLoginCodeApiNew, authLoginInNew } from "@/api/auth"
 import { useUserStore } from "@/pinia/modules/user"
 import { SUPPORT_LOCALES, getLocale, getLocaleDisplayName, setLocale } from "@/locales"
 // 多语言测试
@@ -138,12 +138,27 @@ export default defineComponent({
         const account = form.username.trim()
         console.log('account', account, loginType.value, form.password.trim(), 'form---')
         userStore.loginUserName = account;
-        const res = await authLoginIn({
-          username: account,
-          loginType: loginType.value,
-          password: loginType.value === "PASSWORD" ? form.password.trim() : undefined,
-          code: loginType.value === "CODE" ? form.code.trim() : undefined
-        })
+        // 优化内容了：根据 account 自动识别手机号或邮箱并发送验证码
+        // 这里username，修改成account了？？？TODO:
+        // 密码登录接口没变
+        let res;
+        if (loginType.value === "PASSWORD") {
+          res = await authLoginIn({
+            username: account,
+            loginType: loginType.value,
+            password: loginType.value === "PASSWORD" ? form.password.trim() : undefined,
+            code: loginType.value === "CODE" ? form.code.trim() : undefined
+          })
+        } else {
+          
+          res = await authLoginInNew({
+            account: account,
+            loginType: loginType.value,
+            password: "",// 空
+            code: loginType.value === "CODE" ? form.code.trim() : undefined
+          })
+        }
+
 
         // 判断一下：这里如果
         userStore.setLogin(res?.result)
@@ -170,7 +185,8 @@ export default defineComponent({
 
       // alert(JSON.stringify(account))
       try {
-        let res = await sendLoginCodeApi(account)
+        // 如果是手机号或邮箱，那么替换接口下发字段
+        let res = await sendLoginCodeApiNew(account)
         // alert(JSON.stringify(res))
         // 验证码倒计时
         startCountdown()

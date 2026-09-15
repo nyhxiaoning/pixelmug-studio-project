@@ -441,7 +441,7 @@ import {
   CreatorWorkVO,
 } from '@/api/works'
 import type { CreatorDeviceVO, CreatorWorkSaveRequest } from '@/api/device'
-import { listDevicesApi, previewToDeviceApi } from '@/api/device'
+import { listDevicesApi, previewToDeviceApi,setSelectedDevicesApi } from '@/api/device'
 import {
   checkFile,
   uploadUserFile,
