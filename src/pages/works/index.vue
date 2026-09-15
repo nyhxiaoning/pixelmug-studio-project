@@ -88,22 +88,16 @@
           <div class="preview-device-panel-head">
             {{ $t('common.pxm_device_bound') }}
           </div>
-          <el-checkbox-group v-model="selectedDeviceIds">
+          <el-checkbox-group v-model="selectedDeviceIds" @change="handleDeviceSelectionChange">
             <div class="device-list">
               <div
                 v-for="dev in deviceList"
                 :key="dev.id"
                 class="device-item"
-                :class="{ offline: dev.online !== 'ONLINE' }"
               >
                 <el-checkbox :label="dev.id">
                   <span :class="['device-dot', dev.online === 'ONLINE' ? 'online' : 'offline']" />
                   <span class="device-name">{{ dev.name }}</span>
-                  <em>{{
-                    dev.online === 'ONLINE'
-                      ? $t('common.pxm_device_online')
-                      : $t('common.pxm_device_offline')
-                  }}</em>
                 </el-checkbox>
               </div>
             </div>
@@ -441,7 +435,7 @@ import {
   CreatorWorkVO,
 } from '@/api/works'
 import type { CreatorDeviceVO, CreatorWorkSaveRequest } from '@/api/device'
-import { listDevicesApi, previewToDeviceApi,setSelectedDevicesApi } from '@/api/device'
+import { listDevicesApi, previewToDeviceApi, setSelectedDevicesApi } from '@/api/device'
 import {
   checkFile,
   uploadUserFile,
@@ -634,24 +628,44 @@ const applySort = () => {
 const DEVICE_SESSION_KEY = 'creator.preview.deviceIds'
 const deviceList = ref<CreatorDeviceVO[]>([])
 const selectedDeviceIds = ref<string[]>([])
+const previousSelectedDeviceIds = ref<string[]>([])
 
 async function fetchDevices() {
   try {
     const res = await listDevicesApi()
     deviceList.value = res.result ?? []
-    // 从 sessionStorage 恢复之前选中的设备
-    const saved = sessionStorage.getItem(DEVICE_SESSION_KEY)
-    if (saved) {
-      try {
-        const ids: string[] = JSON.parse(saved)
-        // 只恢复仍然在设备列表中的 id（避免已解绑设备残留）
-        selectedDeviceIds.value = ids.filter((id) => deviceList.value.some((d) => d.id === id))
-      } catch {
-        // 解析失败则忽略
-      }
-    }
+    selectedDeviceIds.value = deviceList.value
+      .filter((device) => device.selected === true)
+      .map((device) => device.id)
+    previousSelectedDeviceIds.value = [...selectedDeviceIds.value]
   } catch (e) {
     console.error('fetchDevices error:', e)
+  }
+}
+
+async function handleDeviceSelectionChange(ids: string[]) {
+  const nextIds = [...ids]
+  const previousIds = [...previousSelectedDeviceIds.value]
+  const changedDeviceIds = [...new Set([...previousIds, ...nextIds])].filter(
+    (id) => previousIds.includes(id) !== nextIds.includes(id)
+  )
+
+  if (changedDeviceIds.length === 0) return
+
+  try {
+    await Promise.all(
+      changedDeviceIds.map((deviceId) =>
+        setSelectedDevicesApi(deviceId, {
+          selected: nextIds.includes(deviceId),
+        })
+      )
+    )
+    previousSelectedDeviceIds.value = nextIds
+  } catch (e) {
+    console.error((e))
+    selectedDeviceIds.value = previousIds
+    ElMessage.error(t('common.pxm_work_state_changed'))
+    console.error('setSelectedDevices error:', e)
   }
 }
 

@@ -19,6 +19,7 @@ export interface CreatorDeviceVO {
   lastOnlineTime?: number
   lastBindTime?: number
   firmwareVersion?: string
+  selected?: boolean
 }
 
 

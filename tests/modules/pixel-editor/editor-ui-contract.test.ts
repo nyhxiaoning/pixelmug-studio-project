@@ -915,6 +915,32 @@ test('preserves publish row fields required by publish actions', () => {
   assert.doesNotMatch(singlePublishBlock, /console\.log\(|return;\s*\n\s*alert\(/)
 })
 
+test('device selected state is initialized from the API and synchronized on change', () => {
+  const worksSource = readFileSync(
+    new URL('../../../src/pages/works/index.vue', import.meta.url),
+    'utf8'
+  )
+  const deviceSource = readFileSync(
+    new URL('../../../src/api/device.ts', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(deviceSource, /export interface CreatorDeviceVO[\s\S]*selected\?:\s*boolean/)
+  assert.match(
+    worksSource,
+    /<el-checkbox-group v-model="selectedDeviceIds" @change="handleDeviceSelectionChange">/
+  )
+  assert.match(
+    worksSource,
+    /selectedDeviceIds\.value\s*=\s*deviceList\.value\s*\.filter\(\(device\) => device\.selected === true\)\s*\.map\(\(device\) => device\.id\)/
+  )
+  assert.match(
+    worksSource,
+    /setSelectedDevicesApi\(deviceId,\s*\{\s*selected:\s*nextIds\.includes\(deviceId\),?\s*\}\)/
+  )
+  assert.match(worksSource, /selectedDeviceIds\.value\s*=\s*previousIds/)
+})
+
 test('plays one animation cycle inside the editor canvas and restores frame one', () => {
   const navStart = editorSource.indexOf('<header class="pe-editor-nav">')
   const navEnd = editorSource.indexOf('</header>', navStart)
