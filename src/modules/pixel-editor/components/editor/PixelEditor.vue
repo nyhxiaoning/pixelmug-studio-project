@@ -47,10 +47,7 @@
     </section>
   </div> -->
 
-  <div
-    class="pe-app-shell pe-theme-host"
-    :data-theme="theme"
-  >
+  <div class="pe-app-shell pe-theme-host" :data-theme="theme">
     <header class="pe-editor-nav">
       <div class="pe-nav-start">
         <button
@@ -60,17 +57,14 @@
           :aria-label="t('common.pxm_editor_back_home')"
           @click="backHome"
         >
-          <img
-            :src="pixelEditorIcon"
-            alt=""
-          >
+          <img :src="pixelEditorIcon" alt="" />
         </button>
         <input
           v-model.trim="project.name"
           class="pe-nav-title"
           :aria-label="t('common.pxm_editor_project_name')"
           @change="handleRenameProject"
-        >
+        />
       </div>
 
       <div class="pe-nav-center">
@@ -96,27 +90,18 @@
           accept="image/png,image/jpeg,image/webp"
           hidden
           @change="handleLoadStaticImage"
-        >
+        />
         <input
           ref="gifFileInputRef"
           type="file"
           accept="image/gif"
           hidden
           @change="handleLoadGifImage"
-        >
+        />
 
-        <el-dropdown
-          trigger="click"
-          @command="handleImportCommand"
-        >
-          <button
-            type="button"
-            class="pe-nav-action"
-          >
-            <Upload
-              :size="17"
-              aria-hidden="true"
-            />
+        <el-dropdown trigger="click" @command="handleImportCommand">
+          <button type="button" class="pe-nav-action">
+            <Upload :size="17" aria-hidden="true" />
             {{ t('common.pxm_editor_import') }}
           </button>
           <template #dropdown>
@@ -131,18 +116,9 @@
           </template>
         </el-dropdown>
 
-        <el-dropdown
-          trigger="click"
-          @command="handleExportCommand"
-        >
-          <button
-            type="button"
-            class="pe-nav-action"
-          >
-            <Download
-              :size="17"
-              aria-hidden="true"
-            />
+        <el-dropdown trigger="click" @command="handleExportCommand">
+          <button type="button" class="pe-nav-action">
+            <Download :size="17" aria-hidden="true" />
             {{ t('common.pxm_editor_export') }}
           </button>
           <template #dropdown>
@@ -157,27 +133,12 @@
           </template>
         </el-dropdown>
 
-        <button
-          type="button"
-          class="pe-nav-action pe-nav-preview"
-          @click.stop="sendWorkToDevice"
-        >
-          <MonitorUp
-            :size="17"
-            aria-hidden="true"
-          />
+        <button type="button" class="pe-nav-action pe-nav-preview" @click.stop="sendWorkToDevice">
+          <MonitorUp :size="17" aria-hidden="true" />
           {{ t('common.pxm_action_preview') }}
         </button>
-        <button
-          type="button"
-          class="pe-nav-save"
-          :disabled="saving"
-          @click="handleSaveToOSS"
-        >
-          <Save
-            :size="17"
-            aria-hidden="true"
-          />
+        <button type="button" class="pe-nav-save" :disabled="saving" @click="handleSaveToOSS">
+          <Save :size="17" aria-hidden="true" />
           {{ t('common.pxm_editor_save') }}
         </button>
       </div>
@@ -188,10 +149,7 @@
         <aside class="pe-panel pe-tools-panel">
           <section class="pe-tool-section pe-tool-section--drawing">
             <h2>{{ t('common.pxm_editor_tools') }}</h2>
-            <div
-              class="pe-tool-grid pe-tool-grid--five"
-              role="toolbar"
-            >
+            <div class="pe-tool-grid pe-tool-grid--five" role="toolbar">
               <button
                 v-for="tool in drawingTools"
                 :key="tool.id"
@@ -202,24 +160,17 @@
                 :aria-label="tool.label"
                 @click="handleSelectTool(tool.id)"
               >
-                <component
-                  :is="toolIcon(tool.id)"
-                  :size="18"
-                  aria-hidden="true"
-                />
+                <component :is="toolIcon(tool.id)" :size="18" aria-hidden="true" />
               </button>
             </div>
-            <div
-              ref="colorControlRef"
-              class="pe-control-row pe-color-row"
-            >
+            <div ref="colorControlRef" class="pe-control-row pe-color-row">
               <label for="pe-current-color-value">{{ t('common.pxm_editor_color') }}</label>
               <input
                 id="pe-current-color-value"
                 v-model="currentColor"
                 class="pe-hex-input"
                 maxlength="7"
-              >
+              />
               <button
                 ref="colorSwatchButtonRef"
                 type="button"
@@ -274,10 +225,7 @@
               :aria-label="t('common.pxm_editor_shapes')"
               @click="handleSelectTool('shape')"
             >
-              <Grid2X2
-                :size="18"
-                aria-hidden="true"
-              />
+              <Grid2X2 :size="18" aria-hidden="true" />
               <span>{{ t('common.pxm_editor_shapes') }}</span>
             </button>
             <div class="pe-control-row pe-shape-row">
@@ -489,19 +437,20 @@
               </button>
             </div>
           </section>
-
         </aside>
 
         <section class="pe-panel pe-canvas-panel">
           <div class="pe-canvas-meta">
-            <span>{{ t('common.pxm_editor_canvas') }} W {{ project.width }}, H {{ project.height }}</span>
-              <output aria-live="polite">{{ canvasZoom }}%</output>
+            <span
+              >{{ t('common.pxm_editor_canvas') }} W {{ project.width }}, H
+              {{ project.height }}</span
+            >
+            <output aria-live="polite">{{ canvasZoom }}%</output>
             <div
               class="pe-canvas-zoom"
               role="group"
               :aria-label="t('common.pxm_editor_zoom')"
-            >
-            </div>
+            ></div>
             <span v-if="hoverPoint">(X:{{ hoverPoint.x }}, Y:{{ hoverPoint.y }})</span>
           </div>
           <div
@@ -575,10 +524,7 @@
               >
                 {{ layer.name }}
               </button>
-              <label
-                class="pe-layer-opacity"
-                @click.stop
-              >
+              <label class="pe-layer-opacity" @click.stop>
                 <input
                   type="number"
                   min="10"
@@ -587,7 +533,7 @@
                   :value="layerOpacityPercent(layer)"
                   :aria-label="t('common.pxm_editor_layer_opacity')"
                   @change="handleLayerOpacityPercent(layer, $event)"
-                >
+                />
                 <span>%</span>
               </label>
               <button
@@ -598,10 +544,7 @@
                 :aria-label="t('common.pxm_editor_duplicate')"
                 @click.stop="handleDuplicateLayer(index)"
               >
-                <Copy
-                  :size="16"
-                  aria-hidden="true"
-                />
+                <Copy :size="16" aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -611,14 +554,10 @@
                 :aria-label="t('common.pxm_editor_delete_layer')"
                 @click.stop="handleDeleteLayer(index)"
               >
-                <Trash2
-                  :size="16"
-                  aria-hidden="true"
-                />
+                <Trash2 :size="16" aria-hidden="true" />
               </button>
             </div>
           </div>
-
         </section>
 
         <section class="pe-panel pe-frame-panel">
@@ -633,10 +572,7 @@
                 :aria-label="t('common.pxm_editor_play_all_frames')"
                 @click="handleTogglePreview"
               >
-                <Play
-                  :size="17"
-                  aria-hidden="true"
-                />
+                <Play :size="17" aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -645,10 +581,7 @@
                 :aria-label="t('common.pxm_editor_add')"
                 @click="handleAddFrame"
               >
-                <Plus
-                  :size="17"
-                  aria-hidden="true"
-                />
+                <Plus :size="17" aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -657,10 +590,7 @@
                 :aria-label="t('common.pxm_editor_duplicate')"
                 @click="handleDuplicateFrame"
               >
-                <Copy
-                  :size="17"
-                  aria-hidden="true"
-                />
+                <Copy :size="17" aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -670,10 +600,7 @@
                 :aria-label="t('common.pxm_editor_delete')"
                 @click="handleDeleteFrame"
               >
-                <Trash2
-                  :size="17"
-                  aria-hidden="true"
-                />
+                <Trash2 :size="17" aria-hidden="true" />
               </button>
             </div>
             <label class="pe-frame-delay">
@@ -688,11 +615,10 @@
                   @blur="handleCommitFrameDelay"
                   @change="handleCommitFrameDelay"
                   @keydown.enter="handleCommitFrameDelay"
-                >
+                />
                 <span>ms</span>
               </span>
             </label>
-
           </div>
 
           <div class="pe-frame-content">
@@ -715,11 +641,7 @@
                 @drop.prevent="handleDropFrame(index)"
                 @dragend="handleEndFrameDrag"
               >
-                <canvas
-                  :ref="(el) => setFrameThumbRef(frame.id, el)"
-                  width="96"
-                  height="48"
-                />
+                <canvas :ref="(el) => setFrameThumbRef(frame.id, el)" width="96" height="48" />
                 <span
                   >{{ t('common.pxm_editor_frame_prefix') }} {{ index + 1 }}
                   {{ t('common.pxm_editor_frame_unit') }}</span
@@ -731,11 +653,7 @@
       </div>
     </main>
 
-    <div
-      v-if="importDialog.open"
-      class="pe-modal-backdrop"
-      @click.self="handleCloseImportDialog"
-    >
+    <div v-if="importDialog.open" class="pe-modal-backdrop" @click.self="handleCloseImportDialog">
       <section
         class="pe-modal"
         role="dialog"
@@ -764,7 +682,6 @@
               @pointercancel="handleImportPointerUp"
               @wheel.prevent="handleImportWheel"
             />
-       
           </div>
           <div class="pe-import-controls">
             <div class="pe-import-preview">
@@ -1019,10 +936,7 @@ async function handleCanvasWheel(event: WheelEvent): Promise<void> {
   if (!canvas || !viewport) return
 
   const delta = event.deltaY < 0 ? CANVAS_ZOOM_STEP : -CANVAS_ZOOM_STEP
-  const nextZoom = Math.max(
-    CANVAS_ZOOM_MIN,
-    Math.min(CANVAS_ZOOM_MAX, canvasZoom.value + delta)
-  )
+  const nextZoom = Math.max(CANVAS_ZOOM_MIN, Math.min(CANVAS_ZOOM_MAX, canvasZoom.value + delta))
   if (nextZoom === canvasZoom.value) return
 
   const rect = canvas.getBoundingClientRect()
@@ -1793,16 +1707,15 @@ async function saveOSSOnly(): Promise<boolean> {
     frameDelay: project.value.frames[0]?.delay || 120,
   }
 
-      // 不能超过50k
-    if(workData.type ==='GIF'){
-      if(workData?.gifFileSize >50*1024*1024){
-        ElMessage.warning(t('common.gifSizeError'))
-        return false;
-      }
+  // 不能超过50k
+  if (workData.type === 'GIF') {
+    if (workData?.gifFileSize > 50 * 1024 * 1024) {
+      ElMessage.warning(t('common.gifSizeError'))
+      return false
     }
+  }
 
   if (editingWorkId.value) {
-
     await updateWorkApi(editingWorkId.value, workData)
     // 更新已有作品：同步 result
     if (editingWork.value?.result) {
@@ -1881,6 +1794,14 @@ async function pushCurrentWorkToDevice(selectedDevices: string[]): Promise<void>
       return
     }
 
+    // 不能超过50k
+    if (work.type === 'GIF') {
+      if (work?.gifFileSize > 50 * 1024 * 1024) {
+        ElMessage.warning(t('common.gifSizeError'))
+        return;
+      }
+    }
+
     // 增加一下这里的work
     const deviceLength = selectedDevices.length
     const res = await previewToDeviceApi({
@@ -1914,9 +1835,7 @@ async function pushCurrentWorkToDevice(selectedDevices: string[]): Promise<void>
 const sendWorkToDevice = async () => {
   const DEVICE_SESSION_KEY = 'creator.preview.deviceIds'
   const selectedDevicesJSON = sessionStorage.getItem(DEVICE_SESSION_KEY)
-  const selectedDevices = selectedDevicesJSON
-    ? (JSON.parse(selectedDevicesJSON) as string[])
-    : []
+  const selectedDevices = selectedDevicesJSON ? (JSON.parse(selectedDevicesJSON) as string[]) : []
 
   if (!Array.isArray(selectedDevices) || selectedDevices.length === 0) {
     ElMessage.warning(t('common.pxm_device_preview_before_bind'))
@@ -2252,21 +2171,19 @@ interface ProjectData {
   updatedAt?: number
 }
 
-
 function formatTimestamp(date = new Date()) {
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const hour = String(d.getHours()).padStart(2, '0');
-  const minute = String(d.getMinutes()).padStart(2, '0');
-  const second = String(d.getSeconds()).padStart(2, '0');
-  return `${year}/${month}/${day} ${hour}:${minute}:${second}`;
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hour = String(d.getHours()).padStart(2, '0')
+  const minute = String(d.getMinutes()).padStart(2, '0')
+  const second = String(d.getSeconds()).padStart(2, '0')
+  return `${year}/${month}/${day} ${hour}:${minute}:${second}`
 }
 
-
 function handleNewProject(): void {
-  const stamp = formatTimestamp();
+  const stamp = formatTimestamp()
 
   const newProject = makeProject(`${stamp}`)
   projects.value.push(newProject)
