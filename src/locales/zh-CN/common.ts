@@ -325,6 +325,7 @@ export default {
   pxm_editor_connected_pixels: '已选择连通区域 {n} 像素',
   pxm_editor_copy_suffix: '副本',
   pxm_editor_status_ready: '准备就绪',
+  pxm_editor_gif_imported: 'GIF 已导入 {count} 帧',
   pxm_editor_overview_save: '保存',
 
   // 弹窗通用文案

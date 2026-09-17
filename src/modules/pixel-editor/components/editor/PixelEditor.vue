@@ -3465,6 +3465,7 @@ async function handleLoadGifImage(event: Event): Promise<void> {
   target.value = ''
   if (!file) return
   try {
+    const selectedFrameIndex = currentFrameIndex.value
     const gifFrames = await decodeGifFrames(file)
     snapshot()
     const frames = gifFrames.map(({ image, delay }) => {
@@ -3485,8 +3486,8 @@ async function handleLoadGifImage(event: Event): Promise<void> {
       frame.layers[0].canvasPixels = pixelsToCanvasPixels(pixels, WIDTH, HEIGHT)
       return frame
     })
-    project.value.frames.splice(currentFrameIndex.value + 1, 0, ...frames)
-    currentFrameIndex.value += 1
+    project.value.frames.splice(currentFrameIndex.value, 0, ...frames)
+    // currentFrameIndex.value += 1
     touchProject(t('common.pxm_editor_gif_imported', { count: frames.length }))
   } catch (error) {
     status.value = (error as Error).message
