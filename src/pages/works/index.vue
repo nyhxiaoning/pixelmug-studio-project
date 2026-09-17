@@ -451,6 +451,7 @@ import {
   imageFromFile,
   renderImageToPixels,
 } from '@/modules/pixel-editor/core/image-import'
+import { encodePixelatedGifFile } from '@/modules/pixel-editor/core/gif-upload'
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT, WIDTH, HEIGHT } from '@/modules/pixel-editor/core/index'
 
@@ -790,8 +791,17 @@ const handleFileUpload = async (e: Event) => {
         }
       })
 
-      // Step 3: 上传 GIF + 所有帧数据
-      const uploadResult = await uploadGifWithFrames(file, framesData)
+      // Step 3: 将像素帧重新编码为 32×16 GIF，再上传 GIF + 所有帧数据
+      const pixelatedGifFile = encodePixelatedGifFile(
+        file,
+        framesData.map((frame) => ({
+          delay: frame.delay,
+          pixels: frame.layers[0].pixels,
+        })),
+        WIDTH,
+        HEIGHT
+      )
+      const uploadResult = await uploadGifWithFrames(pixelatedGifFile, framesData)
 
       console.log('GIF upload result:', uploadResult)
 
