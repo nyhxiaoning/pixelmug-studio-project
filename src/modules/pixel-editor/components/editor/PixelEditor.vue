@@ -810,6 +810,7 @@ import {
   localPixelsToCanvasPixels,
   renderImageToPixels,
 } from '@/modules/pixel-editor/core/image-import'
+import { replaceFramesFromIndex } from '@/modules/pixel-editor/core/frame-import'
 
 // Type definitions
 interface Tool {
@@ -3486,8 +3487,11 @@ async function handleLoadGifImage(event: Event): Promise<void> {
       frame.layers[0].canvasPixels = pixelsToCanvasPixels(pixels, WIDTH, HEIGHT)
       return frame
     })
-    project.value.frames.splice(currentFrameIndex.value, 0, ...frames)
-    // currentFrameIndex.value += 1
+    currentFrameIndex.value = replaceFramesFromIndex(
+      project.value.frames,
+      selectedFrameIndex,
+      frames
+    )
     touchProject(t('common.pxm_editor_gif_imported', { count: frames.length }))
   } catch (error) {
     status.value = (error as Error).message
