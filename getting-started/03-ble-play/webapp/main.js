@@ -21,6 +21,7 @@ connect.onclick = async () => {
   try {
     webapp ||= new BubbleWebApp();
     const [device] = await webapp.getDevices();
+    // 这里是一个映射关系：根据设备的 TAL ID 或名称来确定设备类型。TODO:,这个简单
     if (!device) throw new Error('请先在 Studio 关联一个 PixelMug S1。');
     client = new BleAppClient(webapp.ble, { appId: 'GettingStartedLight' });
     client.on('connectionState', (event) => {
