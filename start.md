@@ -294,3 +294,36 @@ jI91TvkINkxNihU6Vx1VZoU57zLyPwvB_oWVvwjn9nY
 
 
 
+## 任务规划TODO：说明
+请参考下面的完整设计与后续实施计划，帮我继续完成没有完成的任务，对于代码中nestjs和react对应实现：
+
+（1）完整设计文档对应：
+/Users/henryning/Documents/code/companyCode/pixelmug-studio/docs/plans/2026-10-14-docker-deployment-design.md
+（2）后续实施计划对应：
+/Users/henryning/Documents/code/companyCode/pixelmug-studio/docs/superpowers/plans/2026-10-14-docker-deployment-export.md
+
+
+### 解析来问题：对于一个dockerfile文件，这里的配置如何传递；
+
+BOT_TOKEN、BOT_API_BASE_URL，PUBLIC_WEBAPP_URL
+
+process.env.BOT_TOKEN
+
+process.env.PUBLIC_WEBAPP_URL
+
+#### 配置内容如下：启动的时候，传递参数给docker的容器配置
+Dockerfile启动的时候，如何注入两个环境变量给容器：process.env.BOT_TOKEN，process.env.PUBLIC_WEBAPP_URL
+
+
+docker run \
+  -e BOT_TOKEN="your_bot_token_here" \
+  -e PUBLIC_WEBAPP_URL="https://your-webapp.url" \
+  your-image-name
+
+
+## TODO:本地docker配置：容器管理启动实现本机启动docker后可以回环使用这个工具：
+根据当前的zip包拿到内容，本地测试一下部署实战；
+
+
+
+
