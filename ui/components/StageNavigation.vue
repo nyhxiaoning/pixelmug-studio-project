@@ -17,6 +17,7 @@ const tabs=[
   {id:'devices',label:'我的冒泡',description:'查看设备与 Bot',icon:'nav-device'},
   {id:'project',label:'选择应用',description:'目录、入口与凭据',icon:'folder'},
   {id:'debug',label:'调试运行',description:'运行状态与应用日志',icon:'terminal'},
+  {id:'deploy',label:'部署',description:'Docker 部署包',icon:'deploy-box'},
 ];
 const statusText=status=>status==='ok'?t('Studio 服务正常'):status==='error'?t('Studio 服务异常'):t('Studio 未连接');
 
@@ -26,7 +27,7 @@ const statusText=status=>status==='ok'?t('Studio 服务正常'):status==='error'
     <span class="sidebar-label">{{ t('工作台') }}</span>
     <nav class="section-tabs" :aria-label="t('工作台导航')">
       <template v-for="tab in tabs" :key="tab.id">
-        <button type="button" :class="{active:activeTab===tab.id||(tab.id==='debug'&&activeTab.startsWith('device:'))}" @click="$emit('change',tab.id)">
+        <button type="button" :data-section="tab.id" :class="{active:activeTab===tab.id||(tab.id==='debug'&&activeTab.startsWith('device:'))}" @click="$emit('change',tab.id)">
           <span :class="['nav-icon',tab.icon]"><i></i></span>
           <span><strong>{{ t(tab.label) }}</strong><small>{{ tab.id==='devices' ? deviceCount+t(' 台设备 · ')+botCount+t(' 个 Bot') : t(tab.description) }}</small></span>
         </button>

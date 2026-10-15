@@ -209,3 +209,45 @@ dialog{width:min(720px,calc(100vw - 36px));border:1px solid var(--border);border
 .language-switch{display:flex;align-items:center;gap:8px;font-size:12px;white-space:nowrap}.language-switch select{width:auto;min-width:94px;padding:6px 10px}
 
 .login-language{position:absolute;top:22px;right:clamp(24px,4vw,60px);padding:8px 12px;border-radius:10px;background:#fffffff0;color:var(--muted);z-index:2}
+
+/* Docker deployment export workspace */
+.nav-icon.deploy-box i{width:20px;height:19px;border:2px solid currentColor;border-radius:4px;left:8px;top:8px}
+.nav-icon.deploy-box i:before{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid currentColor;left:3px;top:9px}
+.nav-icon.deploy-box i:after{width:2px;height:6px;background:currentColor;left:7px;top:3px}
+.deploy-workspace{min-width:0}
+.deploy-panel{margin-bottom:15px}
+.deploy-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.deploy-step{background:#fff;border:1px solid var(--border);border-top:3px solid #d8e3ef;border-radius:12px;padding:15px 16px;box-shadow:0 3px 14px #1a4d8709}
+.deploy-step strong{display:block;font-size:14px;color:#29415f}
+.deploy-step small{display:block;margin-top:6px;color:var(--muted);font-size:11px;line-height:1.5}
+.deploy-step.done{border-top-color:#35ad6a}
+.deploy-step.done strong{color:#1c7848}
+.deploy-step.active{border-top-color:var(--blue)}
+.deploy-step.active strong{color:var(--blue)}
+.deploy-step.locked{opacity:.55}
+.deploy-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+.deploy-facts>div{background:#f7faff;border:1px solid #e2eaf3;border-radius:10px;padding:11px 13px;min-width:0}
+.deploy-facts span{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}
+.deploy-facts strong{display:block;color:#294b73;font-size:12px;overflow-wrap:anywhere}
+.deploy-results{margin-top:14px}
+.deploy-issue-list{padding:13px 15px;border-radius:10px;margin-bottom:12px}
+.deploy-issue-list>strong{display:block;font-size:12px;margin-bottom:8px}
+.deploy-issue-list ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.deploy-issue-list li{display:flex;gap:8px;align-items:baseline;font-size:13px;line-height:1.5}
+.deploy-issue-list code{font:11px Consolas;color:var(--muted);background:#eef3f9;border-radius:5px;padding:2px 5px;flex:0 0 auto}
+.deploy-issue-list.errors{background:#fff7f5;border:1px solid #ffd9cc}
+.deploy-issue-list.errors>strong{color:#c43d2f}
+.deploy-issue-list.warnings{background:#fffaf0;border:1px solid #ffe4b8}
+.deploy-issue-list.warnings>strong{color:#a9681a}
+.badge-ok{background:#e9f8ef;border:1px solid #c9ead6;color:#1c7848}
+.badge-error{background:var(--orange-soft);border:1px solid #ffd5ba;color:#a94a13}
+.deploy-error{color:#bd3028;font-size:13px}
+.dirty-hint{color:#b26413;font-size:12px}
+.dockerfile-editor{height:46vh;min-height:260px;border:1px solid #d5e3f6;border-radius:12px;overflow:hidden;margin-top:16px;text-align:left}
+.deploy-launcher{margin-top:18px}
+.deploy-launcher summary{font-size:13px;font-weight:650;color:#294a73}
+.deploy-launcher-code{max-height:300px;overflow:auto;background:#0f1e33;color:#d4e0ed;border-radius:10px;padding:14px 16px;font:11px/1.7 Consolas,"Microsoft YaHei",monospace;margin-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.deploy-package-status{font-size:13px;font-weight:750;color:#1c7848;margin:6px 0 4px}
+.deploy-package-result{margin-top:4px}
+.deploy-package-result .primary{margin-top:12px}
+@media(max-width:900px){.deploy-steps{grid-template-columns:1fr}}

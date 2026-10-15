@@ -5,6 +5,7 @@ import StageNavigation from './components/StageNavigation.vue';
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
 import DocumentationPanel from './components/DocumentationPanel.vue';
 const FileWorkspace = defineAsyncComponent(() => import('./components/FileWorkspace.vue'));
+const DeployWorkspace = defineAsyncComponent(() => import('./components/DeployWorkspace.vue'));
 import DevicePanel from './components/DevicePanel.vue';
 import BotSlots from './components/BotSlots.vue';
 import BotPanel from './components/BotPanel.vue';
@@ -27,6 +28,7 @@ const paused = ref(false), working = ref(false), cooldown = ref(0), polling = re
 const loginPanelOpen = ref(false);
 const activeSection = ref('project');
 const fileWorkspace = ref(null);
+const deployWorkspace = ref(null);
 const serviceStatus = ref('disconnected');
 const notice = ref({visible:false,error:false,message:''});
 const accountType = ref('PHONE'), accountValue = ref(''), loginCode = ref(''), creatorUrl = ref('https://connector.devjeejio.com:5443');
@@ -60,7 +62,7 @@ const fieldValue = id => document.getElementById(id)?.value ?? '';
 const account = () => ({baseUrl:fieldValue('creator-url').trim(),accountType:fieldValue('account-type'),account:fieldValue('account').trim()});
 async function sendCode(){ await perform(async()=>{ await api('auth/code',account()); cooldown.value=60; notify(t('验证码已发送，请查看手机或邮箱。')); }); }
 async function login(){ await perform(async()=>{ await api('auth/login',{...account(),code:fieldValue('code').trim()}); loginCode.value=''; notify(t('登录成功，正在更新我的冒泡。')); await refreshDevices(); }); }
-async function logout(){ if(fileWorkspace.value && !fileWorkspace.value.canLeave()) return; await perform(async()=>{ await api('auth/logout',{}); launchRequested.value=false; loginPanelOpen.value=false; items.value=[]; after.value=0;  notify(t('已退出登录，本地调试环境已停止。')); }); }
+async function logout(){ if(!canLeaveProject()) return; await perform(async()=>{ await api('auth/logout',{}); launchRequested.value=false; loginPanelOpen.value=false; items.value=[]; after.value=0;  notify(t('已退出登录，本地调试环境已停止。')); }); }
 async function refreshDevices(){ await api('devices/refresh',{}); lastRefresh=Date.now(); }
 async function refresh(){ await perform(async()=>{ await refreshDevices(); notify(t('设备状态已更新。')); }); }
 
@@ -252,7 +254,8 @@ async function browse(path){
 }
 async function openDirectory(){ await perform(async()=>{ await browse(project.value?.path); directoryDialog.value.showModal(); }); }
 async function browseAction(path){ await perform(()=>browse(path)); }
-async function chooseDirectory(){ if(fileWorkspace.value && !fileWorkspace.value.canLeave()) return; await perform(async()=>{ await api('project/open',{path:directory.value.path}); activeSection.value='debug'; directoryDialog.value.close(); notify(t('项目已打开，请检查运行入口与 bot 配置。')); }); }
+const canLeaveProject = () => fileWorkspace.value?.canLeave() !== false && deployWorkspace.value?.canLeave() !== false;
+async function chooseDirectory(){ if(!canLeaveProject()) return; await perform(async()=>{ await api('project/open',{path:directory.value.path}); activeSection.value='debug'; directoryDialog.value.close(); notify(t('项目已打开，请检查运行入口与 bot 配置。')); }); }
 
 function applyState(data){
   const previousPath=state.value?.project?.path;
@@ -423,6 +426,8 @@ onBeforeUnmount(()=>{ clearInterval(pollTimer); clearInterval(cooldownTimer); cl
 
         <LogWorkspace v-if="project?.mpy" :items="items" :paused="paused" :source-ids="['mpy']" :device-id="selectedDevice.id" :title="t('设备运行日志')" :description="selectedDevice.name+t(' 的 MPY 输出持续保存到应用 debug/ 目录。')" @toggle-pause="paused=!paused" @clear="items=[]"/>
       </section>
+
+      <DeployWorkspace v-if="project && activeSection==='deploy'" ref="deployWorkspace" :key="project.path" :project="project.path" :bot-entry="botEntry" :api="api" :style-nonce="credential" />
     </section>
   </main>
   <dialog id="directory-dialog" ref="directoryDialog"><div class="section-heading"><h2>{{ t('打开本地项目') }}</h2><button id="close-directory" :aria-label="t('关闭目录浏览器')" @click="directoryDialog.close()">×</button></div><div class="inline"><input id="directory-path" :value="directory?.path||''" @input="directory={...directory,path:$event.target.value}" @keydown.enter.prevent="browseAction(directory?.path)"><button id="directory-go" @click="browseAction(directory?.path)">{{ t('转到') }}</button><button id="directory-up" @click="browseAction(directory?.parent)">{{ t('上一级') }}</button></div><div id="drives" class="actions"><button v-for="drive in directory?.drives||[]" :key="drive" @click="browseAction(drive)">{{ drive }}</button></div><div id="directories"><button v-for="item in directory?.directories||[]" :key="item.path" @click="browseAction(item.path)">▸　{{ item.name }}</button><p v-if="directory&&!directory.directories.length" class="empty">{{ t('此目录没有可浏览的子目录。') }}</p></div><div class="dialog-footer"><button id="choose-directory" class="primary" @click="chooseDirectory">{{ t('使用当前目录') }}</button></div></dialog>
