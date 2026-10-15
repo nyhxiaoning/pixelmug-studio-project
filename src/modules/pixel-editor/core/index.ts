@@ -15,7 +15,7 @@ export const DEFAULT_VIEWPORT_Y = Math.floor((CANVAS_HEIGHT - HEIGHT) / 2);
 export const EMPTY: null = null;
 export const STORAGE_KEY = 'pixelart_web_editor_projects';
 export const CURRENT_KEY = 'pixelart_web_editor_current_project';
-export const MAX_GIF_EXPORT_FRAMES = 50;
+export const MAX_GIF_EXPORT_FRAMES = 150;
 
 export const palette = [
   '#000000', '#ffffff', '#ff004d', '#ffa300', '#ffec27', '#00e436', '#29adff', '#83769c',
