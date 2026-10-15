@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, rm, readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, rm, readFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { init, parse } from 'es-module-lexer/minimal';
 import { startStudio } from '../src/receiver.mjs';
 import { startWebAppGateway } from '../src/gateway.mjs';
+import { buildWebApp } from '../src/webapp-build.mjs';
 
 test('npm WebApp builds outside the workspace tree, serves through gateway and rebuilds on restart', async t => {
   const project = await mkdtemp(join(tmpdir(), 'studio-build-'));
@@ -56,4 +57,20 @@ test('npm WebApp builds outside the workspace tree, serves through gateway and r
   assert.notEqual(scripts[0], scripts[1]);
   await writeFile(entry, "import { missing } from 'missing-package-for-build-test'; console.log(missing);");
   await assert.rejects(startStudio({ project, webRoot: 'webapp', port: 0 }), /WebApp 构建失败/);
+});
+
+test('production WebApp build bundles SDK without Studio debug injection', async t => {
+  const project = await mkdtemp(join(tmpdir(), 'studio-production-webapp-'));
+  const output = join(project, 'output');
+  t.after(() => rm(project, { recursive: true, force: true }));
+  await mkdir(join(project, 'webapp'));
+  await writeFile(join(project, 'webapp/index.html'), '<script type="module" src="./main.js"></script>');
+  await writeFile(join(project, 'webapp/main.js'), "import { BubbleWebApp } from '@jeejio-bubble/bot/sdk/WebApp.js'; globalThis.webapp = new BubbleWebApp({ ble:false });");
+
+  await buildWebApp(join(project, 'webapp'), output, { studioDebug: false });
+  const files = await readdir(join(output, 'assets'));
+  const code = await readFile(join(output, 'assets', files.find(name => name.endsWith('.js'))), 'utf8');
+  const html = await readFile(join(output, 'index.html'), 'utf8');
+  assert.doesNotMatch(html + code, /studio-debug-config|@studio-bootstrap|StudioDebugWeb/);
+  assert.match(code, /BubbleWebApp|web_app_data/);
 });
