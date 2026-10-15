@@ -26,7 +26,7 @@ const getStoredLocale = (): SupportLocale => {
 }
 
 // 从浏览器获取语言设置
-const getBrowserLocale = (): SupportLocale => {
+export const getBrowserLocale = (): SupportLocale => {
   const browserLang = navigator.language
 
   // 精确匹配
@@ -40,7 +40,7 @@ const getBrowserLocale = (): SupportLocale => {
     locale.startsWith(langPrefix)
   )
 
-  return matchedLocale || DEFAULT_LOCALE
+  return matchedLocale || 'en-US'
 }
 
 // 获取初始语言
@@ -60,9 +60,11 @@ const i18n = createI18n({
 })
 
 // 设置语言
-export const setLocale = (locale: SupportLocale) => {
+export const setLocale = (locale: SupportLocale, persist = true) => {
   i18n.global.locale.value = locale
-  localStorage.setItem('locale', locale)
+  if (persist) {
+    localStorage.setItem('locale', locale)
+  }
   document.documentElement.lang = locale
 }
 

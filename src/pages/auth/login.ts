@@ -5,7 +5,14 @@ import { computed, defineComponent, onBeforeUnmount, reactive, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { sendLoginCodeApi, authLoginIn, sendLoginCodeApiNew, authLoginInNew } from "@/api/auth"
 import { useUserStore } from "@/pinia/modules/user"
-import { SUPPORT_LOCALES, getLocale, getLocaleDisplayName, setLocale } from "@/locales"
+import {
+  SUPPORT_LOCALES,
+  getBrowserLocale,
+  getLocale,
+  getLocaleDisplayName,
+  setLocale
+} from "@/locales"
+import type { SupportLocale } from "@/locales"
 // 多语言测试
 import { useAppI18n } from "@/common/composables/useI18n.ts"
 interface LoginForm {
@@ -15,7 +22,7 @@ interface LoginForm {
 }
 
 interface LocaleOption {
-  value: string
+  value: SupportLocale
   label: string
 }
 
@@ -60,14 +67,10 @@ export default defineComponent({
         : t("common.pxm_login_password_placeholder")
     )
 
-    // 语言切换：默认用浏览器语言
-    const browserLocale = (navigator.language || "zh-CN") as string
-    const defaultLocale: string = SUPPORT_LOCALES.includes(browserLocale as any)
-      ? browserLocale
-      : browserLocale.startsWith("zh")
-        ? "zh-CN"
-        : "en-US"
-    const currentLocale = ref((getLocale() || defaultLocale) as string)
+    // 每次进入登录页都跟随当前浏览器语言，登录成功后再持久化。
+    const browserLocale = getBrowserLocale()
+    setLocale(browserLocale, false)
+    const currentLocale = ref<SupportLocale>(browserLocale)
 
     const localeOptions = computed<LocaleOption[]>(() =>
       SUPPORT_LOCALES.map((loc) => ({
@@ -76,8 +79,8 @@ export default defineComponent({
       }))
     )
 
-    function handleLocaleChange(locale: string) {
-      setLocale(locale as any)
+    function handleLocaleChange(locale: SupportLocale) {
+      setLocale(locale, false)
       currentLocale.value = locale
     }
 
@@ -163,6 +166,7 @@ export default defineComponent({
         // 判断一下：这里如果
         userStore.setLogin(res?.result)
         userStore.avatar = res?.result?.avatar
+        setLocale(getLocale())
         console.log(res?.result?.avatar, 'avatarrrrrr')
         ElMessage.success(t("common.pxm_login_success"))
         const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/works"
