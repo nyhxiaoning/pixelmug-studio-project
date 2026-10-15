@@ -9,6 +9,8 @@ import { CreatorClient } from './creator.mjs';
 import { startStudio } from './receiver.mjs';
 import { inspectProject, validateProjectRun } from './project.mjs';
 import { startWebAppGateway } from './gateway.mjs';
+import { DeploymentPackages } from './deployment/package.mjs';
+import { createDeploymentRoutes } from './deployment/routes.mjs';
 
 export async function startWorkbench(options = {}) {
   const creator = new CreatorClient({ baseUrl: options.creatorUrl || 'https://connector.devjeejio.com:5443', fetchImpl: options.fetchImpl });
@@ -116,6 +118,8 @@ export async function startWorkbench(options = {}) {
     for await (const chunk of req) { size += chunk.length; if (size > limit) throw new Error('Request too large'); chunks.push(chunk); }
     return JSON.parse(Buffer.concat(chunks).toString('utf8'));
   }
+  const packages = new DeploymentPackages();
+  const deploymentRoutes = createDeploymentRoutes({ packages, getProject: () => project, getBotEntry: () => project?.bot || '', bodyOf, reply });
   const server = createServer(async (req, res) => {
     try {
       if (!allowed.has(req.headers.host) || (req.headers.origin && !origins.has(req.headers.origin))) return reply(res, 403, { error: 'Origin / Host rejected' });
@@ -123,6 +127,9 @@ export async function startWorkbench(options = {}) {
       if (url.pathname.startsWith('/api/')) {
         const actual = Buffer.from(req.headers.authorization || ''), expected = Buffer.from('Bearer ' + credential);
         if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return reply(res, 401, { error: '请使用启动终端提供的完整 Studio 地址' });
+        if (url.pathname.startsWith('/api/deploy/')) {
+          if (await deploymentRoutes.handle(req, res, url)) return;
+        }
         if (req.method === 'GET' && url.pathname === '/api/state') return reply(res, 200, {
           bots: creator.publicBots(), botsError: creator.botsError,
           user: creator.publicSession(), creatorUrl: creator.baseUrl, devices: creator.devices, devicesUpdatedAt: creator.updatedAt,
@@ -252,6 +259,6 @@ export async function startWorkbench(options = {}) {
   await new Promise((done, reject) => { server.once('error', reject); server.listen(options.port ?? 8787, '127.0.0.1', done); });
   const port = server.address().port;
   for (const host of ['127.0.0.1', 'localhost']) { allowed.add(host + ':' + port); origins.add('http://' + host + ':' + port); }
-  async function close() { stopped = true; await stopRun(); creator.session = null; creator.botTokens.clear(); creator.bots = []; await gateway.close(); await new Promise(done => { server.close(done); server.closeAllConnections(); }); }
+  async function close() { stopped = true; await stopRun(); await packages.close(); creator.session = null; creator.botTokens.clear(); creator.bots = []; await gateway.close(); await new Promise(done => { server.close(done); server.closeAllConnections(); }); }
   return { server, port, gatewayPort: gateway.port, studioUrl: 'http://127.0.0.1:' + port + '/#studioToken=' + credential, close };
 }
