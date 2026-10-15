@@ -43,6 +43,57 @@ Studio supports Bot-only applications as well as applications that combine a Bot
 
 Runtime logs are written to `debug/<runId>/` in the selected application directory. These generated directories are ignored by Git.
 
+## Deployment
+
+The **Deploy** workspace turns a selected application into a portable Docker
+deployment package. It is a three-step flow:
+
+1. **Deployment check** — validates the project and the Bot entry, and reports
+   any errors (such as symbolic links or oversized files) that must be fixed
+   first.
+2. **Dockerfile** — generates and edits a project-local `deploy/Dockerfile`,
+   alongside a Studio-managed read-only `deploy/start.mjs` launcher.
+3. **Deployment package** — generates a one-time-download `.tar.gz` Docker
+   build context containing the Bot, a production WebApp build (when present),
+   and the container runtime files.
+
+Studio never invokes Docker, pushes an image, or contacts a cloud deployment
+API. It only produces the build context for you to build and run yourself:
+
+```sh
+tar -xzf my-agent-deploy-<timestamp>.tar.gz
+cd my-agent-deploy-<timestamp>
+docker build -t my-agent .
+docker run --rm -p 8080:8080 \
+  -e BOT_TOKEN='<token>' \
+  -e PUBLIC_WEBAPP_URL='https://agent.example.com/' \
+  my-agent
+```
+
+Runtime environment variables:
+
+- `BOT_TOKEN` — required. The Bot's authentication token.
+- `BOT_API_BASE_URL` — optional. Override the Bot API base URL.
+- `PUBLIC_WEBAPP_URL` — required only for applications that include a WebApp.
+  An absolute `http://` or `https://` URL that the public gateway routes to the
+  container's exposed port (default `8080`); it is normalized and exposed to the
+  Bot as `STUDIO_WEBAPP_URL`.
+- `PORT` — optional, defaults to `8080`.
+
+Secrets must be supplied by your platform's secret manager and are never baked
+into the image. The public URL must route to the exposed container port.
+
+To verify a generated package end-to-end where Docker is available, run the
+gated smoke test:
+
+```sh
+npm run test:docker-deploy
+```
+
+On Windows PowerShell, use
+`$env:STUDIO_TEST_DOCKER='1'; node --test test/deployment-docker.test.mjs`
+instead.
+
 ## Documentation
 
 Read the developer documentation at [PixelMug Docs](https://bubble-pixelmug.github.io/pixelmug-docs/en/).
