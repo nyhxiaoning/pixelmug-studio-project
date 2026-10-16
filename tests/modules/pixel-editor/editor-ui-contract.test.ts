@@ -139,6 +139,28 @@ test('enforces the project frame limit before adding, duplicating, or importing 
   assert.ok(importHandler.indexOf('gifFrames.map(') < importHandler.indexOf('replaceFramesFromIndex('))
 })
 
+test('rejects oversized library GIFs before rendering or sanitizing frames', () => {
+  const libraryLoadHandler = extractBraceBlock(
+    editorSource,
+    'async function loadWorkForEdit(workId: string): Promise<void>'
+  )
+  const decodeIndex = libraryLoadHandler.indexOf('const gifFrames = await decodeGifFrames(gifFile)')
+  assert.ok(decodeIndex >= 0)
+  const gifFallback = libraryLoadHandler.slice(decodeIndex)
+
+  assert.match(
+    gifFallback,
+    /await decodeGifFrames\(gifFile\)\s*if \(gifFrames\.length > MAX_PROJECT_FRAMES\) \{\s*showFrameLimit\(\)\s*return\s*\}/
+  )
+  const guardIndex = gifFallback.indexOf('if (gifFrames.length > MAX_PROJECT_FRAMES)')
+  const mapIndex = gifFallback.indexOf('gifFrames.map(')
+  const sanitizeIndex = gifFallback.indexOf('sanitizeProject(')
+  const mutationIndex = gifFallback.indexOf('projects.value.push(')
+  assert.ok(guardIndex < mapIndex)
+  assert.ok(mapIndex < sanitizeIndex)
+  assert.ok(sanitizeIndex < mutationIndex)
+})
+
 test('defines the localized frame limit status in every supported locale', () => {
   const limitHandler = extractBraceBlock(editorSource, 'function showFrameLimit(): void')
 

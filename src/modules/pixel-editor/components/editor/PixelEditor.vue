@@ -2045,6 +2045,10 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       // 解码 GIF 帧
       console.log('[PixelEditor] GIF: decoding frames...')
       const gifFrames = await decodeGifFrames(gifFile)
+      if (gifFrames.length > MAX_PROJECT_FRAMES) {
+        showFrameLimit()
+        return
+      }
       console.log('[PixelEditor] GIF: decoded', gifFrames.length, 'frames')
 
       const frames = gifFrames.map(({ image, delay }) => {
