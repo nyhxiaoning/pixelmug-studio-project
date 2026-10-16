@@ -283,6 +283,7 @@ export default {
   pxm_editor_import_image_pixelated: 'Image imported as pixel art',
   pxm_editor_confirm_delete_project: 'Delete this work?',
   pxm_editor_gif_export_limit: 'GIFs can have up to {n} frames. Reduce the frame count.',
+  pxm_editor_frame_limit: 'A work can contain up to {n} frames.',
   pxm_editor_gif_exported: 'GIF exported: {count} frames, {width} x {height}',
   pxm_editor_frame_added: 'Frame added',
   pxm_editor_frame_duplicated: 'Frame duplicated',

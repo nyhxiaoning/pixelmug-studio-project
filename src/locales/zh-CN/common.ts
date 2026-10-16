@@ -285,6 +285,7 @@ export default {
   pxm_editor_import_image_pixelated: '图片已像素化导入',
   pxm_editor_confirm_delete_project: '确定删除这个作品吗？',
   pxm_editor_gif_export_limit: 'GIF 最多导出 {n} 帧，请先减少帧数',
+  pxm_editor_frame_limit: '一个作品最多包含 {n} 帧',
   pxm_editor_gif_exported: 'GIF 已导出：{count} 帧，{width} x {height}',
   pxm_editor_auto_saved: '已自动保存',
   pxm_editor_last_saved: '上次保存',

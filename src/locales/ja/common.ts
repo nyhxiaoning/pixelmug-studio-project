@@ -361,6 +361,7 @@ export default {
   pxm_editor_import_image_pixelated: '画像をピクセル化してインポートしました',
   pxm_editor_confirm_delete_project: 'この作品を削除しますか？',
   pxm_editor_gif_export_limit: 'GIF は最大 {n} フレームまで書き出せます。フレーム数を減らしてください。',
+  pxm_editor_frame_limit: '作品には最大 {n} フレームまで追加できます。',
   pxm_editor_gif_exported: 'GIF を書き出しました：{count} フレーム、{width} x {height}',
   pxm_editor_canvas_pixels_moved: 'キャンバス上のピクセルを移動しました',
   pxm_editor_pixels_edited: 'ピクセルを編集しました',

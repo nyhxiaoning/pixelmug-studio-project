@@ -285,6 +285,7 @@ export default {
   pxm_editor_import_image_pixelated: '이미지를 픽셀화해 가져왔어요',
   pxm_editor_confirm_delete_project: '이 작품을 삭제할까요?',
   pxm_editor_gif_export_limit: 'GIF는 최대 {n}프레임까지 내보낼 수 있어요. 프레임 수를 줄여 주세요.',
+  pxm_editor_frame_limit: '작품 하나에는 최대 {n}프레임을 포함할 수 있어요.',
   pxm_editor_gif_exported: 'GIF 내보내기 완료: {count}프레임, {width} x {height}',
   pxm_editor_auto_saved: '자동 저장됨',
   pxm_editor_last_saved: '마지막 저장',

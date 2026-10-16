@@ -14,6 +14,7 @@ const localeSources = [
   '../../../src/locales/zh-CN/common.ts',
   '../../../src/locales/en-US/common.ts',
   '../../../src/locales/ja/common.ts',
+  '../../../src/locales/ko-KR/common.ts',
 ].map((path) => readFileSync(new URL(path, import.meta.url), 'utf8'))
 
 function extractCssBlock(source: string, marker: string): string {
@@ -108,6 +109,46 @@ test('allows deleting layers down to one layer', () => {
   assert.match(deleteLayerHandler, /layers\.length <= 1/)
   assert.ok(deleteLayerButton)
   assert.match(deleteLayerButton, /:disabled="currentFrame\.layers\.length <= 1"/)
+})
+
+test('enforces the project frame limit before adding, duplicating, or importing frames', () => {
+  const addHandler = extractBraceBlock(editorSource, 'function handleAddFrame(): void')
+  const duplicateHandler = extractBraceBlock(editorSource, 'function handleDuplicateFrame(): void')
+  const importHandler = extractBraceBlock(
+    editorSource,
+    'async function handleLoadGifImage(event: Event): Promise<void>'
+  )
+
+  assert.match(editorSource, /MAX_PROJECT_FRAMES/)
+  assert.match(editorSource, /frameCountAfterReplacement/)
+  assert.match(editorSource, /pxm_editor_frame_limit/)
+  for (const handler of [addHandler, duplicateHandler]) {
+    assert.match(handler, /frames\.length >= MAX_PROJECT_FRAMES/)
+    assert.match(
+      handler,
+      /\{\s*if \(project\.value\.frames\.length >= MAX_PROJECT_FRAMES\) \{\s*showFrameLimit\(\)\s*return\s*\}\s*snapshot\(\)/
+    )
+  }
+  assert.match(importHandler, /frameCountAfterReplacement\(/)
+  assert.match(importHandler, /> MAX_PROJECT_FRAMES/)
+  assert.match(
+    importHandler,
+    /await decodeGifFrames\(file\)\s*const projectedFrameCount = frameCountAfterReplacement\(\s*project\.value\.frames\.length,\s*selectedFrameIndex,\s*gifFrames\.length\s*\)\s*if \(projectedFrameCount > MAX_PROJECT_FRAMES\) \{\s*showFrameLimit\(\)\s*return\s*\}\s*snapshot\(\)/
+  )
+  assert.ok(importHandler.indexOf('snapshot()') < importHandler.indexOf('gifFrames.map('))
+  assert.ok(importHandler.indexOf('gifFrames.map(') < importHandler.indexOf('replaceFramesFromIndex('))
+})
+
+test('defines the localized frame limit status in every supported locale', () => {
+  const limitHandler = extractBraceBlock(editorSource, 'function showFrameLimit(): void')
+
+  assert.match(
+    limitHandler,
+    /status\.value = t\('common\.pxm_editor_frame_limit', \{ n: MAX_PROJECT_FRAMES \}\)/
+  )
+  for (const localeSource of localeSources) {
+    assert.match(localeSource, /pxm_editor_frame_limit\s*:\s*'[^'\n]*\{n\}[^'\n]*'/)
+  }
 })
 
 test('renders the reference top navigation with existing behavior bindings', () => {

@@ -777,6 +777,7 @@ import {
   STORAGE_KEY,
   CURRENT_KEY,
   MAX_GIF_EXPORT_FRAMES,
+  MAX_PROJECT_FRAMES,
   palette as corePalette,
   applyShape,
   clampViewportX,
@@ -811,7 +812,10 @@ import {
   localPixelsToCanvasPixels,
   renderImageToPixels,
 } from '@/modules/pixel-editor/core/image-import'
-import { replaceFramesFromIndex } from '@/modules/pixel-editor/core/frame-import'
+import {
+  frameCountAfterReplacement,
+  replaceFramesFromIndex,
+} from '@/modules/pixel-editor/core/frame-import'
 
 // Type definitions
 interface Tool {
@@ -2516,7 +2520,15 @@ function handleCommitFrameDelay(): void {
   touchProject(t('common.pxm_editor_frame_interval_updated'))
 }
 
+function showFrameLimit(): void {
+  status.value = t('common.pxm_editor_frame_limit', { n: MAX_PROJECT_FRAMES })
+}
+
 function handleAddFrame(): void {
+  if (project.value.frames.length >= MAX_PROJECT_FRAMES) {
+    showFrameLimit()
+    return
+  }
   snapshot()
   project.value.frames.splice(currentFrameIndex.value + 1, 0, makeFrame())
   currentFrameIndex.value += 1
@@ -2525,6 +2537,10 @@ function handleAddFrame(): void {
 }
 
 function handleDuplicateFrame(): void {
+  if (project.value.frames.length >= MAX_PROJECT_FRAMES) {
+    showFrameLimit()
+    return
+  }
   snapshot()
   const copy = sanitizeProject({
     ...project.value,
@@ -3471,6 +3487,15 @@ async function handleLoadGifImage(event: Event): Promise<void> {
   try {
     const selectedFrameIndex = currentFrameIndex.value
     const gifFrames = await decodeGifFrames(file)
+    const projectedFrameCount = frameCountAfterReplacement(
+      project.value.frames.length,
+      selectedFrameIndex,
+      gifFrames.length
+    )
+    if (projectedFrameCount > MAX_PROJECT_FRAMES) {
+      showFrameLimit()
+      return
+    }
     snapshot()
     const frames = gifFrames.map(({ image, delay }) => {
       const frame = makeFrame()
