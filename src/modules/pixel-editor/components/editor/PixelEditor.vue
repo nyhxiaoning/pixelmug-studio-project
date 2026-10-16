@@ -549,7 +549,7 @@
               <button
                 type="button"
                 class="pe-layer-action pe-layer-action--danger"
-                :disabled="currentFrame.layers.length <= 2"
+                :disabled="currentFrame.layers.length <= 1"
                 :title="t('common.pxm_editor_delete_layer')"
                 :aria-label="t('common.pxm_editor_delete_layer')"
                 @click.stop="handleDeleteLayer(index)"

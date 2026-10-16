@@ -101,8 +101,13 @@ test('allows deleting layers down to one layer', () => {
     editorSource,
     'function handleDeleteLayer(index: number): void'
   )
+  const deleteLayerButton = extractStartTags(editorSource, 'button').find((tag) =>
+    tag.includes('pe-layer-action--danger')
+  )
 
   assert.match(deleteLayerHandler, /layers\.length <= 1/)
+  assert.ok(deleteLayerButton)
+  assert.match(deleteLayerButton, /:disabled="currentFrame\.layers\.length <= 1"/)
 })
 
 test('renders the reference top navigation with existing behavior bindings', () => {
