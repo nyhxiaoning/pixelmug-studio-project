@@ -28,7 +28,7 @@ export default {
   pxm_login_code_sent: '验证码已发送',
   pxm_login_success: '登录成功',
   pxm_login_required: '请完整填写登录信息',
-  pxm_login_invalid_account: '账号格式不正确',
+  pxm_login_invalid_account: '邮箱或手机号格式不正确',
   pxm_login_code_send_failed: '验证码发送失败，请稍后重试',
   pxm_login_code_invalid: '验证码无效或已过期',
   pxm_login_failed: '登录失败，请检查账号信息后重试',

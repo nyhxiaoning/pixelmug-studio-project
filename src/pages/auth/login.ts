@@ -1,9 +1,9 @@
-import type { FormInstance, FormRules } from "element-plus"
+import type { FormInstance, FormItemRule, FormRules } from "element-plus"
 import { ElMessage } from "element-plus"
-import { ArrowDown, ChatDotRound, Lock, User } from "@element-plus/icons-vue"
+import { ChatDotRound, Lock, User } from "@element-plus/icons-vue"
 import { computed, defineComponent, onBeforeUnmount, reactive, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { sendLoginCodeApi, authLoginIn, sendLoginCodeApiNew, authLoginInNew } from "@/api/auth"
+import { authLoginIn, authLoginInNew, sendLoginCodeApiNew } from "@/api/auth"
 import { useUserStore } from "@/pinia/modules/user"
 import {
   SUPPORT_LOCALES,
@@ -13,12 +13,20 @@ import {
   setLocale
 } from "@/locales"
 import type { SupportLocale } from "@/locales"
-// 多语言测试
 import { useAppI18n } from "@/common/composables/useI18n.ts"
+
 interface LoginForm {
   username: string
   password: string
   code: string
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const CHINA_PHONE_PATTERN = /^1[3-9]\d{9}$/
+
+export function isValidLoginAccount(value: string) {
+  const account = value.trim()
+  return EMAIL_PATTERN.test(account) || CHINA_PHONE_PATTERN.test(account)
 }
 
 interface LocaleOption {
@@ -44,20 +52,8 @@ export default defineComponent({
     )
     const codeButtonDisabled = computed(() => sendingCode.value || codeCountdown.value > 0)
 
-    const isChineseLocale = computed(() => {
-      const locale = getLocale()
-      return locale === 'zh-CN' || locale.startsWith('zh')
-    })
-    const fieldLabel = computed(() =>
-      isChineseLocale.value
-        ? t("common.pxm_login_phone_label")
-        : t("common.pxm_login_email_label")
-    )
-    const fieldPlaceholder = computed(() =>
-      isChineseLocale.value
-        ? t("common.pxm_login_phone_placeholder")
-        : t("common.pxm_login_email_placeholder")
-    )
+    const fieldLabel = computed(() => t("common.pxm_login_account_label"))
+    const fieldPlaceholder = computed(() => t("common.pxm_login_account_placeholder"))
     const secondLabel = computed(() =>
       loginType.value === "CODE" ? t("common.pxm_login_code_label") : t("common.pxm_login_password_label")
     )
@@ -91,11 +87,25 @@ export default defineComponent({
     })
 
     const getRules = computed<FormRules<LoginForm>>(() => {
+      const accountRule: FormItemRule = {
+        validator: (_rule, value, callback) => {
+          const account = String(value || "").trim()
+          if (!account) {
+            callback(new Error(t("common.pxm_login_required")))
+            return
+          }
+          if (!isValidLoginAccount(account)) {
+            callback(new Error(t("common.pxm_login_invalid_account")))
+            return
+          }
+          callback()
+        },
+        trigger: "blur"
+      }
+
       if (loginType.value === "CODE") {
         return {
-          username: [
-            { required: true, message: t("common.pxm_login_required"), trigger: "blur" }
-          ],
+          username: [accountRule],
           password: [],
           code: [
             {
@@ -112,7 +122,7 @@ export default defineComponent({
         }
       }
       return {
-        username: [{ required: true, message: t("common.pxm_login_required"), trigger: "blur" }],
+        username: [accountRule],
         password: [
           {
             validator: (_rule, value, callback) => {
@@ -130,49 +140,36 @@ export default defineComponent({
     })
 
     async function handleLogin() {
-      // ElMessage.success(t("common.pxm_login_success"))
-      // const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/settings"
-      // router.replace(redirect)
-      // return;
       if (submitting.value) return
       await formRef.value?.validate()
       submitting.value = true
       try {
         const account = form.username.trim()
-        console.log('account', account, loginType.value, form.password.trim(), 'form---')
-        userStore.loginUserName = account;
-        // 优化内容了：根据 account 自动识别手机号或邮箱并发送验证码
-        // 这里username，修改成account了？？？TODO:
-        // 密码登录接口没变
-        let res;
+        userStore.loginUserName = account
+        let res
         if (loginType.value === "PASSWORD") {
           res = await authLoginIn({
             username: account,
             loginType: loginType.value,
-            password: loginType.value === "PASSWORD" ? form.password.trim() : undefined,
-            code: loginType.value === "CODE" ? form.code.trim() : undefined
+            password: form.password.trim(),
+            code: undefined
           })
         } else {
-          
           res = await authLoginInNew({
-            account: account,
+            account,
             loginType: loginType.value,
-            password: "",// 空
-            code: loginType.value === "CODE" ? form.code.trim() : undefined
+            password: "",
+            code: form.code.trim()
           })
         }
 
-
-        // 判断一下：这里如果
         userStore.setLogin(res?.result)
         userStore.avatar = res?.result?.avatar
         setLocale(getLocale())
-        console.log(res?.result?.avatar, 'avatarrrrrr')
         ElMessage.success(t("common.pxm_login_success"))
         const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/works"
         router.replace(redirect)
-      } catch (error) {
-        console.log(error, 'errorrrr')
+      } catch {
         ElMessage.error(t("common.pxm_login_failed"))
         submitting.value = false
       }
@@ -180,19 +177,18 @@ export default defineComponent({
 
     async function sendCode() {
       if (codeButtonDisabled.value) return
-      const account = form.username.trim()
-      if (!account) {
-        ElMessage.warning(t("common.pxm_login_required"))
+      if (!formRef.value) return
+      try {
+        await formRef.value.validateField("username")
+      } catch {
         return
       }
+
+      const account = form.username.trim()
       sendingCode.value = true
 
-      // alert(JSON.stringify(account))
       try {
-        // 如果是手机号或邮箱，那么替换接口下发字段
-        let res = await sendLoginCodeApiNew(account)
-        // alert(JSON.stringify(res))
-        // 验证码倒计时
+        await sendLoginCodeApiNew(account)
         startCountdown()
         ElMessage.success(t("common.pxm_login_code_sent"))
       } finally {
@@ -224,7 +220,6 @@ export default defineComponent({
     onBeforeUnmount(clearCountdown)
 
     return {
-
       formRef,
       form,
       getRules,
@@ -240,7 +235,6 @@ export default defineComponent({
       User,
       Lock,
       ChatDotRound,
-      ArrowDown,
       handleLogin,
       sendCode,
       currentLocale,
