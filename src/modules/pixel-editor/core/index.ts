@@ -15,7 +15,12 @@ export const DEFAULT_VIEWPORT_Y = Math.floor((CANVAS_HEIGHT - HEIGHT) / 2);
 export const EMPTY: null = null;
 export const STORAGE_KEY = 'pixelart_web_editor_projects';
 export const CURRENT_KEY = 'pixelart_web_editor_current_project';
-export const MAX_GIF_EXPORT_FRAMES = 50;
+export const MAX_PROJECT_FRAMES = 50;
+export const MAX_PROJECT_LAYERS = 4;
+// ==================== Exported Constants ====================
+// 允许存储的最大项目数量2,超过之后，根据LRU策略，删除最久未使用的项目
+export const MAX_STORED_PROJECTS = 2;
+export const MAX_GIF_EXPORT_FRAMES = MAX_PROJECT_FRAMES;
 
 export const palette = [
   '#000000', '#ffffff', '#ff004d', '#ffa300', '#ffec27', '#00e436', '#29adff', '#83769c',
@@ -66,9 +71,14 @@ export function emptyPixels(fill: string | null = EMPTY): (string | null)[] {
 }
 
 export function makeLayer(index: number = 0): Layer {
+  // 请帮忙根据当前的中英文进行name展示，当前的name可能是英文也可能是中文，图层1，图层2，或是Layer 1, Layer 2
+  // 因为这里的json需要存储做回显映射。已经存储了，那么切换了英文后，这里之前存储中文是不变的。
+  let langs = localStorage.locale || 'en-US';
+
   return {
     id: id('layer'),
-    name: `图层 ${index + 1}`,
+    // name: langs === 'zh-CN' ? `图层 ${index + 1}` : `Layer ${index + 1}`,
+    name:  `Layer ${index + 1}`,
     visible: true,
     opacity: 1,
     pixels: emptyPixels(),
@@ -434,12 +444,12 @@ export function sanitizeProject(raw: any): Project {
     return migrateBlackEmpty && color === '#000000' ? EMPTY : color;
   };
 
-  const frames = raw.frames.map((frame: any) => {
+  const frames = raw.frames.slice(0, MAX_PROJECT_FRAMES).map((frame: any) => {
     const frameViewportX = clampViewportX(frame.viewportX ?? DEFAULT_VIEWPORT_X);
     const frameViewportY = clampViewportY(frame.viewportY ?? DEFAULT_VIEWPORT_Y);
 
     const layers = Array.isArray(frame.layers)
-      ? frame.layers.slice(0, 4).map((layer: any, index: number) => {
+      ? frame.layers.slice(0, MAX_PROJECT_LAYERS).map((layer: any, index: number) => {
           const normalized: Layer = {
             id: layer.id || id('layer'),
             name: String(layer.name || `图层 ${index + 1}`).slice(0, 24),
@@ -478,17 +488,45 @@ export function sanitizeProject(raw: any): Project {
   };
 }
 
+function projectTimestamp(project: Project): number {
+  const updatedAt = Number(project.updatedAt);
+  if (Number.isFinite(updatedAt)) return updatedAt;
+  const createdAt = Number(project.createdAt);
+  return Number.isFinite(createdAt) ? createdAt : 0;
+}
+
+export function retainRecentProjects(projects: Project[]): Project[] {
+  const byId = new Map<string, { project: Project; timestamp: number; index: number }>();
+  projects.forEach((project, index) => {
+    const timestamp = projectTimestamp(project);
+    const existing = byId.get(project.id);
+    if (!existing || timestamp >= existing.timestamp) {
+      byId.set(project.id, { project, timestamp, index });
+    }
+  });
+
+  return [...byId.values()]
+    .sort((left, right) => right.timestamp - left.timestamp || right.index - left.index)
+    .slice(0, MAX_STORED_PROJECTS)
+    .sort((left, right) => left.index - right.index)
+    .map(({ project }) => project);
+}
+
 export function loadProjects(): Project[] {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed.map(sanitizeProject) : [];
+    return Array.isArray(parsed)
+      ? retainRecentProjects(parsed.map(sanitizeProject))
+      : [];
   } catch {
     return [];
   }
 }
 
-export function saveProjects(projects: Project[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects.map(serializeProjectForSave)));
+export function saveProjects(projects: Project[]): Project[] {
+  const retained = retainRecentProjects(projects).map(sanitizeProject);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(retained.map(serializeProjectForSave)));
+  return retained;
 }
 
 function serializeProjectForSave(project: Project): any {

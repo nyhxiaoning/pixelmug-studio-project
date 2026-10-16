@@ -3557,7 +3557,7 @@ function persistNow(): void {
   const index = projects.value.findIndex((item) => item.id === project.value.id)
   if (index >= 0) projects.value[index] = project.value
   else projects.value.push(project.value)
-  saveProjects(projects.value)
+  projects.value = saveProjects(projects.value)
   localStorage.setItem(CURRENT_KEY, project.value.id)
 }
 
