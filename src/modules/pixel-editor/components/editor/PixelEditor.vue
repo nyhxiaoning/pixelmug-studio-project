@@ -3193,7 +3193,7 @@ function handleDuplicateLayer(index: number): void {
 }
 
 function handleDeleteLayer(index: number): void {
-  if (!currentFrame.value || currentFrame.value.layers.length <= 2) return
+  if (!currentFrame.value || currentFrame.value.layers.length <= 1) return
   snapshot()
   currentFrame.value.layers.splice(index, 1)
   activeLayer.value = Math.min(activeLayer.value, currentFrame.value.layers.length - 1)

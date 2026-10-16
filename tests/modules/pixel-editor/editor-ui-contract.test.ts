@@ -96,6 +96,15 @@ test('keeps PixelEditor as the active behavior owner', () => {
   assert.match(editorSource, /@pointerup="handlePointerUp"/)
 })
 
+test('allows deleting layers down to one layer', () => {
+  const deleteLayerHandler = extractBraceBlock(
+    editorSource,
+    'function handleDeleteLayer(index: number): void'
+  )
+
+  assert.match(deleteLayerHandler, /layers\.length <= 1/)
+})
+
 test('renders the reference top navigation with existing behavior bindings', () => {
   assert.match(editorSource, /class="pe-editor-nav"/)
   assert.match(editorSource, /class="pe-nav-title"/)

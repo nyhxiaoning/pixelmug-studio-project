@@ -92,7 +92,7 @@ export function makeFrame(): Frame {
     delay: 120,
     viewportX: DEFAULT_VIEWPORT_X,
     viewportY: DEFAULT_VIEWPORT_Y,
-    layers: [makeLayer(0), makeLayer(1)],
+    layers: [makeLayer(0)],
   };
 }
 
@@ -464,7 +464,7 @@ export function sanitizeProject(raw: any): Project {
         })
       : [];
 
-    while (layers.length < 2) layers.push(makeLayer(layers.length));
+    while (layers.length < 1) layers.push(makeLayer(layers.length));
 
     return {
       id: frame.id || id('frame'),

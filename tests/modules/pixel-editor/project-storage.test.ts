@@ -120,3 +120,18 @@ test('loadProjects cleans historical duplicates and excess projects', () => {
 
   assert.deepEqual(loadProjects().map(({ id }) => id), ['duplicate', 'newest'])
 })
+
+test('new frames and projects start with one layer', () => {
+  assert.equal(makeFrame().layers.length, 1)
+  assert.equal(makeProject('single layer').frames[0].layers.length, 1)
+})
+
+test('sanitizeProject fills an empty layer list but preserves valid multiple layers', () => {
+  const empty = makeProject('empty layers')
+  empty.frames[0].layers = []
+  assert.equal(sanitizeProject(empty).frames[0].layers.length, 1)
+
+  const existing = makeProject('existing layers')
+  existing.frames[0].layers = [makeLayer(0), makeLayer(1)]
+  assert.equal(sanitizeProject(existing).frames[0].layers.length, 2)
+})
