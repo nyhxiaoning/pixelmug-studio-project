@@ -86,7 +86,13 @@
               <template #default="{ row }">
                 <div class="publish-name">
                   <!-- <div class="publish-thumb" /> -->
-                  <img :src="row?.coverUrl" width="128" height="64" alt="" />
+                  <img
+                    crossorigin="anonymous"
+                    :src="toCorsSafeImageUrl(row?.coverUrl || '')"
+                    width="128"
+                    height="64"
+                    alt=""
+                  />
                   <div>
                     <h3>{{ row.name }}</h3>
                     <em v-if="row.rejectReason" class="reject-tip"
@@ -237,7 +243,11 @@
             @click="selectDraftWork(item)"
           >
             <div class="publish-card-image-wrap">
-              <img :src="item.coverUrl" class="publish-card-image" />
+              <img
+                crossorigin="anonymous"
+                :src="toCorsSafeImageUrl(item.coverUrl)"
+                class="publish-card-image"
+              />
             </div>
             <div class="publish-card-body">
               <span class="publish-card-name">{{ item.name }}</span>
@@ -255,7 +265,8 @@
             <div class="resource-preview preview-dark-flow">
               <img
                 v-if="selectedWorkForTags?.coverUrl"
-                :src="selectedWorkForTags.coverUrl"
+                crossorigin="anonymous"
+                :src="toCorsSafeImageUrl(selectedWorkForTags.coverUrl)"
                 class="preview-cover-img"
                 alt="preview"
               />
@@ -349,6 +360,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading, CircleCheck } from '@element-plus/icons-vue'
+import { toCorsSafeImageUrl } from '@/lib/images/corsSafeImageUrl'
 
 import {
   unpublishWorkApi,

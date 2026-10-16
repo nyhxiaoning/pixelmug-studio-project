@@ -753,6 +753,7 @@ const currentLocale = getCurrentLocale()
 
 // Upload functions
 import { uploadPixelJSON, uploadDoodle, uploadGif } from '@/lib/images/uploadFile'
+import { toCorsSafeImageUrl } from '@/lib/images/corsSafeImageUrl'
 
 // API
 import { createWorkApi, updateWorkApi, getWorkDetailApi } from '@/api/works'
@@ -1151,7 +1152,7 @@ async function loadImageFromUrl(url: string): Promise<HTMLImageElement> {
     image.crossOrigin = 'anonymous'
     image.onload = () => resolve(image)
     image.onerror = () => reject(new Error(`Failed to load image from ${url}`))
-    image.src = url
+    image.src = toCorsSafeImageUrl(url)
   })
 }
 
@@ -2023,7 +2024,9 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       (workDetail?.result?.gifFileUrl || workDetail?.result?.coverUrl)
     ) {
       // Step 2c: GIF 类型，从 gifFileUrl 或 coverUrl 解析动态图
-      const gifUrl = workDetail.result.gifFileUrl || workDetail.result.coverUrl
+      const gifSourceUrl = workDetail.result.gifFileUrl || workDetail.result.coverUrl
+      if (!gifSourceUrl) throw new Error('Missing GIF source URL')
+      const gifUrl = toCorsSafeImageUrl(gifSourceUrl)
       console.log('[PixelEditor] No editableFileUrl, parsing GIF from url:', gifUrl)
 
       // 先下载 GIF 文件

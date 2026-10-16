@@ -242,7 +242,8 @@
           <div class="preview preview-dark-cluster">
             <img
               v-if="work.coverUrl"
-              :src="work.coverUrl"
+              crossorigin="anonymous"
+              :src="toCorsSafeImageUrl(work.coverUrl)"
               :alt="work.title"
               class="preview-image"
             />
@@ -351,7 +352,8 @@
                 <div class="row-preview preview-dark-cluster">
                   <img
                     v-if="row.coverUrl"
-                    :src="row.coverUrl"
+                    crossorigin="anonymous"
+                    :src="toCorsSafeImageUrl(row.coverUrl)"
                     :alt="row.title"
                     class="preview-image"
                   />
@@ -445,6 +447,7 @@ import {
   uploadStaticImageWithJson,
   uploadGifWithFrames,
 } from '@/lib/images/uploadFile'
+import { toCorsSafeImageUrl } from '@/lib/images/corsSafeImageUrl'
 
 import {
   decodeGifFrames,
