@@ -1,5 +1,5 @@
 /**
- * 英文语言包
+ * 日语语言包
  */
 import common from './common'
 

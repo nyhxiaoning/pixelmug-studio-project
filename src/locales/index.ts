@@ -5,24 +5,29 @@
 import { createI18n } from 'vue-i18n'
 import zhCN from './zh-CN'
 import enUS from './en-US'
+import jaJP from './ja'
+import koKR from './ko-KR'
 
 // 支持的语言列表
 export const SUPPORT_LOCALES = ['zh-CN', 'en-US'] as const
+// export const SUPPORT_LOCALES = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR'] as const
 export type SupportLocale = typeof SUPPORT_LOCALES[number]
 
 // 默认语言
-export const DEFAULT_LOCALE: SupportLocale = 'en-US'
+export const DEFAULT_LOCALE: SupportLocale = 'zh-CN'
 
 // 语言包
 const messages = {
   'zh-CN': zhCN,
-  'en-US': enUS
+  'en-US': enUS,
+  // 'ja-JP': jaJP,
+  // 'ko-KR': koKR
 }
 
 // 从本地存储获取语言设置
-const getStoredLocale = (): SupportLocale => {
-  const stored = localStorage.getItem('locale') as SupportLocale
-  return SUPPORT_LOCALES.includes(stored) ? stored : DEFAULT_LOCALE
+const getStoredLocale = (): SupportLocale | null => {
+  const stored = localStorage.getItem('locale') as SupportLocale | null
+  return stored && SUPPORT_LOCALES.includes(stored) ? stored : null
 }
 
 // 从浏览器获取语言设置
@@ -76,8 +81,8 @@ export const getLocale = (): SupportLocale => {
 // 切换语言
 export const toggleLocale = () => {
   const currentLocale = getLocale()
-  console.log(currentLocale, 'currentLocale')
-  const newLocale = currentLocale === 'zh-CN' ? 'en-US' : 'zh-CN'
+  const currentIndex = SUPPORT_LOCALES.indexOf(currentLocale)
+  const newLocale = SUPPORT_LOCALES[(currentIndex + 1) % SUPPORT_LOCALES.length] ?? DEFAULT_LOCALE
   setLocale(newLocale)
 }
 
@@ -85,7 +90,9 @@ export const toggleLocale = () => {
 export const getLocaleDisplayName = (locale: SupportLocale): string => {
   const displayNames: Record<SupportLocale, string> = {
     'zh-CN': '简体中文',
-    'en-US': 'English'
+    'en-US': 'English',
+    // 'ja-JP': '日本語',
+    // 'ko-KR': '한국어'
   }
   return displayNames[locale]
 }
