@@ -1,4 +1,5 @@
 import { defineStore } from "pinia"
+import { clearLogoutStorage } from "./logout-storage.ts"
 const TOKEN_KEY = "bubble_admin_token"
 const COMPANY_KEY = "bubble_admin_company"
 const MENUS_KEY = "bubble_admin_menus"
@@ -75,8 +76,7 @@ export const useUserStore = defineStore("user", {
       localStorage.removeItem("bubble_admin_name")
       localStorage.removeItem(COMPANY_KEY)
       localStorage.removeItem(MENUS_KEY)
-      // 清除预览设备绑定选择
-      sessionStorage.removeItem("creator.preview.deviceIds")
+      clearLogoutStorage(localStorage, sessionStorage)
     }
   },
   persist: [

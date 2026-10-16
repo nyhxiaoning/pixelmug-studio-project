@@ -11,7 +11,7 @@ export const SUPPORT_LOCALES = ['zh-CN', 'en-US'] as const
 export type SupportLocale = typeof SUPPORT_LOCALES[number]
 
 // 默认语言
-export const DEFAULT_LOCALE: SupportLocale = 'zh-CN'
+export const DEFAULT_LOCALE: SupportLocale = 'en-US'
 
 // 语言包
 const messages = {
