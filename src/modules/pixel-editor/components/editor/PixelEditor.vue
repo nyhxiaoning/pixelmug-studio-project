@@ -1861,11 +1861,9 @@ async function loadWorkForEdit(workId: string): Promise<void> {
 
   try {
     loadingWork.value = true
-    editingWorkId.value = workId
 
     // Step 1: 获取作品详情
     const workDetail = await getWorkDetailApi(workId)
-    editingWork.value = workDetail
 
     console.log('Work detail loaded:', workDetail)
 
@@ -1908,6 +1906,8 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       // Step 5: 切换到编辑模式
       projects.value.push(newProject)
       project.value = newProject
+      editingWorkId.value = workId
+      editingWork.value = workDetail
       markCurrentWorkSaved()
       view.value = 'editor'
       currentId.value = newProject.id
@@ -1993,6 +1993,8 @@ async function loadWorkForEdit(workId: string): Promise<void> {
 
         projects.value.push(newProject)
         project.value = newProject
+        editingWorkId.value = workId
+        editingWork.value = workDetail
         markCurrentWorkSaved()
         view.value = 'editor'
         currentId.value = newProject.id
@@ -2119,6 +2121,8 @@ async function loadWorkForEdit(workId: string): Promise<void> {
 
       projects.value.push(newProject)
       project.value = newProject
+      editingWorkId.value = workId
+      editingWork.value = workDetail
       markCurrentWorkSaved()
       view.value = 'editor'
       currentId.value = newProject.id
@@ -2561,6 +2565,7 @@ function handleDeleteFrame(): void {
   snapshot()
   project.value.frames.splice(currentFrameIndex.value, 1)
   currentFrameIndex.value = Math.min(currentFrameIndex.value, project.value.frames.length - 1)
+  activeLayer.value = Math.min(activeLayer.value, (currentFrame.value?.layers.length || 1) - 1)
   touchProject(t('common.pxm_editor_frame_deleted'))
 }
 
@@ -3524,6 +3529,7 @@ async function handleLoadGifImage(event: Event): Promise<void> {
       selectedFrameIndex,
       frames
     )
+    activeLayer.value = 0
     touchProject(t('common.pxm_editor_gif_imported', { count: frames.length }))
   } catch (error) {
     status.value = (error as Error).message
