@@ -9,6 +9,8 @@ import {
   frameCountAfterReplacement,
   replaceFramesFromIndex,
 } from '../../../src/modules/pixel-editor/core/frame-import.ts'
+import { encodeGif } from '../../../src/modules/pixel-editor/core/gif-encoder.ts'
+import { sampleGifFramesByDuration } from '../../../src/modules/pixel-editor/core/gif-frame-sampling.ts'
 
 const editorSource = readFileSync(
   new URL('../../../src/modules/pixel-editor/components/editor/PixelEditor.vue', import.meta.url),
@@ -77,6 +79,11 @@ function harness(previousWorkId: string | null = null, decodedFrameCount = 51) {
   const updates: string[] = []
   const creates: unknown[] = []
   const calls = { render: 0, sanitize: 0, snapshot: 0 }
+  const captured = {
+    project: null as unknown,
+    gifBlobs: [] as Blob[],
+    replacements: [] as unknown[][],
+  }
   const dependencies = {
     computed,
     project,
@@ -87,7 +94,17 @@ function harness(previousWorkId: string | null = null, decodedFrameCount = 51) {
     status,
     MAX_PROJECT_FRAMES,
     frameCountAfterReplacement,
-    replaceFramesFromIndex,
+    replaceFramesFromIndex: (
+      target: unknown[],
+      startIndex: number,
+      replacements: unknown[]
+    ) => {
+      captured.replacements.push(replacements)
+      return replaceFramesFromIndex(target, startIndex, replacements)
+    },
+    sampleGifFramesByDuration,
+    encodeGif,
+    requiresGifResave: ref(false),
     blankWorkChecked: ref(false),
     lastSaveTimestamp: ref(0),
     saving: ref(false),
@@ -137,8 +154,15 @@ function harness(previousWorkId: string | null = null, decodedFrameCount = 51) {
       calls.snapshot += 1
     },
     touchProject() {},
-    uploadPixelJSON: async () => ({ fileUrl: 'https://example.test/local.json' }),
+    uploadPixelJSON: async (data: unknown) => {
+      captured.project = data
+      return { fileUrl: 'https://example.test/local.json' }
+    },
     uploadDoodle: async () => ({ cover: 'cover', binFileUrl: 'bin', binSize: 1024 }),
+    uploadGif: async (blob: Blob) => {
+      captured.gifBlobs.push(blob)
+      return { cover: 'cover', fileSize: 1024 }
+    },
     compositeFrame: () => ['#ffffff'],
     updateWorkApi: async (id: string) => {
       updates.push(id)
@@ -167,28 +191,22 @@ function harness(previousWorkId: string | null = null, decodedFrameCount = 51) {
     ],
     dependencies
   )
-  return { ...bindings, ...dependencies, updates, creates, calls }
+  return { ...bindings, ...dependencies, updates, creates, calls, captured }
 }
 
 for (const previousWorkId of [null, 'prior-remote-work']) {
-  test(`rejecting a 51-frame remote GIF preserves ${previousWorkId ?? 'local draft'} autosave identity`, async () => {
+  test(`loading a 51-frame remote GIF samples it to 50 frames and marks it for resave (previous: ${previousWorkId ?? 'local draft'})`, async () => {
     const editor = harness(previousWorkId)
-    const previousProject = editor.project.value
-    const previousWork = editor.editingWork.value
 
-    await editor.loadWorkForEdit('rejected-remote-work')
-    assert.equal(editor.project.value, previousProject)
+    await editor.loadWorkForEdit('sampled-remote-work')
+
     assert.equal(editor.loadingWork.value, false)
-    assert.equal(editor.status.value, 'common.pxm_editor_frame_limit:50')
-    assert.deepEqual(editor.calls, { render: 0, sanitize: 0, snapshot: 0 })
-    assert.equal(editor.editingWorkId.value, previousWorkId)
-    assert.equal(editor.editingWork.value, previousWork)
-
-    assert.equal(await editor.doSilentSave(), true)
-    assert.equal(editor.updates.includes('rejected-remote-work'), false)
-    assert.deepEqual(editor.updates, previousWorkId ? [previousWorkId] : [])
-    assert.equal(editor.creates.length, previousWorkId ? 0 : 1)
-    if (previousWorkId) assert.equal(editor.editingWork.value, previousWork)
+    assert.equal(editor.project.value.frames.length, 50)
+    assert.equal(editor.editingWorkId.value, 'sampled-remote-work')
+    assert.equal(editor.editingWork.value?.result.id, 'sampled-remote-work')
+    assert.equal(editor.requiresGifResave.value, true)
+    assert.equal(editor.calls.render, 50)
+    assert.equal(editor.calls.sanitize, 1)
   })
 }
 
@@ -202,6 +220,37 @@ test('loading a valid 50-frame remote GIF commits its project and editing identi
   assert.equal(editor.editingWorkId.value, 'accepted-remote-work')
   assert.equal(editor.editingWork.value?.result.id, 'accepted-remote-work')
   assert.equal(editor.loadingWork.value, false)
+})
+
+test('importing a 100-frame GIF at frame 11 keeps the project at 50 frames', async () => {
+  const editor = harness(null, 100)
+  editor.project.value.frames = Array.from({ length: 50 }, () => frame())
+  editor.currentFrameIndex.value = 10
+
+  await editor.handleLoadGifImage({ target: { files: [{}], value: 'import.gif' } })
+
+  assert.equal(editor.project.value.frames.length, 50)
+  assert.equal(editor.captured.replacements[0].length, MAX_PROJECT_FRAMES - 10)
+  assert.equal(editor.calls.snapshot, 1)
+})
+
+test('saving a 51-frame project normalizes frames without changing total duration', async () => {
+  const editor = harness()
+  const sourceFrames = Array.from({ length: 51 }, (_, index) => ({
+    ...frame(),
+    delay: index % 2 === 0 ? 25 : 15,
+  }))
+  editor.project.value.frames = sourceFrames
+
+  assert.equal(await editor.saveOSSOnly(), true)
+
+  const uploaded = editor.captured.project as { frames: { delay: number }[] }
+  assert.ok(uploaded.frames.length <= MAX_PROJECT_FRAMES)
+  assert.equal(
+    uploaded.frames.reduce((sum, f) => sum + f.delay, 0),
+    sourceFrames.reduce((sum, f) => sum + Math.max(20, Math.round(f.delay)), 0)
+  )
+  assert.equal(editor.requiresGifResave.value, false)
 })
 
 test('GIF replacement from layer 2 selects an existing imported layer', async () => {

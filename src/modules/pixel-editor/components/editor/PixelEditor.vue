@@ -816,6 +816,7 @@ import {
   frameCountAfterReplacement,
   replaceFramesFromIndex,
 } from '@/modules/pixel-editor/core/frame-import'
+import { sampleGifFramesByDuration } from '@/modules/pixel-editor/core/gif-frame-sampling'
 
 // Type definitions
 interface Tool {
@@ -965,6 +966,7 @@ const router = useRouter()
 const editingWorkId = ref<string | null>(null)
 const editingWork = ref<CreatorWorkVO | null>(null)
 const loadingWork = ref(false)
+const requiresGifResave = ref(false)
 
 // Auto-save state
 const lastSaveTimestamp = ref<number>(0) // 上次成功保存的时间戳
@@ -1632,6 +1634,8 @@ async function doSilentSave(): Promise<boolean> {
 
 /** 仅执行 OSS 上传 + 创建/更新，不弹提示（供自动保存和离开页面调用） */
 async function saveOSSOnly(): Promise<boolean> {
+  const outputFrames = sampleGifFramesByDuration(project.value.frames, MAX_PROJECT_FRAMES)
+
   const projectData = {
     id: project.value.id,
     version: project.value.version,
@@ -1640,7 +1644,7 @@ async function saveOSSOnly(): Promise<boolean> {
     height: project.value.height,
     currentFrameIndex: project.value.currentFrameIndex,
     activeLayer: project.value.activeLayer,
-    frames: (project.value.frames || []).map((frame) => ({
+    frames: outputFrames.map((frame) => ({
       ...frame,
       layers: (frame.layers || []).map((layer) => ({
         ...layer,
@@ -1659,8 +1663,8 @@ async function saveOSSOnly(): Promise<boolean> {
   let binFileSize: number | undefined
 
   // Step 2a
-  if (project.value.frames && project.value.frames.length > 0) {
-    const firstFrame = project.value.frames[0]
+  if (outputFrames.length > 0) {
+    const firstFrame = outputFrames[0]
     if (firstFrame.layers && firstFrame.layers.length > 0) {
       const firstLayerPixels = firstFrame.layers[0].pixels
       const doodleUploadResult = await uploadDoodle(firstLayerPixels)
@@ -1671,8 +1675,8 @@ async function saveOSSOnly(): Promise<boolean> {
   }
 
   // Step 2b: 静态图
-  if (project.value.frames && project.value.frames.length === 1) {
-    const pixels = compositeFrame(currentFrame.value)
+  if (outputFrames.length === 1) {
+    const pixels = compositeFrame(outputFrames[0])
     const staticDoodleResult = await uploadDoodle(pixels)
     binFileUrl = staticDoodleResult.binFileUrl
     binFileSize = staticDoodleResult.binSize
@@ -1681,8 +1685,8 @@ async function saveOSSOnly(): Promise<boolean> {
 
   // Step 2c: 动图
   let gifFileSize: number | undefined
-  if (project.value.frames && project.value.frames.length > 1) {
-    const gifSourceFrames = project.value.frames.map((frame) => ({
+  if (outputFrames.length > 1) {
+    const gifSourceFrames = outputFrames.map((frame) => ({
       delay: frame.delay,
       pixels: compositeFrame(frame),
     }))
@@ -1697,7 +1701,7 @@ async function saveOSSOnly(): Promise<boolean> {
     gifFileSize = gifUploadResult.fileSize
   }
 
-  const isGif = (project.value.frames?.length || 0) > 1
+  const isGif = outputFrames.length > 1
   const workData: CreatorWorkSaveRequest = {
     title: project.value.name,
     type: isGif ? 'GIF' : 'STATIC',
@@ -1709,8 +1713,8 @@ async function saveOSSOnly(): Promise<boolean> {
     binFileSize: isGif ? undefined : 1024,
     width: project.value.width,
     height: project.value.height,
-    frameCount: project.value.frames.length,
-    frameDelay: project.value.frames[0]?.delay || 120,
+    frameCount: outputFrames.length,
+    frameDelay: outputFrames[0]?.delay || 120,
   }
 
   // 不能超过50k
@@ -1732,6 +1736,7 @@ async function saveOSSOnly(): Promise<boolean> {
       }
     }
 
+    requiresGifResave.value = false
     return true
   } else {
     // 不能超过50k，暂时不限制
@@ -1746,6 +1751,7 @@ async function saveOSSOnly(): Promise<boolean> {
       const detail = await getWorkDetailApi(newId)
       editingWork.value = detail
     }
+    requiresGifResave.value = false
     return true
   }
 }
@@ -1808,6 +1814,14 @@ async function pushCurrentWorkToDevice(selectedDevices: string[]): Promise<void>
       }
     }
 
+    if (
+      work.type === 'GIF' &&
+      (!Number.isInteger(work.frameCount) || work.frameCount > MAX_PROJECT_FRAMES)
+    ) {
+      ElMessage.warning(t('common.pxm_editor_frame_limit', { n: MAX_PROJECT_FRAMES }))
+      return
+    }
+
     // 增加一下这里的work
     const deviceLength = selectedDevices.length
     const res = await previewToDeviceApi({
@@ -1849,7 +1863,7 @@ const sendWorkToDevice = async () => {
   }
 
   await runDevicePreview({
-    hasChanges: hasChangesSinceLastSave,
+    hasChanges: () => hasChangesSinceLastSave() || requiresGifResave.value,
     save: handleSaveToOSS,
     preview: () => pushCurrentWorkToDevice(selectedDevices),
   })
@@ -1858,6 +1872,7 @@ const sendWorkToDevice = async () => {
 // Project management
 async function loadWorkForEdit(workId: string): Promise<void> {
   if (!workId) return
+  let loadedWorkRequiresGifResave = false
 
   try {
     loadingWork.value = true
@@ -1874,7 +1889,17 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       console.log('Project data loaded from URL:', projectData)
 
       // Step 3: 转换数据为 Project 格式
-      const frames = (projectData.frames || []).map((frameData) => ({
+      const sourceFrames = projectData.frames || []
+      const sampleableProjectFrames = sourceFrames.map((frame) => ({
+        ...frame,
+        delay: Number(frame.delay),
+      }))
+      const sampledProjectFrames = sampleableProjectFrames.length
+        ? sampleGifFramesByDuration(sampleableProjectFrames, MAX_PROJECT_FRAMES)
+        : sampleableProjectFrames
+      loadedWorkRequiresGifResave = sampledProjectFrames.length !== sourceFrames.length
+
+      const frames = sampledProjectFrames.map((frameData) => ({
         id: frameData.id || id('frame'),
         delay: frameData.delay || 120,
         viewportX: frameData.viewportX || DEFAULT_VIEWPORT_X,
@@ -1908,6 +1933,7 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       project.value = newProject
       editingWorkId.value = workId
       editingWork.value = workDetail
+      requiresGifResave.value = loadedWorkRequiresGifResave
       markCurrentWorkSaved()
       view.value = 'editor'
       currentId.value = newProject.id
@@ -1995,6 +2021,7 @@ async function loadWorkForEdit(workId: string): Promise<void> {
         project.value = newProject
         editingWorkId.value = workId
         editingWork.value = workDetail
+        requiresGifResave.value = loadedWorkRequiresGifResave
         markCurrentWorkSaved()
         view.value = 'editor'
         currentId.value = newProject.id
@@ -2046,14 +2073,12 @@ async function loadWorkForEdit(workId: string): Promise<void> {
 
       // 解码 GIF 帧
       console.log('[PixelEditor] GIF: decoding frames...')
-      const gifFrames = await decodeGifFrames(gifFile)
-      if (gifFrames.length > MAX_PROJECT_FRAMES) {
-        showFrameLimit()
-        return
-      }
-      console.log('[PixelEditor] GIF: decoded', gifFrames.length, 'frames')
+      const decodedGifFrames = await decodeGifFrames(gifFile)
+      const sampledGifFrames = sampleGifFramesByDuration(decodedGifFrames, MAX_PROJECT_FRAMES)
+      loadedWorkRequiresGifResave = sampledGifFrames.length !== decodedGifFrames.length
+      console.log('[PixelEditor] GIF: decoded', sampledGifFrames.length, 'frames')
 
-      const frames = gifFrames.map(({ image, delay }) => {
+      const frames = sampledGifFrames.map(({ image, delay }) => {
         const frame = makeFrame()
         frame.delay = delay
         const pixels = renderImageToPixels(image, {
@@ -2123,6 +2148,7 @@ async function loadWorkForEdit(workId: string): Promise<void> {
       project.value = newProject
       editingWorkId.value = workId
       editingWork.value = workDetail
+      requiresGifResave.value = loadedWorkRequiresGifResave
       markCurrentWorkSaved()
       view.value = 'editor'
       currentId.value = newProject.id
@@ -2204,6 +2230,7 @@ function handleNewProject(): void {
   const newProject = makeProject(`${stamp}`)
   projects.value.push(newProject)
   project.value = newProject
+  requiresGifResave.value = false
   view.value = 'editor'
   clearSelectionState()
   syncFrameDelayInput()
@@ -2217,6 +2244,7 @@ function handleOpenProject(projectId: string): void {
   project.value = sanitizeProject(found)
   history.value = []
   future.value = []
+  requiresGifResave.value = false
   view.value = 'editor'
   clearSelectionState()
   syncFrameDelayInput()
@@ -2275,12 +2303,8 @@ function handleExportProjectGif(
 ): void {
   const exportProject = getProjectForExport(projectId, projectOverride)
   if (!exportProject) return
-  if (exportProject.frames.length > MAX_GIF_EXPORT_FRAMES) {
-    status.value = t('common.pxm_editor_gif_export_limit', { n: MAX_GIF_EXPORT_FRAMES })
-    alert(status.value)
-    return
-  }
-  const sourceFrames = exportProject.frames.map((frame) => ({
+  const sampledExportFrames = sampleGifFramesByDuration(exportProject.frames, MAX_GIF_EXPORT_FRAMES)
+  const sourceFrames = sampledExportFrames.map((frame) => ({
     delay: frame.delay,
     pixels: compositeFrame(frame),
   }))
@@ -3495,18 +3519,20 @@ async function handleLoadGifImage(event: Event): Promise<void> {
   if (!file) return
   try {
     const selectedFrameIndex = currentFrameIndex.value
-    const gifFrames = await decodeGifFrames(file)
+    const decodedGifFrames = await decodeGifFrames(file)
+    const availableFrames = MAX_PROJECT_FRAMES - selectedFrameIndex
+    const sampledGifFrames = sampleGifFramesByDuration(decodedGifFrames, availableFrames)
     const projectedFrameCount = frameCountAfterReplacement(
       project.value.frames.length,
       selectedFrameIndex,
-      gifFrames.length
+      sampledGifFrames.length
     )
     if (projectedFrameCount > MAX_PROJECT_FRAMES) {
       showFrameLimit()
       return
     }
     snapshot()
-    const frames = gifFrames.map(({ image, delay }) => {
+    const frames = sampledGifFrames.map(({ image, delay }) => {
       const frame = makeFrame()
       frame.delay = delay
       const pixels = renderImageToPixels(image, {

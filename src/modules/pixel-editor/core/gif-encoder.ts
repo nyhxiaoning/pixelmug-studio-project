@@ -5,6 +5,8 @@
  * - Encodes standard animated GIF with Netscape looping extension.
  */
 
+import { normalizeGifFrameDelay } from './gif-frame-sampling.ts'
+
 const BLACK = '#000000';
 const TRANSPARENT_INDEX = 0;
 
@@ -209,8 +211,14 @@ export function encodeGif(options: EncodeGifOptions): Blob {
   pushAscii(bytes, 'NETSCAPE2.0');
   bytes.push(0x03, 0x01, 0x00, 0x00, 0x00);
 
+  let elapsedMs = 0
+  let writtenCentiseconds = 0
+
   frames.forEach((frame) => {
-    const delayCs = Math.max(2, Math.round(Number(frame.delay || 120) / 10));
+    elapsedMs += normalizeGifFrameDelay(frame.delay)
+    const targetElapsedCentiseconds = Math.round(elapsedMs / 10)
+    const delayCs = targetElapsedCentiseconds - writtenCentiseconds
+    writtenCentiseconds = targetElapsedCentiseconds
     const indices = scaleFrameToIndices(frame, sourceWidth, sourceHeight, scale, palette);
     const lzwData = lzwEncode(indices, 8);
 

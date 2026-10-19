@@ -1,4 +1,4 @@
-import { encodeGif } from './gif-encoder'
+import { encodeGif } from './gif-encoder.ts'
 
 export interface PixelatedGifFrame {
   delay: number

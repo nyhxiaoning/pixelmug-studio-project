@@ -53,3 +53,23 @@ test('previews clean work without saving', async () => {
   assert.equal(result, true)
   assert.deepEqual(calls, ['preview'])
 })
+
+test('saves before previewing when normalization is pending even if the draft is clean', async () => {
+  const calls: string[] = []
+  const hasChangesSinceLastSave = () => false
+  const requiresGifResave = true
+
+  const result = await runDevicePreview({
+    hasChanges: () => hasChangesSinceLastSave() || requiresGifResave,
+    save: async () => {
+      calls.push('save')
+      return true
+    },
+    preview: async () => {
+      calls.push('preview')
+    },
+  })
+
+  assert.equal(result, true)
+  assert.deepEqual(calls, ['save', 'preview'])
+})

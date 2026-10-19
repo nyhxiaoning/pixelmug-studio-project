@@ -455,8 +455,15 @@ import {
   renderImageToPixels,
 } from '@/modules/pixel-editor/core/image-import'
 import { encodePixelatedGifFile } from '@/modules/pixel-editor/core/gif-upload'
+import { sampleGifFramesByDuration } from '@/modules/pixel-editor/core/gif-frame-sampling'
 
-import { CANVAS_WIDTH, CANVAS_HEIGHT, WIDTH, HEIGHT } from '@/modules/pixel-editor/core/index'
+import {
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  WIDTH,
+  HEIGHT,
+  MAX_PROJECT_FRAMES,
+} from '@/modules/pixel-editor/core/index'
 
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAppI18n } from '@/common/composables/useI18n'
@@ -498,6 +505,7 @@ interface WorkItem {
   editableFileUrl: string
   binFileUrl: string
   binFileSize: number
+  frameCount: number | undefined
 }
 
 /** 将接口 CreatorWorkVO 适配为 UI 内部 workItem */
@@ -515,6 +523,7 @@ function toWorkItem(api: CreatorWorkVO): WorkItem {
     editableFileUrl: api.editableFileUrl ?? '',
     binFileSize: api.binFileSize ?? 0,
     binFileUrl: api.binFileUrl ?? '',
+    frameCount: api.frameCount,
   }
 }
 
@@ -758,12 +767,13 @@ const handleFileUpload = async (e: Event) => {
   try {
     if (fileType === 'image/gif') {
       // Step 1: 解析 GIF 为多帧数据
-      const gifFrames = await decodeGifFrames(file)
+      const decodedGifFrames = await decodeGifFrames(file)
+      const sampledGifFrames = sampleGifFramesByDuration(decodedGifFrames, MAX_PROJECT_FRAMES)
 
-      console.log('GIF parsed to frames:', gifFrames.length, 'frames')
+      console.log('GIF parsed to frames:', sampledGifFrames.length, 'frames')
 
       // Step 2: 将每一帧转换为像素数据
-      const framesData = gifFrames.map(({ image, delay }) => {
+      const framesData = sampledGifFrames.map(({ image, delay }) => {
         const pixels = renderImageToPixels(image, {
           fit: 'contain',
           cropX: 0.5,
@@ -820,7 +830,7 @@ const handleFileUpload = async (e: Event) => {
         binFileSize: uploadResult.binSize,
         width: WIDTH,
         height: HEIGHT,
-        frameCount: framesData.length,
+        frameCount: sampledGifFrames.length,
         frameDelay: framesData[0]?.delay || 120,
       }
 
@@ -976,6 +986,15 @@ const sendWorkToDevice = async (work: WorkItem) => {
     const fileUrl = work.coverUrl || work.gifFileUrl || work.editableFileUrl || ''
     if (!fileUrl) {
       ElMessage.warning(t('common.pxm_preview_unavailable'))
+      return
+    }
+
+    if (
+      work.type === 'GIF' &&
+      (!Number.isInteger(work.frameCount) ||
+        (work.frameCount as number) > MAX_PROJECT_FRAMES)
+    ) {
+      ElMessage.warning(t('common.pxm_editor_frame_limit', { n: MAX_PROJECT_FRAMES }))
       return
     }
 

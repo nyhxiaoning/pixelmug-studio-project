@@ -129,36 +129,100 @@ test('enforces the project frame limit before adding, duplicating, or importing 
       /\{\s*if \(project\.value\.frames\.length >= MAX_PROJECT_FRAMES\) \{\s*showFrameLimit\(\)\s*return\s*\}\s*snapshot\(\)/
     )
   }
-  assert.match(importHandler, /frameCountAfterReplacement\(/)
-  assert.match(importHandler, /> MAX_PROJECT_FRAMES/)
+  assert.match(importHandler, /const availableFrames = MAX_PROJECT_FRAMES - selectedFrameIndex/)
   assert.match(
     importHandler,
-    /await decodeGifFrames\(file\)\s*const projectedFrameCount = frameCountAfterReplacement\(\s*project\.value\.frames\.length,\s*selectedFrameIndex,\s*gifFrames\.length\s*\)\s*if \(projectedFrameCount > MAX_PROJECT_FRAMES\) \{\s*showFrameLimit\(\)\s*return\s*\}\s*snapshot\(\)/
+    /const sampledGifFrames = sampleGifFramesByDuration\(decodedGifFrames, availableFrames\)/
   )
-  assert.ok(importHandler.indexOf('snapshot()') < importHandler.indexOf('gifFrames.map('))
-  assert.ok(importHandler.indexOf('gifFrames.map(') < importHandler.indexOf('replaceFramesFromIndex('))
+  assert.ok(
+    importHandler.indexOf('sampleGifFramesByDuration(') <
+      importHandler.indexOf('renderImageToPixels(')
+  )
+  assert.match(importHandler, /frameCountAfterReplacement\([\s\S]*sampledGifFrames\.length/)
+  assert.match(importHandler, /> MAX_PROJECT_FRAMES/)
+  assert.ok(importHandler.indexOf('snapshot()') < importHandler.indexOf('sampledGifFrames.map('))
+  assert.ok(
+    importHandler.indexOf('sampledGifFrames.map(') < importHandler.indexOf('replaceFramesFromIndex(')
+  )
 })
 
-test('rejects oversized library GIFs before rendering or sanitizing frames', () => {
+test('resamples oversized library GIFs before rendering and marks them for resave', () => {
   const libraryLoadHandler = extractBraceBlock(
     editorSource,
     'async function loadWorkForEdit(workId: string): Promise<void>'
   )
-  const decodeIndex = libraryLoadHandler.indexOf('const gifFrames = await decodeGifFrames(gifFile)')
+  const decodeIndex = libraryLoadHandler.indexOf('const decodedGifFrames = await decodeGifFrames(gifFile)')
   assert.ok(decodeIndex >= 0)
   const gifFallback = libraryLoadHandler.slice(decodeIndex)
 
   assert.match(
     gifFallback,
-    /await decodeGifFrames\(gifFile\)\s*if \(gifFrames\.length > MAX_PROJECT_FRAMES\) \{\s*showFrameLimit\(\)\s*return\s*\}/
+    /const sampledGifFrames = sampleGifFramesByDuration\(decodedGifFrames, MAX_PROJECT_FRAMES\)/
   )
-  const guardIndex = gifFallback.indexOf('if (gifFrames.length > MAX_PROJECT_FRAMES)')
-  const mapIndex = gifFallback.indexOf('gifFrames.map(')
+  assert.match(
+    gifFallback,
+    /loadedWorkRequiresGifResave = sampledGifFrames\.length !== decodedGifFrames\.length/
+  )
+  const sampleIndex = gifFallback.indexOf('sampleGifFramesByDuration(')
+  const mapIndex = gifFallback.indexOf('sampledGifFrames.map(')
+  const renderIndex = gifFallback.indexOf('renderImageToPixels(')
   const sanitizeIndex = gifFallback.indexOf('sanitizeProject(')
   const mutationIndex = gifFallback.indexOf('projects.value.push(')
-  assert.ok(guardIndex < mapIndex)
-  assert.ok(mapIndex < sanitizeIndex)
+  assert.ok(sampleIndex < mapIndex)
+  assert.ok(mapIndex < renderIndex)
+  assert.ok(renderIndex < sanitizeIndex)
   assert.ok(sanitizeIndex < mutationIndex)
+  assert.match(libraryLoadHandler, /requiresGifResave\.value = loadedWorkRequiresGifResave/)
+})
+
+test('samples editable JSON frames before sanitizing the loaded project', () => {
+  const libraryLoadHandler = extractBraceBlock(
+    editorSource,
+    'async function loadWorkForEdit(workId: string): Promise<void>'
+  )
+  const editableIndex = libraryLoadHandler.indexOf('const sourceFrames = projectData.frames || []')
+  assert.ok(editableIndex >= 0)
+  const editableBranch = libraryLoadHandler.slice(editableIndex)
+
+  assert.match(
+    editableBranch,
+    /const sampledProjectFrames = sampleableProjectFrames\.length[\s\S]*sampleGifFramesByDuration\(sampleableProjectFrames, MAX_PROJECT_FRAMES\)/
+  )
+  assert.match(
+    editableBranch,
+    /loadedWorkRequiresGifResave = sampledProjectFrames\.length !== sourceFrames\.length/
+  )
+  const sampleIndex = editableBranch.indexOf('sampleGifFramesByDuration(')
+  const sanitizeIndex = editableBranch.indexOf('sanitizeProject(')
+  assert.ok(sampleIndex >= 0 && sampleIndex < sanitizeIndex)
+})
+
+test('samples project frames once across save, export, and preview boundaries', () => {
+  const saveHandler = extractBraceBlock(
+    editorSource,
+    'async function saveOSSOnly(): Promise<boolean>'
+  )
+  const exportHandler = extractBraceBlock(
+    editorSource,
+    'function handleExportProjectGif('
+  )
+  const sendHandler = extractBraceBlock(editorSource, 'const sendWorkToDevice = async')
+
+  assert.match(
+    saveHandler,
+    /const outputFrames = sampleGifFramesByDuration\(project\.value\.frames, MAX_PROJECT_FRAMES\)/
+  )
+  assert.match(saveHandler, /frames: outputFrames\.map/)
+  assert.match(saveHandler, /frameCount: outputFrames\.length/)
+  assert.match(
+    exportHandler,
+    /sampleGifFramesByDuration\(exportProject\.frames, MAX_GIF_EXPORT_FRAMES\)/
+  )
+  assert.doesNotMatch(exportHandler, /frames\.length > MAX_GIF_EXPORT_FRAMES[\s\S]*return/)
+  assert.match(
+    sendHandler,
+    /hasChanges: \(\) => hasChangesSinceLastSave\(\) \|\| requiresGifResave\.value/
+  )
 })
 
 test('defines the localized frame limit status in every supported locale', () => {
