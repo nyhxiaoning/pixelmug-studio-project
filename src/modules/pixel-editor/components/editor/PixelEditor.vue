@@ -1790,6 +1790,23 @@ async function handleSaveToOSS(): Promise<boolean> {
   }
 }
 
+/** GIF 作品在列表接口缺失 frameCount 时，从 GIF 文件解码恢复实际帧数 */
+async function resolveGifFrameCount(work: WorkItem): Promise<number | undefined> {
+  const gifUrl = work.gifFileUrl ? toCorsSafeImageUrl(work.gifFileUrl) : ''
+  if (!gifUrl) return undefined
+  try {
+    const response = await fetch(gifUrl)
+    if (!response.ok) return undefined
+    const blob = await response.blob()
+    const file = new File([blob], 'preview.gif', { type: 'image/gif' })
+    const decoded = await decodeGifFrames(file)
+    return decoded.length
+  } catch (error) {
+    console.warn('Failed to resolve GIF frame count:', error)
+    return undefined
+  }
+}
+
 async function backHome() {
   // 点击保存的时候，首先拿到之前这个作品有没有
   // await handleSaveToOSS()
@@ -1814,12 +1831,16 @@ async function pushCurrentWorkToDevice(selectedDevices: string[]): Promise<void>
       }
     }
 
-    if (
-      work.type === 'GIF' &&
-      (!Number.isInteger(work.frameCount) || work.frameCount > MAX_PROJECT_FRAMES)
-    ) {
-      ElMessage.warning(t('common.pxm_editor_frame_limit', { n: MAX_PROJECT_FRAMES }))
-      return
+    if (work.type === 'GIF') {
+      // 列表接口未返回 frameCount 时，从 GIF 文件解码恢复实际帧数
+      let frameCount = work.frameCount
+      if (!Number.isInteger(frameCount)) {
+        frameCount = await resolveGifFrameCount(work)
+      }
+      if (!Number.isInteger(frameCount) || (frameCount as number) > MAX_PROJECT_FRAMES) {
+        ElMessage.warning(t('common.pxm_editor_frame_limit', { n: MAX_PROJECT_FRAMES }))
+        return
+      }
     }
 
     // 增加一下这里的work

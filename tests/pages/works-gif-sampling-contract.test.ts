@@ -30,11 +30,13 @@ test('keeps incoming GIF file-size validation unchanged', () => {
   assert.match(uploadFileSource, /case AllowedArtifactTypes\.GIF:\s*return file\.size > 5 \* 1024 \* 1024/)
 })
 
-test('blocks Works device preview for GIFs without a reliable compliant frame count', () => {
+test('recovers GIF frame count and blocks Works device preview over the limit', () => {
   const preview = block('const sendWorkToDevice = async', '</script>')
   assert.match(source, /frameCount:\s*api\.frameCount/)
+  assert.match(source, /async function resolveGifFrameCount\(work: WorkItem\)/)
+  assert.match(preview, /resolveGifFrameCount\(work\)/)
   assert.match(
     preview,
-    /work\.type === 'GIF'[\s\S]*!Number\.isInteger\(work\.frameCount\)[\s\S]*work\.frameCount as number\) > MAX_PROJECT_FRAMES[\s\S]*return/
+    /!Number\.isInteger\(frameCount\)[\s\S]*frameCount as number\) > MAX_PROJECT_FRAMES[\s\S]*return/
   )
 })
