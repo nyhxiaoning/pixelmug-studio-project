@@ -77,8 +77,8 @@ export function makeLayer(index: number = 0): Layer {
 
   return {
     id: id('layer'),
-    // name: langs === 'zh-CN' ? `图层 ${index + 1}` : `Layer ${index + 1}`,
-    name:  `Layer ${index + 1}`,
+    name: langs === 'zh-CN' ? `图层 ${index + 1}` : `Layer ${index + 1}`,
+    // name:  `Layer ${index + 1}`,
     visible: true,
     opacity: 1,
     pixels: emptyPixels(),
