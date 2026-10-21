@@ -1283,16 +1283,15 @@ onMounted(() => {
   overflow: hidden;
 }
 .preview-image {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-   /* 关闭平滑线性插值，启用锐利渲染 */
+  /* 保持像素画完整比例，避免 cover 裁剪后再进行模糊缩放 */
+  object-fit: contain;
+  /* 使用最近邻插值，避免像素边缘发虚 */
   image-rendering: crisp-edges;
-  /* Chrome/Edge 兼容像素化放大 */
   image-rendering: pixelated;
-  /* 兼容旧版 Safari */
   image-rendering: -webkit-optimize-contrast;
-
 }
 .work-meta {
   padding: 12px;
