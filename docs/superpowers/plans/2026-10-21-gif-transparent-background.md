@@ -43,7 +43,7 @@ test('preserves transparency when palette entry zero is a visible color', async 
 
   const [frame] = decodeGifRgbaFramesFromBuffer(bytes.buffer)
 
-  assert.deepEqual(Array.from(frame.rgba), [255, 0, 0, 0, 0, 0, 255, 255])
+  assert.deepEqual(Array.from(frame.rgba), [0, 0, 0, 0, 0, 0, 255, 255])
 })
 ```
 

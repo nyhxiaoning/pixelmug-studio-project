@@ -3,9 +3,8 @@
  * 图片导入和GIF解码
  */
 
-import { WIDTH, HEIGHT, EMPTY, hexToRgb, normalizeHex, palette, rgbToHex } from './index';
+import { WIDTH, HEIGHT, EMPTY, hexToRgb, normalizeHex, palette, rgbToHex } from './index.ts';
 import { parseGIF, decompressFrames } from 'gifuct-js';
-import type { ParsedFrameWithoutPatch } from 'gifuct-js';
 
 function nearestPaletteColorFn(r: number, g: number, b: number): string {
   let best = palette[0];
@@ -256,27 +255,121 @@ function isEmptyPixel(value: string | null | undefined): boolean {
 
 // ==================== GIF Decoding ====================
 
-/**
- * Build RGBA image data from color index canvas
- */
-function buildRgbaFromIndices(
-  canvasPixels: Uint8Array,
-  colorTable: [number, number, number][],
+export interface GifRgbaFrame {
+  rgba: Uint8ClampedArray;
+  width: number;
+  height: number;
+  delay: number;
+}
+
+function clearRgbaRect(
+  rgba: Uint8ClampedArray,
+  canvasWidth: number,
+  canvasHeight: number,
+  left: number,
+  top: number,
   width: number,
   height: number
-): ImageData {
-  const imageData = new ImageData(width, height);
-  const data = imageData.data;
-  for (let j = 0; j < canvasPixels.length; j++) {
-    const colorIdx = canvasPixels[j];
-    const color = colorTable[colorIdx] || [0, 0, 0];
-    const pos = j * 4;
-    data[pos] = color[0];
-    data[pos + 1] = color[1];
-    data[pos + 2] = color[2];
-    data[pos + 3] = 255;
+): void {
+  const right = Math.min(canvasWidth, left + width);
+  const bottom = Math.min(canvasHeight, top + height);
+  for (let y = Math.max(0, top); y < bottom; y += 1) {
+    const start = (y * canvasWidth + Math.max(0, left)) * 4;
+    const end = (y * canvasWidth + right) * 4;
+    rgba.fill(0, start, end);
   }
-  return imageData;
+}
+
+function drawRgbaPatch(
+  target: Uint8ClampedArray,
+  patch: Uint8ClampedArray,
+  canvasWidth: number,
+  canvasHeight: number,
+  left: number,
+  top: number,
+  width: number,
+  height: number
+): void {
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const sourceOffset = (y * width + x) * 4;
+      if (patch[sourceOffset + 3] === 0) continue;
+
+      const targetX = left + x;
+      const targetY = top + y;
+      if (targetX < 0 || targetX >= canvasWidth || targetY < 0 || targetY >= canvasHeight) continue;
+
+      const targetOffset = (targetY * canvasWidth + targetX) * 4;
+      target[targetOffset] = patch[sourceOffset];
+      target[targetOffset + 1] = patch[sourceOffset + 1];
+      target[targetOffset + 2] = patch[sourceOffset + 2];
+      target[targetOffset + 3] = patch[sourceOffset + 3];
+    }
+  }
+}
+
+/**
+ * Decode and composite GIF frames as RGBA data.
+ *
+ * Using gifuct-js patches avoids carrying palette indices across frames. This
+ * preserves transparency and also handles GIFs with local color tables.
+ */
+export function decodeGifRgbaFramesFromBuffer(buffer: ArrayBuffer): GifRgbaFrame[] {
+  const gif = parseGIF(buffer);
+  const parsedFrames = decompressFrames(gif, true) as Array<{
+    dims: { left: number; top: number; width: number; height: number };
+    delay: number;
+    disposalType: number;
+    patch: Uint8ClampedArray;
+  }>;
+
+  if (parsedFrames.length === 0) throw new Error('No valid GIF frames found');
+
+  const width = gif.lsd.width;
+  const height = gif.lsd.height;
+  const frames: GifRgbaFrame[] = [];
+  const canvas = new Uint8ClampedArray(width * height * 4);
+  let savedCanvas: Uint8ClampedArray | null = null;
+
+  for (let index = 0; index < parsedFrames.length; index += 1) {
+    const frame = parsedFrames[index];
+    const previousFrame = parsedFrames[index - 1];
+
+    if (previousFrame?.disposalType === 2) {
+      clearRgbaRect(
+        canvas,
+        width,
+        height,
+        previousFrame.dims.left,
+        previousFrame.dims.top,
+        previousFrame.dims.width,
+        previousFrame.dims.height
+      );
+    } else if (previousFrame?.disposalType === 3 && savedCanvas) {
+      canvas.set(savedCanvas);
+    }
+
+    savedCanvas = new Uint8ClampedArray(canvas);
+    drawRgbaPatch(
+      canvas,
+      frame.patch,
+      width,
+      height,
+      frame.dims.left,
+      frame.dims.top,
+      frame.dims.width,
+      frame.dims.height
+    );
+
+    frames.push({
+      rgba: new Uint8ClampedArray(canvas),
+      width,
+      height,
+      delay: Math.max(20, frame.delay),
+    });
+  }
+
+  return frames;
 }
 
 /**
@@ -298,83 +391,17 @@ export function decodeGifFramesFromBuffer(buffer: ArrayBuffer): GifFrame[] {
   // Parse GIF structure
   const gif = parseGIF(buffer);
   console.log('[GIF] Parsed:', gif.header.signature, gif.header.version, 'Size:', gif.lsd.width, 'x', gif.lsd.height);
+  const rgbaFrames = decodeGifRgbaFramesFromBuffer(buffer);
+  console.log('[GIF] Decompressed', rgbaFrames.length, 'frames');
 
-  // Use decompressFrames with buildImagePatches=false to get indexed pixel data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const parsedFrames: ParsedFrameWithoutPatch[] = decompressFrames(gif, false) as any;
-
-  console.log('[GIF] Decompressed', parsedFrames.length, 'frames');
-
-  if (parsedFrames.length === 0) {
-    console.error('[GIF] No frames returned from decompressFrames!');
-    throw new Error('No valid GIF frames found');
-  }
-
-  // Show raw frame info for debugging
-  for (let i = 0; i < parsedFrames.length; i++) {
-    const f = parsedFrames[i];
-    console.log(`[GIF] Frame ${i}: dims=${f.dims.width}x${f.dims.height}@(${f.dims.left},${f.dims.top}), delay=${f.delay}ms, disposal=${f.disposalType}, transparent=${f.transparentIndex}, pixels=${f.pixels.length}, colors=${f.colorTable.length}`);
-  }
-
-  // Reconstruct frame canvases with proper disposal method handling
   const frames: GifFrame[] = [];
-  const virtualCanvas = new Uint8Array(gif.lsd.width * gif.lsd.height);
-  let savedCanvas: Uint8Array | null = null;
-
-  for (let i = 0; i < parsedFrames.length; i++) {
-    const pf = parsedFrames[i];
-    const { dims, delay, pixels: framePixels, colorTable, transparentIndex } = pf;
-
-    // Apply disposal method from PREVIOUS frame
-    if (i > 0) {
-      const prevDisposal = parsedFrames[i - 1].disposalType;
-      if (prevDisposal === 2) {
-        // Restore to background: clear to background color
-        const bgIdx = gif.lsd.backgroundColorIndex;
-        for (let y = 0; y < dims.height; y++) {
-          for (let x = 0; x < dims.width; x++) {
-            const dx = dims.left + x;
-            const dy = dims.top + y;
-            if (dx < gif.lsd.width && dy < gif.lsd.height) {
-              virtualCanvas[dy * gif.lsd.width + dx] = bgIdx;
-            }
-          }
-        }
-        console.log(`[GIF] Frame ${i}: prev disposal=2 (restore to bg)`);
-      } else if (prevDisposal === 3) {
-        // Restore to previous
-        if (savedCanvas) {
-          virtualCanvas.set(savedCanvas);
-          console.log(`[GIF] Frame ${i}: prev disposal=3 (restore to prev)`);
-        }
-      }
-      // disposal=0 or 1: pixels accumulate naturally
-    }
-
-    // Save state before drawing (needed for disposal=3 of THIS frame)
-    savedCanvas = new Uint8Array(virtualCanvas);
-
-    // Draw current frame pixels onto virtual canvas
-    for (let y = 0; y < dims.height; y++) {
-      for (let x = 0; x < dims.width; x++) {
-        const dx = dims.left + x;
-        const dy = dims.top + y;
-        if (dx < gif.lsd.width && dy < gif.lsd.height) {
-          const srcIdx = y * dims.width + x;
-          const pIdx = framePixels[srcIdx];
-          if (pIdx !== transparentIndex) {
-            virtualCanvas[dy * gif.lsd.width + dx] = pIdx;
-          }
-        }
-      }
-    }
-
-    // Build RGBA canvas
+  for (let i = 0; i < rgbaFrames.length; i += 1) {
+    const frame = rgbaFrames[i];
     const rgbaCanvas = document.createElement('canvas');
-    rgbaCanvas.width = gif.lsd.width;
-    rgbaCanvas.height = gif.lsd.height;
+    rgbaCanvas.width = frame.width;
+    rgbaCanvas.height = frame.height;
     const ctx = rgbaCanvas.getContext('2d')!;
-    const imageData = buildRgbaFromIndices(virtualCanvas, colorTable, gif.lsd.width, gif.lsd.height);
+    const imageData = new ImageData(new Uint8ClampedArray(frame.rgba), frame.width, frame.height);
     ctx.putImageData(imageData, 0, 0);
 
     // Validate
@@ -385,8 +412,7 @@ export function decodeGifFramesFromBuffer(buffer: ArrayBuffer): GifFrame[] {
       if (sampleData[j + 3] > 0) opaqueCount++;
     }
 
-    const uniqueColors = new Set(virtualCanvas).size;
-    console.log(`[GIF] Frame ${i}: ${opaqueCount} opaque in ${sampleSz}x${sampleSz}, ${uniqueColors} colors`);
+    console.log(`[GIF] Frame ${i}: ${opaqueCount} opaque in ${sampleSz}x${sampleSz}`);
 
     if (opaqueCount === 0) {
       console.warn(`[GIF] Frame ${i}: WARNING - completely empty!`);
@@ -394,7 +420,7 @@ export function decodeGifFramesFromBuffer(buffer: ArrayBuffer): GifFrame[] {
 
     frames.push({
       image: rgbaCanvas,
-      delay: Math.max(20, delay),
+      delay: frame.delay,
     });
   }
 
